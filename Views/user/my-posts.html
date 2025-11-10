@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý tin đăng - Tìm Trọ Sinh Viên</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+
+        .content-wrapper {
+            padding: 3rem 0;
+        }
+
+        .posts-list {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .post-item {
+            display: grid;
+            grid-template-columns: 200px 1fr auto;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.3s ease;
+        }
+
+        .post-item:hover {
+            background: var(--light-color);
+        }
+
+        .post-item:last-child {
+            border-bottom: none;
+        }
+
+        .post-image img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+        }
+
+        .post-info h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        .post-meta {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .post-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .post-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+
+        @media (max-width: 768px) {
+            .post-item {
+                grid-template-columns: 1fr;
+            }
+
+            .post-actions {
+                flex-direction: row;
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar">
+            <a href="../home/index.html" class="logo">
+                <i class="fas fa-home"></i>
+                <span>Tìm Trọ SV</span>
+            </a>
+
+            <ul class="nav-menu">
+                <li><a href="../home/index.html" class="nav-link">Trang chủ</a></li>
+                <li><a href="../posts/list.html" class="nav-link">Danh sách trọ</a></li>
+                <li><a href="../posts/create.html" class="nav-link">Đăng tin</a></li>
+                <li><a href="favorites.html" class="nav-link">Yêu thích</a></li>
+                <li><a href="../chat/index.html" class="nav-link">Tin nhắn</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <a href="my-posts.html" class="btn btn-primary btn-sm">Tin của tôi</a>
+            </div>
+
+            <button class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <div class="page-header">
+        <h1>Quản Lý Tin Đăng</h1>
+        <p>Quản lý các bài đăng phòng trọ của bạn</p>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h2>Tin đăng của tôi (3)</h2>
+                </div>
+                <a href="../posts/create.html" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Đăng tin mới
+                </a>
+            </div>
+
+            <div class="posts-list">
+                <div class="post-item">
+                    <div class="post-image">
+                        <img src="https://via.placeholder.com/200x150/667eea/ffffff?text=Post+1" alt="Post">
+                    </div>
+                    <div class="post-info">
+                        <span class="badge badge-success">Đã duyệt</span>
+                        <h3>Phòng trọ gần ĐH Bách Khoa - An ninh tốt</h3>
+                        <div class="post-meta">
+                            <i class="fas fa-map-marker-alt"></i> 123 Lý Thường Kiệt, Quận 10, TP.HCM
+                        </div>
+                        <div style="color: var(--primary-color); font-size: 1.25rem; font-weight: 700;">
+                            2.5 triệu/tháng
+                        </div>
+                        <div class="post-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-eye"></i>
+                                <span>156 lượt xem</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-heart"></i>
+                                <span>12 yêu thích</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i>
+                                <span>Đăng 2 ngày trước</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="post-actions">
+                        <a href="../posts/detail.html?id=1" class="btn btn-sm btn-outline">
+                            <i class="fas fa-eye"></i> Xem
+                        </a>
+                        <a href="../posts/create.html?id=1" class="btn btn-sm btn-primary">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        <button class="btn btn-sm btn-danger" onclick="if(confirmDelete('Bạn có chắc muốn xóa tin này?')) { showNotification('Đã xóa tin đăng', 'success'); this.closest('.post-item').remove(); }">
+                            <i class="fas fa-trash"></i> Xóa
+                        </button>
+                    </div>
+                </div>
+
+                <div class="post-item">
+                    <div class="post-image">
+                        <img src="https://via.placeholder.com/200x150/764ba2/ffffff?text=Post+2" alt="Post">
+                    </div>
+                    <div class="post-info">
+                        <span class="badge badge-warning">Chờ duyệt</span>
+                        <h3>Căn hộ mini cao cấp Quận 1</h3>
+                        <div class="post-meta">
+                            <i class="fas fa-map-marker-alt"></i> 456 Nguyễn Huệ, Quận 1, TP.HCM
+                        </div>
+                        <div style="color: var(--primary-color); font-size: 1.25rem; font-weight: 700;">
+                            8 triệu/tháng
+                        </div>
+                        <div class="post-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-eye"></i>
+                                <span>0 lượt xem</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i>
+                                <span>Đăng 1 giờ trước</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="post-actions">
+                        <a href="../posts/detail.html?id=2" class="btn btn-sm btn-outline">
+                            <i class="fas fa-eye"></i> Xem
+                        </a>
+                        <a href="../posts/create.html?id=2" class="btn btn-sm btn-primary">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        <button class="btn btn-sm btn-danger" onclick="if(confirmDelete('Bạn có chắc muốn xóa tin này?')) { showNotification('Đã xóa tin đăng', 'success'); this.closest('.post-item').remove(); }">
+                            <i class="fas fa-trash"></i> Xóa
+                        </button>
+                    </div>
+                </div>
+
+                <div class="post-item">
+                    <div class="post-image">
+                        <img src="https://via.placeholder.com/200x150/3b82f6/ffffff?text=Post+3" alt="Post">
+                    </div>
+                    <div class="post-info">
+                        <span class="badge badge-danger">Đã từ chối</span>
+                        <h3>Phòng trọ sinh viên giá rẻ</h3>
+                        <div class="post-meta">
+                            <i class="fas fa-map-marker-alt"></i> 789 Lê Văn Việt, Quận 9, TP.HCM
+                        </div>
+                        <div style="color: var(--primary-color); font-size: 1.25rem; font-weight: 700;">
+                            1.8 triệu/tháng
+                        </div>
+                        <div class="post-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>Lý do: Thiếu thông tin liên hệ</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="post-actions">
+                        <a href="../posts/create.html?id=3" class="btn btn-sm btn-primary">
+                            <i class="fas fa-edit"></i> Chỉnh sửa
+                        </a>
+                        <button class="btn btn-sm btn-danger" onclick="if(confirmDelete('Bạn có chắc muốn xóa tin này?')) { showNotification('Đã xóa tin đăng', 'success'); this.closest('.post-item').remove(); }">
+                            <i class="fas fa-trash"></i> Xóa
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../assets/js/main.js"></script>
+</body>
+</html>
