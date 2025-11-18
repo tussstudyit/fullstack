@@ -1,6 +1,6 @@
 <?php
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'tanloz');
+define('DB_NAME', 'fullstack');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
