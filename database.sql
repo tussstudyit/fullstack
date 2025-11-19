@@ -2,9 +2,9 @@
 -- DATABASE SCHEMA FOR WEB TÌM TRỌ CHO SINH VIÊN
 -- =============================================
 
-DROP DATABASE IF EXISTS baitaplon;
-CREATE DATABASE baitaplon CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE baitaplon;
+DROP DATABASE IF EXISTS fullstack;
+CREATE DATABASE fullstack CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE fullstack;
 
 -- Bảng users: Quản lý người dùng
 CREATE TABLE users (
@@ -14,7 +14,6 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     full_name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
-    avatar VARCHAR(255) DEFAULT 'default-avatar.png',
     role ENUM('admin', 'landlord', 'tenant') NOT NULL DEFAULT 'tenant',
     status ENUM('active', 'inactive', 'banned') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
