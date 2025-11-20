@@ -24,26 +24,67 @@ Hệ thống tìm kiếm và quản lý phòng trọ dành cho sinh viên với 
 
 ## 🏗️ Cấu trúc dự án
 
-```
-project/
-├── Models/                 # Các file Model (PHP) - chưa tích hợp
-├── Controllers/            # Các file Controller (PHP) - chưa tích hợp
-├── Views/                  # Giao diện HTML
-│   ├── auth/              # Đăng nhập, đăng ký
-│   ├── home/              # Trang chủ
-│   ├── posts/             # Danh sách, chi tiết, đăng bài
-│   ├── chat/              # Giao diện chat
-│   ├── user/              # Quản lý tin, yêu thích
-│   └── admin/             # Dashboard admin
-├── assets/
-│   ├── css/               # File CSS
-│   ├── js/                # File JavaScript
-│   └── images/            # Hình ảnh
-├── uploads/               # Thư mục upload files
-├── database.sql           # File SQL tạo database
-├── config.php             # Cấu hình kết nối database
-└── index.php              # File index chính
+**Root Path:** `d:\baitapcuoiky`
 
+```
+└── 📁 fullstack
+    ├── 📁 .local
+    │   └── 📁 state
+    │       └── 📁 replit
+    │           └── 📁 agent
+    │               ├── ⚙️ .agent_state_0d679634a6b1adac0df9b45b6d3b2c9dbed86e2f.bin
+    │               ├── ⚙️ .agent_state_352005164862c10675240e8e12ea6abef594e543.bin
+    │               ├── ⚙️ .agent_state_5824295faf1d89009bdedc6e6b2a7c444c5b930a.bin
+    │               ├── ⚙️ .agent_state_bd0421fbf8e37c41afcff2d25b48299623fc0a3e.bin
+    │               ├── ⚙️ .agent_state_main.bin
+    │               ├── ⚙️ .latest.json
+    │               └── ⚙️ repl_state.bin
+    ├── 📁 Controllers
+    │   ├── 🐘 AuthController.php
+    │   ├── 🐘 FavoriteController.php
+    │   ├── 🐘 NotificationController.php
+    │   └── 🐘 PostController.php
+    ├── 📁 Models
+    │   ├── 🐘 Category.php
+    │   ├── 🐘 Favorite.php
+    │   ├── 🐘 Notification.php
+    │   ├── 🐘 Post.php
+    │   └── 🐘 User.php
+    ├── 📁 Views
+    │   ├── 📁 admin
+    │   │   └── 🐘 dashboard.php
+    │   ├── 📁 auth
+    │   │   ├── 🐘 login.php
+    │   │   └── 🐘 register.php
+    │   ├── 📁 chat
+    │   │   └── 🐘 chat.php
+    │   ├── 📁 home
+    │   ├── 📁 posts
+    │   │   ├── 🐘 create.php
+    │   │   ├── 🐘 detail.php
+    │   │   └── 🐘 list.php
+    │   └── 📁 user
+    │       ├── 🐘 favorites.php
+    │       ├── 🐘 my-posts.php
+    │       └── 🐘 notifications.php
+    ├── 📁 assets
+    │   ├── 📁 css
+    │   │   └── 🎨 style.css
+    │   └── 📁 js
+    │       └── 📄 main.js
+    ├── 📁 attached_assets
+    │   └── 🐘 database_1762788624742.php
+    ├── 📝 README.md
+    ├── 🐘 check-email.php
+    ├── 🐘 config.php
+    ├── 📄 database.sql
+    ├── 🐘 debug-db.php
+    ├── 🐘 index.php
+    ├── 📄 notifications.sql
+    ├── 🐍 server.py
+    ├── 🐘 test-db.php
+    ├── 🐘 test-favorite.php
+    └── 🐘 test-login.php
 ```
 
 ## 🚀 Hướng dẫn cài đặt
