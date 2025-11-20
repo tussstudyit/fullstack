@@ -14,7 +14,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == '/':
-            self.path = '/Views/home/index.html'
+            self.path = '/Views/home/index.php'
         return super().do_GET()
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))

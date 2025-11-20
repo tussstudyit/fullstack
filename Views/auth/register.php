@@ -1,3 +1,20 @@
+<?php
+require_once __DIR__ . '/../../config.php';
+
+if (isLoggedIn()) {
+    redirect('/fullstack/index.php');
+}
+
+$error_message = '';
+$success_message = '';
+
+if (isset($_GET['error'])) {
+    $error_message = htmlspecialchars($_GET['error']);
+}
+if (isset($_GET['success'])) {
+    $success_message = htmlspecialchars($_GET['success']);
+}
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -145,6 +162,32 @@
         .strength-medium { width: 66%; background: var(--warning-color); }
         .strength-strong { width: 100%; background: var(--success-color); }
 
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: none;
+            border-left: 4px solid;
+        }
+
+        .alert.success {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+            display: block;
+        }
+
+        .alert.error {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+            display: block;
+        }
+
+        .alert i {
+            margin-right: 0.5rem;
+        }
+
         @media (max-width: 640px) {
             .role-selection {
                 grid-template-columns: 1fr;
@@ -164,6 +207,18 @@
         </div>
 
         <div class="auth-body">
+            <?php if ($success_message): ?>
+                <div class="alert success">
+                    <i class="fas fa-check-circle"></i> <?php echo $success_message; ?>
+                </div>
+            <?php endif; ?>
+            
+            <?php if ($error_message): ?>
+                <div class="alert error">
+                    <i class="fas fa-exclamation-circle"></i> <?php echo $error_message; ?>
+                </div>
+            <?php endif; ?>
+
             <form id="registerForm" action="../../Controllers/AuthController.php" method="POST">
                 <input type="hidden" name="action" value="register">
 
@@ -285,7 +340,7 @@
             </form>
 
             <div class="form-footer">
-                <p>Đã có tài khoản? <a href="login.html" class="text-primary" style="font-weight: 600;">Đăng nhập ngay</a></p>
+                <p>Đã có tài khoản? <a href="login.php" class="text-primary" style="font-weight: 600;">Đăng nhập ngay</a></p>
             </div>
         </div>
     </div>
@@ -339,22 +394,56 @@
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
+            const fullname = document.getElementById('fullname').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const roleSelected = document.querySelector('input[name="role"]:checked');
             
-            if (password !== confirmPassword) {
-                showNotification('Mật khẩu xác nhận không khớp!', 'error');
-                return;
+            let errorMsg = '';
+            
+            // Kiểm tra đầy đủ thông tin
+            if (!username || !email || !password || !confirmPassword || !fullname) {
+                errorMsg = '❌ Vui lòng điền đầy đủ thông tin bắt buộc';
+            }
+            // Kiểm tra độ dài username
+            else if (username.length < 4 || username.length > 20) {
+                errorMsg = '❌ Tên đăng nhập phải từ 4-20 ký tự';
+            }
+            // Kiểm tra format username
+            else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                errorMsg = '❌ Tên đăng nhập chỉ chứa chữ cái, số và dấu gạch dưới';
+            }
+            // Kiểm tra email
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                errorMsg = '❌ Email không hợp lệ';
+            }
+            // Kiểm tra độ dài password
+            else if (password.length < 6) {
+                errorMsg = '❌ Mật khẩu phải có ít nhất 6 ký tự';
+            }
+            // Kiểm tra password khớp
+            else if (password !== confirmPassword) {
+                errorMsg = '❌ Mật khẩu xác nhận không khớp';
+            }
+            // Kiểm tra số điện thoại
+            else if (phone && !/^[0-9]{10,11}$/.test(phone)) {
+                errorMsg = '❌ Số điện thoại phải từ 10-11 chữ số';
+            }
+            // Kiểm tra role
+            else if (!roleSelected) {
+                errorMsg = '❌ Vui lòng chọn vai trò của bạn';
             }
             
-            if (!document.querySelector('input[name="role"]:checked')) {
-                showNotification('Vui lòng chọn vai trò của bạn!', 'error');
-                return;
+            if (errorMsg) {
+                alert(errorMsg);
+                return false;
             }
             
-            if (validateForm('registerForm')) {
-                this.submit();
-            }
+            // Nếu hợp lệ, submit form
+            this.submit();
         });
     </script>
 </body>

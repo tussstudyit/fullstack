@@ -1,3 +1,6 @@
+<?php
+require_once __DIR__ . '/../../config.php';
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -318,22 +321,31 @@
 <body>
     <header class="header">
         <nav class="navbar">
-            <a href="../home/index.html" class="logo">
+            <a href="../home/index.php" class="logo">
                 <i class="fas fa-home"></i>
                 <span>Tìm Trọ SV</span>
             </a>
 
             <ul class="nav-menu">
-                <li><a href="../home/index.html" class="nav-link">Trang chủ</a></li>
-                <li><a href="list.html" class="nav-link">Danh sách trọ</a></li>
-                <li><a href="create.html" class="nav-link">Đăng tin</a></li>
-                <li><a href="../user/favorites.html" class="nav-link">Yêu thích</a></li>
-                <li><a href="../chat/chat.html" class="nav-link">Tin nhắn</a></li>
+                <li><a href="../home/index.php" class="nav-link">Trang chủ</a></li>
+                <li><a href="list.php" class="nav-link">Danh sách trọ</a></li>
+                <?php if (isLoggedIn() && $_SESSION['role'] === 'landlord'): ?>
+                <li><a href="create.php" class="nav-link">Đăng tin</a></li>
+                <?php endif; ?>
+                <?php if (isLoggedIn() && $_SESSION['role'] === 'tenant'): ?>
+                <li><a href="../user/favorites.php" class="nav-link">Yêu thích</a></li>
+                <?php endif; ?>
+                <li><a href="../chat/chat.php" class="nav-link">Tin nhắn</a></li>
             </ul>
 
             <div class="nav-actions">
-                <a href="../auth/login.html" class="btn btn-outline btn-sm">Đăng nhập</a>
-                <a href="../auth/register.html" class="btn btn-primary btn-sm">Đăng ký</a>
+                <?php if (isLoggedIn()): ?>
+                    <a href="../user/profile.php" class="btn btn-outline btn-sm"><?php echo htmlspecialchars($_SESSION['username']); ?></a>
+                    <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm">Đăng xuất</a>
+                <?php else: ?>
+                    <a href="../auth/login.php" class="btn btn-outline btn-sm">Đăng nhập</a>
+                    <a href="../auth/register.php" class="btn btn-primary btn-sm">Đăng ký</a>
+                <?php endif; ?>
             </div>
 
             <button class="mobile-menu-toggle">
@@ -481,7 +493,7 @@
                             <a href="tel:0912345678" class="btn btn-primary">
                                 <i class="fas fa-phone"></i> 0912 345 678
                             </a>
-                            <a href="../chat/index.html" class="btn btn-outline">
+                            <a href="../chat/index.php" class="btn btn-outline">
                                 <i class="fas fa-comment"></i> Nhắn tin
                             </a>
                             <button class="btn btn-secondary" onclick="toggleFavorite(1, this)">

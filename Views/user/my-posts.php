@@ -1,8 +1,16 @@
+<?php
+require_once __DIR__ . '/../../config.php';
+
+// Redirect if not logged in or not landlord
+if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
+    redirect('/fullstack/Views/home/index.php');
+}
+?>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang=\"vi\">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
     <title>Quản lý tin đăng - Tìm Trọ Sinh Viên</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -96,21 +104,21 @@
 <body>
     <header class="header">
         <nav class="navbar">
-            <a href="../home/index.html" class="logo">
+            <a href="../home/index.php" class="logo">
                 <i class="fas fa-home"></i>
                 <span>Tìm Trọ SV</span>
             </a>
 
             <ul class="nav-menu">
-                <li><a href="../home/index.html" class="nav-link">Trang chủ</a></li>
-                <li><a href="../posts/list.html" class="nav-link">Danh sách trọ</a></li>
-                <li><a href="../posts/create.html" class="nav-link">Đăng tin</a></li>
-                <li><a href="favorites.html" class="nav-link">Yêu thích</a></li>
-                <li><a href="../chat/chat.html" class="nav-link">Tin nhắn</a></li>
+                <li><a href="../home/index.php" class="nav-link">Trang chủ</a></li>
+                <li><a href="../posts/list.php" class="nav-link">Danh sách trọ</a></li>
+                <li><a href="../posts/create.php" class="nav-link active">Đăng tin</a></li>
+                <li><a href="../chat/chat.php" class="nav-link">Tin nhắn</a></li>
             </ul>
 
             <div class="nav-actions">
-                <a href="my-posts.html" class="btn btn-primary btn-sm">Tin của tôi</a>
+                <a href="#" class="btn btn-outline btn-sm"><?php echo htmlspecialchars($_SESSION['username']); ?></a>
+                <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm">Đăng xuất</a>
             </div>
 
             <button class="mobile-menu-toggle">
@@ -130,7 +138,7 @@
                 <div>
                     <h2>Tin đăng của tôi (3)</h2>
                 </div>
-                <a href="../posts/create.html" class="btn btn-primary">
+                <a href="../posts/create.php" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Đăng tin mới
                 </a>
             </div>
@@ -165,10 +173,10 @@
                         </div>
                     </div>
                     <div class="post-actions">
-                        <a href="../posts/detail.html?id=1" class="btn btn-sm btn-outline">
+                        <a href="../posts/detail.php?id=1" class="btn btn-sm btn-outline">
                             <i class="fas fa-eye"></i> Xem
                         </a>
-                        <a href="../posts/create.html?id=1" class="btn btn-sm btn-primary">
+                        <a href="../posts/create.php?id=1" class="btn btn-sm btn-primary">
                             <i class="fas fa-edit"></i> Sửa
                         </a>
                         <button class="btn btn-sm btn-danger" onclick="if(confirmDelete('Bạn có chắc muốn xóa tin này?')) { showNotification('Đã xóa tin đăng', 'success'); this.closest('.post-item').remove(); }">
@@ -202,10 +210,10 @@
                         </div>
                     </div>
                     <div class="post-actions">
-                        <a href="../posts/detail.html?id=2" class="btn btn-sm btn-outline">
+                        <a href="../posts/detail.php?id=2" class="btn btn-sm btn-outline">
                             <i class="fas fa-eye"></i> Xem
                         </a>
-                        <a href="../posts/create.html?id=2" class="btn btn-sm btn-primary">
+                        <a href="../posts/create.php?id=2" class="btn btn-sm btn-primary">
                             <i class="fas fa-edit"></i> Sửa
                         </a>
                         <button class="btn btn-sm btn-danger" onclick="if(confirmDelete('Bạn có chắc muốn xóa tin này?')) { showNotification('Đã xóa tin đăng', 'success'); this.closest('.post-item').remove(); }">
@@ -235,7 +243,7 @@
                         </div>
                     </div>
                     <div class="post-actions">
-                        <a href="../posts/create.html?id=3" class="btn btn-sm btn-primary">
+                        <a href="../posts/create.php?id=3" class="btn btn-sm btn-primary">
                             <i class="fas fa-edit"></i> Chỉnh sửa
                         </a>
                         <button class="btn btn-sm btn-danger" onclick="if(confirmDelete('Bạn có chắc muốn xóa tin này?')) { showNotification('Đã xóa tin đăng', 'success'); this.closest('.post-item').remove(); }">

@@ -1,3 +1,46 @@
+<?php
+require_once __DIR__ . '/../../config.php';
+
+$search = sanitize($_GET['search'] ?? '');
+$district = sanitize($_GET['district'] ?? '');
+$price_range = sanitize($_GET['price_range'] ?? '');
+$category = sanitize($_GET['category'] ?? '');
+$posts = [];
+
+try {
+    $query = "SELECT * FROM posts WHERE 1=1";
+    $params = [];
+    
+    if (!empty($search)) {
+        $query .= " AND (title LIKE ? OR location LIKE ?)";
+        $search_term = "%$search%";
+        $params[] = $search_term;
+        $params[] = $search_term;
+    }
+    if (!empty($district)) {
+        $query .= " AND location LIKE ?";
+        $params[] = "%$district%";
+    }
+    if (!empty($price_range)) {
+        [$min, $max] = explode('-', $price_range);
+        $query .= " AND price BETWEEN ? AND ?";
+        $params[] = (int)$min;
+        $params[] = (int)$max;
+    }
+    if (!empty($category)) {
+        $query .= " AND category = ?";
+        $params[] = (int)$category;
+    }
+    
+    $query .= " ORDER BY created_at DESC";
+    $stmt = getDB()->prepare($query);
+    $stmt->execute($params);
+    $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Query error: " . $e->getMessage());
+    $posts = [];
+}
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -277,22 +320,31 @@
 <body>
     <header class="header">
         <nav class="navbar">
-            <a href="../home/index.html" class="logo">
+            <a href="../home/index.php" class="logo">
                 <i class="fas fa-home"></i>
                 <span>Tìm Trọ SV</span>
             </a>
 
             <ul class="nav-menu">
-                <li><a href="../home/index.html" class="nav-link">Trang chủ</a></li>
-                <li><a href="list.html" class="nav-link active">Danh sách trọ</a></li>
-                <li><a href="create.html" class="nav-link">Đăng tin</a></li>
-                <li><a href="../user/favorites.html" class="nav-link">Yêu thích</a></li>
-                <li><a href="../chat/chat.html" class="nav-link">Tin nhắn</a></li>
+                <li><a href="../home/index.php" class="nav-link">Trang chủ</a></li>
+                <li><a href="list.php" class="nav-link active">Danh sách trọ</a></li>
+                <?php if (isLoggedIn() && $_SESSION['role'] === 'landlord'): ?>
+                <li><a href="create.php" class="nav-link">Đăng tin</a></li>
+                <?php endif; ?>
+                <?php if (isLoggedIn() && $_SESSION['role'] === 'tenant'): ?>
+                <li><a href="../user/favorites.php" class="nav-link">Yêu thích</a></li>
+                <?php endif; ?>
+                <li><a href="../chat/chat.php" class="nav-link">Tin nhắn</a></li>
             </ul>
 
             <div class="nav-actions">
-                <a href="../auth/login.html" class="btn btn-outline btn-sm">Đăng nhập</a>
-                <a href="../auth/register.html" class="btn btn-primary btn-sm">Đăng ký</a>
+                <?php if (isLoggedIn()): ?>
+                    <a href="../user/profile.php" class="btn btn-outline btn-sm"><?php echo htmlspecialchars($_SESSION['username']); ?></a>
+                    <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm">Đăng xuất</a>
+                <?php else: ?>
+                    <a href="../auth/login.php" class="btn btn-outline btn-sm">Đăng nhập</a>
+                    <a href="../auth/register.php" class="btn btn-primary btn-sm">Đăng ký</a>
+                <?php endif; ?>
             </div>
 
             <button class="mobile-menu-toggle">
@@ -430,7 +482,7 @@
                                 </div>
                                 <div class="post-footer">
                                     <div class="post-price">2.5tr/tháng</div>
-                                    <a href="detail.html?id=1" class="btn btn-primary btn-sm">Chi tiết</a>
+                                    <a href="detail.php?id=1" class="btn btn-primary btn-sm">Chi tiết</a>
                                 </div>
                             </div>
                         </div>
@@ -465,7 +517,7 @@
                                 </div>
                                 <div class="post-footer">
                                     <div class="post-price">8tr/tháng</div>
-                                    <a href="detail.html?id=2" class="btn btn-primary btn-sm">Chi tiết</a>
+                                    <a href="detail.php?id=2" class="btn btn-primary btn-sm">Chi tiết</a>
                                 </div>
                             </div>
                         </div>
@@ -500,7 +552,7 @@
                                 </div>
                                 <div class="post-footer">
                                     <div class="post-price">1.8tr/tháng</div>
-                                    <a href="detail.html?id=3" class="btn btn-primary btn-sm">Chi tiết</a>
+                                    <a href="detail.php?id=3" class="btn btn-primary btn-sm">Chi tiết</a>
                                 </div>
                             </div>
                         </div>

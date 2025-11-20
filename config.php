@@ -30,9 +30,21 @@ function getDB() {
 
             $conn = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
-            // Log the detailed error and show a generic message to the user
-            error_log('Database connection failed: ' . $e->getMessage());
-            die('Database connection failed.');
+            // Log the detailed error
+            $errorMsg = 'Database connection failed: ' . $e->getMessage();
+            error_log($errorMsg);
+            
+            // Show detailed error in development mode
+            if (strpos($e->getMessage(), 'SQLSTATE') !== false) {
+                // Database or table doesn't exist - show helpful message
+                if (strpos($e->getMessage(), 'Unknown database') !== false) {
+                    die("Error: Database '" . DB_NAME . "' not found. Please create the database and import the SQL schema.");
+                } else {
+                    die("Database Error: " . $e->getMessage());
+                }
+            }
+            
+            die('Database connection failed. Please try again later.');
         }
     }
     

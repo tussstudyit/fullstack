@@ -1,3 +1,11 @@
+<?php
+require_once __DIR__ . '/../../config.php';
+
+// Redirect if not logged in or not landlord
+if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
+    redirect('/fullstack/Views/home/index.php');
+}
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -218,21 +226,21 @@
 <body>
     <header class="header">
         <nav class="navbar">
-            <a href="../home/index.html" class="logo">
+            <a href="../home/index.php" class="logo">
                 <i class="fas fa-home"></i>
                 <span>Tìm Trọ SV</span>
             </a>
 
             <ul class="nav-menu">
-                <li><a href="../home/index.html" class="nav-link">Trang chủ</a></li>
-                <li><a href="list.html" class="nav-link">Danh sách trọ</a></li>
-                <li><a href="create.html" class="nav-link active">Đăng tin</a></li>
-                <li><a href="../user/favorites.html" class="nav-link">Yêu thích</a></li>
-                <li><a href="../chat/chat.html" class="nav-link">Tin nhắn</a></li>
+                <li><a href="../home/index.php" class="nav-link">Trang chủ</a></li>
+                <li><a href="list.php" class="nav-link">Danh sách trọ</a></li>
+                <li><a href="create.php" class="nav-link active">Đăng tin</a></li>
+                <li><a href="../chat/chat.php" class="nav-link">Tin nhắn</a></li>
             </ul>
 
             <div class="nav-actions">
-                <a href="../user/my-posts.html" class="btn btn-outline btn-sm">Tin của tôi</a>
+                <a href="../user/my-posts.php" class="btn btn-outline btn-sm"><?php echo htmlspecialchars($_SESSION['username']); ?></a>
+                <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm">Đăng xuất</a>
             </div>
 
             <button class="mobile-menu-toggle">
@@ -541,7 +549,7 @@
                 setTimeout(() => {
                     showNotification('Đăng tin thành công! Bài viết đang chờ phê duyệt.', 'success');
                     setTimeout(() => {
-                        window.location.href = '../user/my-posts.html';
+                        window.location.href = '../user/my-posts.php';
                     }, 2000);
                 }, 1000);
             }

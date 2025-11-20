@@ -192,13 +192,13 @@
             </div>
 
             <ul class="admin-menu">
-                <li><a href="dashboard.html" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
-                <li><a href="posts.html"><i class="fas fa-home"></i> Quản lý bài đăng</a></li>
-                <li><a href="users.html"><i class="fas fa-users"></i> Quản lý người dùng</a></li>
-                <li><a href="reviews.html"><i class="fas fa-star"></i> Đánh giá</a></li>
-                <li><a href="reports.html"><i class="fas fa-flag"></i> Báo cáo vi phạm</a></li>
-                <li><a href="settings.html"><i class="fas fa-cog"></i> Cài đặt</a></li>
-                <li><a href="../home/index.html"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                <li><a href="dashboard.php" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="posts.php"><i class="fas fa-home"></i> Quản lý bài đăng</a></li>
+                <li><a href="users.php"><i class="fas fa-users"></i> Quản lý người dùng</a></li>
+                <li><a href="reviews.php"><i class="fas fa-star"></i> Đánh giá</a></li>
+                <li><a href="reports.php"><i class="fas fa-flag"></i> Báo cáo vi phạm</a></li>
+                <li><a href="settings.php"><i class="fas fa-cog"></i> Cài đặt</a></li>
+                <li><a href="../home/index.php"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
             </ul>
         </aside>
 

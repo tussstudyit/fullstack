@@ -1,3 +1,6 @@
+<?php
+require_once __DIR__ . '/../../config.php';
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -324,22 +327,31 @@
 <body>
     <header class="header">
         <nav class="navbar">
-            <a href="index.html" class="logo">
+            <a href="index.php" class="logo">
                 <i class="fas fa-home"></i>
                 <span>Tìm Trọ SV</span>
             </a>
 
             <ul class="nav-menu">
-                <li><a href="index.html" class="nav-link active">Trang chủ</a></li>
-                <li><a href="../posts/list.html" class="nav-link">Danh sách trọ</a></li>
-                <li><a href="../posts/create.html" class="nav-link">Đăng tin</a></li>
-                <li><a href="../user/favorites.html" class="nav-link">Yêu thích</a></li>
-                <li><a href="../chat/chat.html" class="nav-link">Tin nhắn</a></li>
+                <li><a href="index.php" class="nav-link active">Trang chủ</a></li>
+                <li><a href="../posts/list.php" class="nav-link">Danh sách trọ</a></li>
+                <?php if (isLoggedIn() && $_SESSION['role'] === 'landlord'): ?>
+                <li><a href="../posts/create.php" class="nav-link">Đăng tin</a></li>
+                <?php endif; ?>
+                <?php if (isLoggedIn() && $_SESSION['role'] === 'tenant'): ?>
+                <li><a href="../user/favorites.php" class="nav-link">Yêu thích</a></li>
+                <?php endif; ?>
+                <li><a href="../chat/chat.php" class="nav-link">Tin nhắn</a></li>
             </ul>
 
             <div class="nav-actions">
-                <a href="../auth/login.html" class="btn btn-outline btn-sm">Đăng nhập</a>
-                <a href="../auth/register.html" class="btn btn-primary btn-sm">Đăng ký</a>
+                <?php if (isLoggedIn()): ?>
+                    <a href="../user/profile.php" class="btn btn-outline btn-sm"><?php echo htmlspecialchars($_SESSION['username']); ?></a>
+                    <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm">Đăng xuất</a>
+                <?php else: ?>
+                    <a href="../auth/login.php" class="btn btn-outline btn-sm">Đăng nhập</a>
+                    <a href="../auth/register.php" class="btn btn-primary btn-sm">Đăng ký</a>
+                <?php endif; ?>
             </div>
 
             <button class="mobile-menu-toggle">
@@ -355,7 +367,7 @@
                 <p>Hàng nghìn phòng trọ giá rẻ, gần trường, an toàn cho sinh viên</p>
 
                 <div class="search-box">
-                    <form class="search-form" action="../posts/list.html" method="GET">
+                    <form class="search-form" action="../posts/list.php" method="GET">
                         <div class="search-input-group">
                             <i class="fas fa-search"></i>
                             <input 
@@ -403,25 +415,25 @@
         <div class="container">
             <h2 class="section-title">Danh Mục Phòng Trọ</h2>
             <div class="category-grid">
-                <div class="category-card" onclick="window.location.href='../posts/list.html?category=1'">
+                <div class="category-card" onclick="window.location.href='../posts/list.php?category=1'">
                     <div class="category-icon"><i class="fas fa-home"></i></div>
                     <div class="category-name">Phòng trọ SV</div>
                     <div class="category-count">156 phòng</div>
                 </div>
 
-                <div class="category-card" onclick="window.location.href='../posts/list.html?category=2'">
+                <div class="category-card" onclick="window.location.href='../posts/list.php?category=2'">
                     <div class="category-icon"><i class="fas fa-building"></i></div>
                     <div class="category-name">Căn hộ mini</div>
                     <div class="category-count">89 phòng</div>
                 </div>
 
-                <div class="category-card" onclick="window.location.href='../posts/list.html?category=3'">
+                <div class="category-card" onclick="window.location.href='../posts/list.php?category=3'">
                     <div class="category-icon"><i class="fas fa-house"></i></div>
                     <div class="category-name">Nhà nguyên căn</div>
                     <div class="category-count">45 phòng</div>
                 </div>
 
-                <div class="category-card" onclick="window.location.href='../posts/list.html?category=4'">
+                <div class="category-card" onclick="window.location.href='../posts/list.php?category=4'">
                     <div class="category-icon"><i class="fas fa-users"></i></div>
                     <div class="category-name">Ở ghép</div>
                     <div class="category-count">112 phòng</div>
@@ -464,7 +476,7 @@
                         </div>
                         <div class="post-footer">
                             <div class="post-price">2.5tr/tháng</div>
-                            <a href="../posts/detail.html?id=1" class="btn btn-primary btn-sm">Xem chi tiết</a>
+                            <a href="../posts/detail.php?id=1" class="btn btn-primary btn-sm">Xem chi tiết</a>
                         </div>
                     </div>
                 </div>
@@ -499,7 +511,7 @@
                         </div>
                         <div class="post-footer">
                             <div class="post-price">8tr/tháng</div>
-                            <a href="../posts/detail.html?id=2" class="btn btn-primary btn-sm">Xem chi tiết</a>
+                            <a href="../posts/detail.php?id=2" class="btn btn-primary btn-sm">Xem chi tiết</a>
                         </div>
                     </div>
                 </div>
@@ -534,14 +546,14 @@
                         </div>
                         <div class="post-footer">
                             <div class="post-price">1.8tr/tháng</div>
-                            <a href="../posts/detail.html?id=3" class="btn btn-primary btn-sm">Xem chi tiết</a>
+                            <a href="../posts/detail.php?id=3" class="btn btn-primary btn-sm">Xem chi tiết</a>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="text-center mt-4">
-                <a href="../posts/list.html" class="btn btn-outline btn-lg">Xem tất cả phòng trọ</a>
+                <a href="../posts/list.php" class="btn btn-outline btn-lg">Xem tất cả phòng trọ</a>
             </div>
         </div>
     </section>
