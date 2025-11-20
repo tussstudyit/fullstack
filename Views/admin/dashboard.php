@@ -1,3 +1,131 @@
+<?php
+require_once __DIR__ . '/../../config.php';
+
+// Kiểm tra quyền admin
+if (!isLoggedIn() || $_SESSION['role'] !== 'admin') {
+    redirect('/fullstack/index.php');
+    exit;
+}
+
+require_once __DIR__ . '/../../Models/Post.php';
+require_once __DIR__ . '/../../Models/User.php';
+
+$postModel = new Post();
+$userModel = new User();
+$conn = getDB();
+
+// Lấy thống kê
+try {
+    // Tổng bài đăng
+    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM posts");
+    $stmt->execute();
+    $total_posts = $stmt->fetch()['count'];
+    
+    // Tổng người dùng
+    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM users");
+    $stmt->execute();
+    $total_users = $stmt->fetch()['count'];
+    
+    // Bài đăng chờ phê duyệt
+    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM posts WHERE status = 'pending'");
+    $stmt->execute();
+    $pending_posts = $stmt->fetch()['count'];
+    
+    // Báo cáo (từ bảng reports nếu có)
+    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM reports WHERE status = 'pending'");
+    $stmt->execute();
+    $pending_reports = $stmt->fetch()['count'];
+} catch (PDOException $e) {
+    $total_posts = 0;
+    $total_users = 0;
+    $pending_posts = 0;
+    $pending_reports = 0;
+}
+
+// Lấy danh sách bài đăng chờ duyệt
+$pending_list = [];
+try {
+    $stmt = $conn->prepare("
+        SELECT p.id, p.title, p.created_at, u.full_name
+        FROM posts p
+        JOIN users u ON p.user_id = u.id
+        WHERE p.status = 'pending'
+        ORDER BY p.created_at DESC
+        LIMIT 5
+    ");
+    $stmt->execute();
+    $pending_list = $stmt->fetchAll();
+} catch (PDOException $e) {
+    error_log("Error fetching pending posts: " . $e->getMessage());
+}
+
+// Xử lý phê duyệt/từ chối bài đăng
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['action']) && isset($_POST['post_id'])) {
+        $post_id = intval($_POST['post_id']);
+        $action = $_POST['action'];
+        
+        try {
+            if ($action === 'approve') {
+                $stmt = $conn->prepare("UPDATE posts SET status = 'approved', updated_at = NOW() WHERE id = ?");
+                $stmt->execute([$post_id]);
+                
+                // Tạo notification cho user
+                $stmt = $conn->prepare("SELECT user_id FROM posts WHERE id = ?");
+                $stmt->execute([$post_id]);
+                $post = $stmt->fetch();
+                
+                if ($post) {
+                    $stmt = $conn->prepare("
+                        INSERT INTO notifications (recipient_id, sender_id, type, title, message, related_post_id, is_read)
+                        VALUES (?, 1, 'post_approved', 'Bài viết được phê duyệt', 'Bài viết của bạn đã được phê duyệt', ?, 0)
+                    ");
+                    $stmt->execute([$post['user_id'], $post_id]);
+                }
+                
+                $message = "Đã phê duyệt bài đăng";
+            } elseif ($action === 'reject') {
+                $stmt = $conn->prepare("UPDATE posts SET status = 'rejected', updated_at = NOW() WHERE id = ?");
+                $stmt->execute([$post_id]);
+                
+                // Tạo notification cho user
+                $stmt = $conn->prepare("SELECT user_id FROM posts WHERE id = ?");
+                $stmt->execute([$post_id]);
+                $post = $stmt->fetch();
+                
+                if ($post) {
+                    $stmt = $conn->prepare("
+                        INSERT INTO notifications (recipient_id, sender_id, type, title, message, related_post_id, is_read)
+                        VALUES (?, 1, 'post_rejected', 'Bài viết bị từ chối', 'Bài viết của bạn bị từ chối vì không tuân thủ quy tắc', ?, 0)
+                    ");
+                    $stmt->execute([$post['user_id'], $post_id]);
+                }
+                
+                $message = "Đã từ chối bài đăng";
+            }
+            
+            // Reload pending list
+            $stmt = $conn->prepare("
+                SELECT p.id, p.title, p.created_at, u.full_name
+                FROM posts p
+                JOIN users u ON p.user_id = u.id
+                WHERE p.status = 'pending'
+                ORDER BY p.created_at DESC
+                LIMIT 5
+            ");
+            $stmt->execute();
+            $pending_list = $stmt->fetchAll();
+            
+            // Reload pending count
+            $stmt = $conn->prepare("SELECT COUNT(*) as count FROM posts WHERE status = 'pending'");
+            $stmt->execute();
+            $pending_posts = $stmt->fetch()['count'];
+        } catch (PDOException $e) {
+            error_log("Error updating post status: " . $e->getMessage());
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -163,6 +291,18 @@
             background: var(--light-color);
         }
 
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
         @media (max-width: 1024px) {
             .admin-layout {
                 grid-template-columns: 1fr;
@@ -195,10 +335,9 @@
                 <li><a href="dashboard.php" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
                 <li><a href="posts.php"><i class="fas fa-home"></i> Quản lý bài đăng</a></li>
                 <li><a href="users.php"><i class="fas fa-users"></i> Quản lý người dùng</a></li>
-                <li><a href="reviews.php"><i class="fas fa-star"></i> Đánh giá</a></li>
                 <li><a href="reports.php"><i class="fas fa-flag"></i> Báo cáo vi phạm</a></li>
                 <li><a href="settings.php"><i class="fas fa-cog"></i> Cài đặt</a></li>
-                <li><a href="../home/index.php"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                <li><a href="<?php echo '/fullstack/Controllers/AuthController.php?action=logout'; ?>"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
             </ul>
         </aside>
 
@@ -209,7 +348,7 @@
                     <p style="color: var(--text-secondary); margin-top: 0.25rem;">Tổng quan hệ thống</p>
                 </div>
                 <div>
-                    <span>Xin chào, <strong>Admin</strong></span>
+                    <span>Xin chào, <strong><?php echo htmlspecialchars($_SESSION['username'] ?? 'Admin'); ?></strong></span>
                 </div>
             </div>
 
@@ -219,7 +358,7 @@
                         <div class="stat-icon blue">
                             <i class="fas fa-home"></i>
                         </div>
-                        <div class="stat-value">1,234</div>
+                        <div class="stat-value"><?php echo number_format($total_posts); ?></div>
                         <div class="stat-label">Tổng bài đăng</div>
                     </div>
 
@@ -227,7 +366,7 @@
                         <div class="stat-icon green">
                             <i class="fas fa-users"></i>
                         </div>
-                        <div class="stat-value">5,678</div>
+                        <div class="stat-value"><?php echo number_format($total_users); ?></div>
                         <div class="stat-label">Người dùng</div>
                     </div>
 
@@ -235,7 +374,7 @@
                         <div class="stat-icon yellow">
                             <i class="fas fa-clock"></i>
                         </div>
-                        <div class="stat-value">42</div>
+                        <div class="stat-value"><?php echo $pending_posts; ?></div>
                         <div class="stat-label">Chờ phê duyệt</div>
                     </div>
 
@@ -243,7 +382,7 @@
                         <div class="stat-icon red">
                             <i class="fas fa-flag"></i>
                         </div>
-                        <div class="stat-value">15</div>
+                        <div class="stat-value"><?php echo $pending_reports; ?></div>
                         <div class="stat-label">Báo cáo</div>
                     </div>
                 </div>
@@ -264,51 +403,34 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>#1001</td>
-                                <td>Phòng trọ gần ĐH Bách Khoa</td>
-                                <td>Nguyễn Văn A</td>
-                                <td>10/11/2024</td>
-                                <td><span class="badge badge-warning">Chờ duyệt</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-success" onclick="showNotification('Đã phê duyệt bài đăng', 'success')">
-                                        <i class="fas fa-check"></i> Duyệt
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" onclick="showNotification('Đã từ chối bài đăng', 'error')">
-                                        <i class="fas fa-times"></i> Từ chối
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>#1002</td>
-                                <td>Căn hộ mini Quận 1</td>
-                                <td>Trần Thị B</td>
-                                <td>10/11/2024</td>
-                                <td><span class="badge badge-warning">Chờ duyệt</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-success" onclick="showNotification('Đã phê duyệt bài đăng', 'success')">
-                                        <i class="fas fa-check"></i> Duyệt
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" onclick="showNotification('Đã từ chối bài đăng', 'error')">
-                                        <i class="fas fa-times"></i> Từ chối
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>#1003</td>
-                                <td>Phòng sinh viên giá rẻ</td>
-                                <td>Lê Văn C</td>
-                                <td>09/11/2024</td>
-                                <td><span class="badge badge-warning">Chờ duyệt</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-success" onclick="showNotification('Đã phê duyệt bài đăng', 'success')">
-                                        <i class="fas fa-check"></i> Duyệt
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" onclick="showNotification('Đã từ chối bài đăng', 'error')">
-                                        <i class="fas fa-times"></i> Từ chối
-                                    </button>
-                                </td>
-                            </tr>
+                            <?php if (!empty($pending_list)): ?>
+                                <?php foreach ($pending_list as $post): ?>
+                                <tr>
+                                    <td>#<?php echo htmlspecialchars($post['id']); ?></td>
+                                    <td><?php echo htmlspecialchars(substr($post['title'], 0, 50)); ?></td>
+                                    <td><?php echo htmlspecialchars($post['full_name']); ?></td>
+                                    <td><?php echo date('d/m/Y', strtotime($post['created_at'])); ?></td>
+                                    <td><span class="badge badge-warning">Chờ duyệt</span></td>
+                                    <td>
+                                        <form method="POST" style="display: inline;">
+                                            <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
+                                            <button type="submit" name="action" value="approve" class="btn btn-sm btn-success">
+                                                <i class="fas fa-check"></i> Duyệt
+                                            </button>
+                                            <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-times"></i> Từ chối
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-secondary);">
+                                        Không có bài đăng chờ phê duyệt
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>

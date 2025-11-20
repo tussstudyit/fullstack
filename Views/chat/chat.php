@@ -287,13 +287,13 @@ require_once __DIR__ . '/../../config.php';
 <body>
     <header class="header">
         <nav class="navbar">
-            <a href="../home/index.php" class="logo">
+            <a href="../../index.php" class="logo">
                 <i class="fas fa-home"></i>
                 <span>Tìm Trọ SV</span>
             </a>
 
             <ul class="nav-menu">
-                <li><a href="../home/index.php" class="nav-link">Trang chủ</a></li>
+                <li><a href="../../index.php" class="nav-link">Trang chủ</a></li>
                 <li><a href="../posts/list.php" class="nav-link">Danh sách trọ</a></li>
                 <?php if (isLoggedIn() && $_SESSION['role'] === 'landlord'): ?>
                 <li><a href="../posts/create.php" class="nav-link">Đăng tin</a></li>
@@ -306,6 +306,21 @@ require_once __DIR__ . '/../../config.php';
 
             <div class="nav-actions">
                 <?php if (isLoggedIn()): ?>
+                    <div style="position: relative; display: inline-block;">
+                        <a href="../user/notifications.php" class="btn btn-outline btn-sm" title="Thông báo">
+                            <i class="fas fa-bell"></i> Thông báo
+                        </a>
+                        <?php 
+                        require_once '../../Models/Notification.php';
+                        $notifModel = new Notification();
+                        $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
+                        if ($unread > 0): 
+                        ?>
+                        <span style="position: absolute; top: -5px; right: -5px; background: var(--danger-color); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">
+                            <?php echo $unread > 99 ? '99+' : $unread; ?>
+                        </span>
+                        <?php endif; ?>
+                    </div>
                     <a href="../user/profile.php" class="btn btn-outline btn-sm"><?php echo htmlspecialchars($_SESSION['username']); ?></a>
                     <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm">Đăng xuất</a>
                 <?php else: ?>

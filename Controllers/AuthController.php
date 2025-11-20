@@ -27,7 +27,12 @@ class AuthController {
         $result = $this->userModel->login($credential, $password);
 
         if ($result['success']) {
-            redirect('/fullstack/index.php');
+            // Redirect dựa vào role
+            if ($_SESSION['role'] === 'admin') {
+                redirect('/fullstack/Views/admin/dashboard.php');
+            } else {
+                redirect('/fullstack/index.php');
+            }
         } else {
             redirect('/fullstack/Views/auth/login.php?error=' . urlencode('❌ ' . $result['message']));
         }

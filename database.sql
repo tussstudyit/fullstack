@@ -170,9 +170,9 @@ INSERT INTO categories (name, slug, description, icon) VALUES
 ('Nhà nguyên căn', 'nha-nguyen-can', 'Nhà nguyên căn cho thuê', 'fa-house'),
 ('Ở ghép', 'o-ghep', 'Phòng ở ghép tiết kiệm', 'fa-users');
 
--- Insert admin user (password: admin123)
+-- Insert admin user (password: 123456)
 INSERT INTO users (username, email, password, full_name, phone, role) VALUES
-('admin', 'admin@timtro.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Quản trị viên', '0901234567', 'admin');
+('admin', 'admin@timtro.com', '$2y$12$CF5hr5WW2u1zroqvMKIgieujT0ExvKVg1o1jYVuD6vQ1glFwmo6/y', 'Quản trị viên', '0901234567', 'admin');
 
 -- Insert sample landlords (password: 123456)
 INSERT INTO users (username, email, password, full_name, phone, role) VALUES

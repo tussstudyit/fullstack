@@ -69,6 +69,7 @@ function redirect($url) {
 }
 
 function sanitize($data) {
-    return htmlspecialchars(strip_tags(trim($data)));
+    // Chỉ trim whitespace, không dùng htmlspecialchars cho password
+    return trim($data);
 }
 ?>

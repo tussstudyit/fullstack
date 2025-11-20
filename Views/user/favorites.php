@@ -3,14 +3,37 @@ require_once __DIR__ . '/../../config.php';
 
 // Redirect if not logged in or not tenant
 if (!isLoggedIn() || $_SESSION['role'] !== 'tenant') {
-    redirect('/fullstack/Views/home/index.php');
+    redirect('/fullstack/index.php');
+}
+
+require_once __DIR__ . '/../../Models/Favorite.php';
+require_once __DIR__ . '/../../Models/Post.php';
+
+$favoriteModel = new Favorite();
+$postModel = new Post();
+$conn = getDB();
+
+// Lấy danh sách yêu thích của user
+$favorites = [];
+try {
+    $stmt = $conn->prepare("
+        SELECT p.id, p.title, p.description, p.address, p.district, p.city, p.price, p.area, p.status
+        FROM posts p
+        JOIN favorites f ON p.id = f.post_id
+        WHERE f.user_id = ?
+        ORDER BY f.created_at DESC
+    ");
+    $stmt->execute([$_SESSION['user_id']]);
+    $favorites = $stmt->fetchAll();
+} catch (PDOException $e) {
+    error_log("Error fetching favorites: " . $e->getMessage());
 }
 ?>
 <!DOCTYPE html>
-<html lang=\"vi\">
+<html lang="vi">
 <head>
-    <meta charset=\"UTF-8\">
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yêu thích - Tìm Trọ Sinh Viên</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -49,6 +72,12 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'tenant') {
             position: relative;
             height: 220px;
             overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
         }
 
         .post-image img {
@@ -72,6 +101,11 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'tenant') {
             cursor: pointer;
             border: none;
             font-size: 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .favorite-btn:hover {
+            transform: scale(1.1);
         }
 
         .favorite-btn.active i {
@@ -106,7 +140,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'tenant') {
         }
 
         .post-price {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: 700;
             color: var(--primary-color);
         }
@@ -123,6 +157,11 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'tenant') {
             margin-bottom: 1.5rem;
         }
 
+        .empty-state h3 {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
         @media (max-width: 768px) {
             .posts-grid {
                 grid-template-columns: 1fr;
@@ -133,19 +172,34 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'tenant') {
 <body>
     <header class="header">
         <nav class="navbar">
-            <a href="../home/index.php" class="logo">
+            <a href="../../index.php" class="logo">
                 <i class="fas fa-home"></i>
                 <span>Tìm Trọ SV</span>
             </a>
 
             <ul class="nav-menu">
-                <li><a href="../home/index.php" class="nav-link">Trang chủ</a></li>
+                <li><a href="../../index.php" class="nav-link">Trang chủ</a></li>
                 <li><a href="../posts/list.php" class="nav-link">Danh sách trọ</a></li>
                 <li><a href="favorites.php" class="nav-link active">Yêu thích</a></li>
                 <li><a href="../chat/chat.php" class="nav-link">Tin nhắn</a></li>
             </ul>
 
             <div class="nav-actions">
+                <div style="position: relative; display: inline-block;">
+                    <a href="notifications.php" class="btn btn-outline btn-sm" title="Thông báo">
+                        <i class="fas fa-bell"></i> Thông báo
+                    </a>
+                    <?php 
+                    require_once '../../Models/Notification.php';
+                    $notifModel = new Notification();
+                    $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
+                    if ($unread > 0): 
+                    ?>
+                    <span style="position: absolute; top: -5px; right: -5px; background: var(--danger-color); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">
+                        <?php echo $unread > 99 ? '99+' : $unread; ?>
+                    </span>
+                    <?php endif; ?>
+                </div>
                 <a href="#" class="btn btn-outline btn-sm"><?php echo htmlspecialchars($_SESSION['username']); ?></a>
                 <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm">Đăng xuất</a>
             </div>
@@ -164,73 +218,66 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'tenant') {
     <div class="content-wrapper">
         <div class="container">
             <div style="margin-bottom: 2rem;">
-                <h2>Danh sách yêu thích (3)</h2>
+                <h2>Danh sách yêu thích (<?php echo count($favorites); ?>)</h2>
             </div>
 
-            <div class="posts-grid">
-                <div class="post-card">
-                    <div class="post-image">
-                        <img src="https://via.placeholder.com/400x250/667eea/ffffff?text=Phong+Tro+1" alt="Phòng trọ 1">
-                        <button class="favorite-btn active" onclick="toggleFavorite(1, this); if(!this.classList.contains('active')) this.closest('.post-card').remove();">
-                            <i class="fas fa-heart"></i>
-                        </button>
-                    </div>
-                    <div class="post-content">
-                        <h3 class="post-title">Phòng trọ gần ĐH Bách Khoa - An ninh tốt</h3>
-                        <div class="post-location">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>123 Lý Thường Kiệt, Quận 10</span>
-                        </div>
-                        <div class="post-footer">
-                            <div class="post-price">2.5tr/tháng</div>
-                            <a href="../posts/detail.php?id=1" class="btn btn-primary btn-sm">Chi tiết</a>
-                        </div>
-                    </div>
+            <?php if (empty($favorites)): ?>
+                <div class="empty-state">
+                    <i class="fas fa-heart"></i>
+                    <h3>Chưa có bài đăng yêu thích</h3>
+                    <p>Hãy lưu các bài đăng bạn thích để xem sau</p>
+                    <a href="../posts/list.php" class="btn btn-primary" style="margin-top: 1rem;">Tìm phòng trọ</a>
                 </div>
-
-                <div class="post-card">
-                    <div class="post-image">
-                        <img src="https://via.placeholder.com/400x250/764ba2/ffffff?text=Can+Ho+Mini" alt="Căn hộ mini">
-                        <button class="favorite-btn active" onclick="toggleFavorite(2, this); if(!this.classList.contains('active')) this.closest('.post-card').remove();">
-                            <i class="fas fa-heart"></i>
-                        </button>
-                    </div>
-                    <div class="post-content">
-                        <h3 class="post-title">Căn hộ mini cao cấp Quận 1 - Full nội thất</h3>
-                        <div class="post-location">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>456 Nguyễn Huệ, Quận 1</span>
+            <?php else: ?>
+                <div class="posts-grid">
+                    <?php foreach ($favorites as $post): ?>
+                    <div class="post-card" data-post-id="<?php echo $post['id']; ?>">
+                        <div class="post-image">
+                            <i class="fas fa-home"></i>
+                            <button class="favorite-btn active" onclick="toggleFavorite(<?php echo $post['id']; ?>, this); if(!this.classList.contains('active')) this.closest('.post-card').remove();">
+                                <i class="fas fa-heart"></i>
+                            </button>
                         </div>
-                        <div class="post-footer">
-                            <div class="post-price">8tr/tháng</div>
-                            <a href="../posts/detail.php?id=2" class="btn btn-primary btn-sm">Chi tiết</a>
+                        <div class="post-content">
+                            <h3 class="post-title"><?php echo htmlspecialchars(substr($post['title'], 0, 50)); ?></h3>
+                            <div class="post-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span><?php echo htmlspecialchars($post['address'] . ', ' . $post['district']); ?></span>
+                            </div>
+                            <div class="post-footer">
+                                <div class="post-price"><?php echo number_format($post['price']); ?>đ</div>
+                                <a href="../posts/detail.php?id=<?php echo $post['id']; ?>" class="btn btn-primary btn-sm">Chi tiết</a>
+                            </div>
                         </div>
                     </div>
+                    <?php endforeach; ?>
                 </div>
-
-                <div class="post-card">
-                    <div class="post-image">
-                        <img src="https://via.placeholder.com/400x250/3b82f6/ffffff?text=Phong+SV" alt="Phòng SV">
-                        <button class="favorite-btn active" onclick="toggleFavorite(3, this); if(!this.classList.contains('active')) this.closest('.post-card').remove();">
-                            <i class="fas fa-heart"></i>
-                        </button>
-                    </div>
-                    <div class="post-content">
-                        <h3 class="post-title">Phòng trọ sinh viên giá rẻ - Gần chợ trường</h3>
-                        <div class="post-location">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>789 Lê Văn Việt, Quận 9</span>
-                        </div>
-                        <div class="post-footer">
-                            <div class="post-price">1.8tr/tháng</div>
-                            <a href="../posts/detail.php?id=3" class="btn btn-primary btn-sm">Chi tiết</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <?php endif; ?>
         </div>
     </div>
 
-    <script src="../../assets/js/main.js"></script>
+    <script>
+        function toggleFavorite(postId, button) {
+            const isFavorited = button.classList.contains('active');
+            
+            fetch('../../Controllers/FavoriteController.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=' + (isFavorited ? 'remove' : 'add') + '&post_id=' + postId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    button.classList.toggle('active');
+                    if (!button.classList.contains('active')) {
+                        button.closest('.post-card').remove();
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
 </body>
 </html>
