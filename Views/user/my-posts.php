@@ -128,7 +128,7 @@ $totalPosts = count($posts);
                         <i class="fas fa-bell"></i> Thông báo
                     </a>
                     <?php 
-                    require_once '../../Models/Notification.php';
+                    require_once __DIR__ . '/../../Models/Notification.php';
                     $notifModel = new Notification();
                     $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
                     if ($unread > 0): 
