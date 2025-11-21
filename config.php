@@ -4,7 +4,7 @@ define('DB_NAME', 'fullstack');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
-define('SITE_URL', 'http://localhost');
+define('SITE_URL', 'http://localhost:3000');
 define('SITE_NAME', 'Tìm Trọ Sinh Viên');
 
 define('UPLOAD_DIR', __DIR__ . '/uploads/');

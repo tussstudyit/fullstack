@@ -58,23 +58,27 @@ function previewImages(input, previewContainer) {
 // =============================================
 
 function toggleFavorite(postId, element) {
+    // Check if user is logged in
+    const isFavorited = element.classList.contains('active');
+    const action = isFavorited ? 'remove' : 'add';
+    
     // Send AJAX request to toggle favorite
     fetch('../../Controllers/FavoriteController.php', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify({
-            action: 'toggle',
-            post_id: postId
-        })
+        body: 'action=' + action + '&post_id=' + postId
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             element.classList.toggle('active');
-            element.querySelector('i').classList.toggle('far');
-            element.querySelector('i').classList.toggle('fas');
+            const icon = element.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('far');
+                icon.classList.toggle('fas');
+            }
             
             showNotification(data.message, 'success');
         } else {
@@ -212,6 +216,18 @@ function validateForm(formId) {
     let isValid = true;
     
     inputs.forEach(input => {
+        // Skip validation for hidden fields (display: none or visibility: hidden)
+        const style = window.getComputedStyle(input);
+        if (style.display === 'none' || style.visibility === 'hidden') {
+            return;
+        }
+        
+        // Also check if parent form-step is hidden
+        const formStep = input.closest('.form-step');
+        if (formStep && !formStep.classList.contains('active')) {
+            return;
+        }
+        
         if (!input.value.trim()) {
             isValid = false;
             input.classList.add('error');

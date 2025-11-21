@@ -167,7 +167,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                         <span class="badge badge-success">Đã duyệt</span>
                         <h3>Phòng trọ gần ĐH Bách Khoa - An ninh tốt</h3>
                         <div class="post-meta">
-                            <i class="fas fa-map-marker-alt"></i> 123 Lý Thường Kiệt, Quận 10, TP.HCM
+                            <i class="fas fa-map-marker-alt"></i> 123 Nguyễn Chí Thanh, Quận Hải Châu, Đà Nẵng
                         </div>
                         <div style="color: var(--primary-color); font-size: 1.25rem; font-weight: 700;">
                             2.5 triệu/tháng
@@ -208,7 +208,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                         <span class="badge badge-warning">Chờ duyệt</span>
                         <h3>Căn hộ mini cao cấp Quận 1</h3>
                         <div class="post-meta">
-                            <i class="fas fa-map-marker-alt"></i> 456 Nguyễn Huệ, Quận 1, TP.HCM
+                            <i class="fas fa-map-marker-alt"></i> 456 Tran Phu, Quận Thanh Khê, Đà Nẵng
                         </div>
                         <div style="color: var(--primary-color); font-size: 1.25rem; font-weight: 700;">
                             8 triệu/tháng
@@ -245,7 +245,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                         <span class="badge badge-danger">Đã từ chối</span>
                         <h3>Phòng trọ sinh viên giá rẻ</h3>
                         <div class="post-meta">
-                            <i class="fas fa-map-marker-alt"></i> 789 Lê Văn Việt, Quận 9, TP.HCM
+                            <i class="fas fa-map-marker-alt"></i> 789 Lê Văn Việt, Quận Cẩm Lệ, Đà Nẵng
                         </div>
                         <div style="color: var(--primary-color); font-size: 1.25rem; font-weight: 700;">
                             1.8 triệu/tháng

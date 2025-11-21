@@ -459,12 +459,13 @@ try {
                             <i class="fas fa-map-marker-alt"></i>
                             <select class="form-control" name="district">
                                 <option value="">Chọn quận/huyện</option>
-                                <option value="Quận 1">Quận 1</option>
-                                <option value="Quận 3">Quận 3</option>
-                                <option value="Quận 5">Quận 5</option>
-                                <option value="Quận 10">Quận 10</option>
-                                <option value="Quận Bình Thạnh">Quận Bình Thạnh</option>
-                                <option value="Quận Thủ Đức">Quận Thủ Đức</option>
+                                <option value="Quận Hải Châu">Quận Hải Châu</option>
+                                <option value="Quận Thanh Khê">Quận Thanh Khê</option>
+                                <option value="Quận Cẩm Lệ">Quận Cẩm Lệ</option>
+                                <option value="Quận Ngũ Hành Sơn">Quận Ngũ Hành Sơn</option>
+                                <option value="Quận Sơn Trà">Quận Sơn Trà</option>
+                                <option value="Quận Liên Chiểu">Quận Liên Chiểu</option>
+                                <option value="Huyện Hòa Vang">Huyện Hòa Vang</option>
                             </select>
                         </div>
 

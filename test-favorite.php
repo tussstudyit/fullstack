@@ -3,7 +3,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/Models/Favorite.php';
 
 // Giả lập session
-$_SESSION['user_id'] = 1;  // tenant user
+$_SESSION['user_id'] = 4;  // tenant1 user ID (verified in database)
 $_SESSION['username'] = 'tenant1';
 
 $favoriteModel = new Favorite();

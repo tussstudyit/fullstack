@@ -382,12 +382,13 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                 <label class="form-label" for="district">Quận/Huyện *</label>
                                 <select class="form-control" id="district" name="district" required>
                                     <option value="">Chọn quận/huyện</option>
-                                    <option value="Quận 1">Quận 1</option>
-                                    <option value="Quận 3">Quận 3</option>
-                                    <option value="Quận 5">Quận 5</option>
-                                    <option value="Quận 10">Quận 10</option>
-                                    <option value="Quận Bình Thạnh">Quận Bình Thạnh</option>
-                                    <option value="Quận Thủ Đức">Quận Thủ Đức</option>
+                                    <option value="Quận Hải Châu">Quận Hải Châu</option>
+                                    <option value="Quận Thanh Khê">Quận Thanh Khê</option>
+                                    <option value="Quận Cẩm Lệ">Quận Cẩm Lệ</option>
+                                    <option value="Quận Ngũ Hành Sơn">Quận Ngũ Hành Sơn</option>
+                                    <option value="Quận Sơn Trà">Quận Sơn Trà</option>
+                                    <option value="Quận Liên Chiểu">Quận Liên Chiểu</option>
+                                    <option value="Huyện Hòa Vang">Huyện Hòa Vang</option>
                                 </select>
                             </div>
 
@@ -398,7 +399,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                     class="form-control" 
                                     id="city" 
                                     name="city" 
-                                    value="TP. Hồ Chí Minh"
+                                    value="Đà Nẵng"
                                     required
                                 >
                             </div>
@@ -464,6 +465,14 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                 <label class="amenity-checkbox">
                                     <input type="checkbox" name="amenities[]" value="security">
                                     <span><i class="fas fa-shield-alt"></i> An ninh 24/7</span>
+                                </label>
+                                <label class="amenity-checkbox">
+                                    <input type="checkbox" name="amenities[]" value="water_heater">
+                                    <span><i class="fas fa-tint"></i> Máy nóng lạnh</span>
+                                </label>
+                                <label class="amenity-checkbox">
+                                    <input type="checkbox" name="amenities[]" value="flexible_hours">
+                                    <span><i class="fas fa-clock"></i> Giờ giấc tự do</span>
                                 </label>
                             </div>
                         </div>

@@ -479,7 +479,7 @@ try {
                                 <h3 class="post-title">Phòng trọ gần ĐH Bách Khoa - An ninh tốt</h3>
                                 <div class="post-location">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    <span>123 Lý Thường Kiệt, Quận 10</span>
+                                    <span>123 Nguyễn Chí Thanh, Quận Hải Châu, Đà Nẵng</span>
                                 </div>
                                 <div class="post-features">
                                     <div class="feature-item">
@@ -514,7 +514,7 @@ try {
                                 <h3 class="post-title">Căn hộ mini cao cấp Quận 1 - Full nội thất</h3>
                                 <div class="post-location">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    <span>456 Nguyễn Huệ, Quận 1</span>
+                                    <span>456 Tran Phu, Quận Thanh Khê, Đà Nẵng</span>
                                 </div>
                                 <div class="post-features">
                                     <div class="feature-item">
@@ -549,7 +549,7 @@ try {
                                 <h3 class="post-title">Phòng trọ sinh viên giá rẻ - Gần chợ trường</h3>
                                 <div class="post-location">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    <span>789 Lê Văn Việt, Quận 9</span>
+                                    <span>789 Lê Văn Việt, Quận Cẩm Lệ, Đà Nẵng</span>
                                 </div>
                                 <div class="post-features">
                                     <div class="feature-item">

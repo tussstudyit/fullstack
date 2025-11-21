@@ -59,7 +59,7 @@ class Post {
                 $data['utilities'] ?? null,
                 $data['rules'] ?? null,
                 $data['available_from'] ?? date('Y-m-d'),
-                $data['status'] ?? 'pending'
+                $data['status'] ?? 'approved'
             ]);
 
             if ($result) {
