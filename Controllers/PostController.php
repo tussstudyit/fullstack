@@ -45,6 +45,10 @@ class PostController {
             return ['success' => false, 'message' => 'Giá không hợp lệ'];
         }
 
+        $amenities = $_POST['amenities'] ?? [];
+        $utilities = $_POST['utilities'] ?? [];
+        $rules = $_POST['rules'] ?? [];
+
         $data = [
             'user_id' => $_SESSION['user_id'],
             'category_id' => $category_id,
@@ -58,19 +62,14 @@ class PostController {
             'room_type' => $_POST['room_type'] ?? 'single',
             'max_people' => $_POST['max_people'] ?? 1,
             'gender' => $_POST['gender'] ?? 'any',
-            'amenities' => $_POST['amenities'] ?? null,
-            'utilities' => $_POST['utilities'] ?? null,
-            'rules' => $_POST['rules'] ?? null,
+            'amenities' => !empty($amenities) ? json_encode($amenities) : null,
+            'utilities' => !empty($utilities) ? json_encode($utilities) : null,
+            'rules' => !empty($rules) ? json_encode($rules) : null,
             'available_from' => $_POST['available_from'] ?? date('Y-m-d'),
             'status' => 'approved'
         ];
 
         $result = $this->postModel->create($data);
-
-        if ($result['success']) {
-            redirect('/fullstack/Views/user/my-posts.php?success=1');
-        }
-
         return $result;
     }
 
@@ -113,11 +112,6 @@ class PostController {
         }
 
         $result = $this->postModel->update($post_id, $data);
-
-        if ($result['success']) {
-            redirect('/fullstack/Views/user/my-posts.php?success=1');
-        }
-
         return $result;
     }
 
@@ -151,11 +145,6 @@ class PostController {
         }
 
         $result = $this->postModel->delete($post_id);
-
-        if ($result['success']) {
-            redirect('/fullstack/Views/user/my-posts.php?success=1');
-        }
-
         return $result;
     }
 
