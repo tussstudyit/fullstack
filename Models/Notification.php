@@ -16,7 +16,7 @@ class Notification {
         try {
             $stmt = $this->db->prepare("
                 SELECT * FROM {$this->table} 
-                WHERE recipient_id = ? 
+                WHERE user_id = ? 
                 ORDER BY created_at DESC 
                 LIMIT ? OFFSET ?
             ");
@@ -35,7 +35,7 @@ class Notification {
         try {
             $stmt = $this->db->prepare("
                 SELECT COUNT(*) as count FROM {$this->table} 
-                WHERE recipient_id = ? AND is_read = 0
+                WHERE user_id = ? AND is_read = 0
             ");
             $stmt->execute([$user_id]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -53,17 +53,16 @@ class Notification {
         try {
             $stmt = $this->db->prepare("
                 INSERT INTO {$this->table} 
-                (recipient_id, sender_id, type, title, message, related_post_id, is_read, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, 0, NOW())
+                (user_id, type, title, content, link, is_read, created_at)
+                VALUES (?, ?, ?, ?, ?, 0, NOW())
             ");
             
             return $stmt->execute([
-                $data['recipient_id'],
-                $data['sender_id'] ?? null,
-                $data['type'], // 'post_comment', 'post_like', 'message', etc.
+                $data['user_id'],
+                $data['type'], // 'message', 'review', 'post_approved', 'post_rejected', 'system'
                 $data['title'],
-                $data['message'],
-                $data['related_post_id'] ?? null
+                $data['content'] ?? null,
+                $data['link'] ?? null
             ]);
         } catch (PDOException $e) {
             error_log("Error in Notification::create: " . $e->getMessage());

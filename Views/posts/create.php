@@ -571,7 +571,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
             if (validateForm('createPostForm')) {
                 showNotification('Đang xử lý...', 'info');
                 setTimeout(() => {
-                    showNotification('Đăng tin thành công! Bài viết đang chờ phê duyệt.', 'success');
+                    showNotification('Đăng tin thành công! Bài viết đã được công bố.', 'success');
                     setTimeout(() => {
                         window.location.href = '../user/my-posts.php';
                     }, 2000);
