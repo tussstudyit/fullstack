@@ -295,3 +295,39 @@ function debounce(func, wait) {
         timeout = setTimeout(later, wait);
     };
 }
+
+// =============================================
+// DELETE POST
+// =============================================
+
+function deletePost(postId) {
+    if (!confirm('Bạn có chắc chắn muốn xóa tin đăng này?')) {
+        return;
+    }
+
+    // Send delete request to controller
+    fetch('../../Controllers/PostController.php?action=delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'post_id=' + encodeURIComponent(postId)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message || 'Đã xóa tin đăng', 'success');
+            // Remove the post item from the page
+            const postItem = document.querySelector(`.post-item[data-post-id="${postId}"]`);
+            if (postItem) {
+                postItem.remove();
+            }
+        } else {
+            showNotification(data.message || 'Lỗi khi xóa tin đăng', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Lỗi khi xóa tin đăng', 'error');
+    });
+}

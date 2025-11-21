@@ -61,7 +61,8 @@ class PostController {
             'amenities' => $_POST['amenities'] ?? null,
             'utilities' => $_POST['utilities'] ?? null,
             'rules' => $_POST['rules'] ?? null,
-            'available_from' => $_POST['available_from'] ?? date('Y-m-d')
+            'available_from' => $_POST['available_from'] ?? date('Y-m-d'),
+            'status' => 'approved'
         ];
 
         $result = $this->postModel->create($data);

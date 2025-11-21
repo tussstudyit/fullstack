@@ -21,12 +21,12 @@ try {
     $conn = getDB();
     
     // Fetch featured posts
-    $featured_stmt = $conn->prepare("SELECT id, title, location, price, image, category FROM posts LIMIT 3");
+    $featured_stmt = $conn->prepare("SELECT id, title, location, price, image, category FROM posts WHERE status = 'approved' LIMIT 3");
     $featured_stmt->execute();
     $featured_posts = $featured_stmt->fetchAll(PDO::FETCH_ASSOC);
     
     // Fetch category counts
-    $categories_stmt = $conn->prepare("SELECT category, COUNT(*) as count FROM posts GROUP BY category");
+    $categories_stmt = $conn->prepare("SELECT category, COUNT(*) as count FROM posts WHERE status = 'approved' GROUP BY category");
     $categories_stmt->execute();
     $categories_data = $categories_stmt->fetchAll(PDO::FETCH_ASSOC);
     if ($categories_data) {
@@ -34,7 +34,7 @@ try {
     }
     
     // Fetch statistics
-    $total_posts_stmt = $conn->prepare("SELECT COUNT(*) as count FROM posts");
+    $total_posts_stmt = $conn->prepare("SELECT COUNT(*) as count FROM posts WHERE status = 'approved'");
     $total_posts_stmt->execute();
     $result = $total_posts_stmt->fetch(PDO::FETCH_ASSOC);
     if ($result && isset($result['count'])) {

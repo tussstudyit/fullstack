@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../config.php';
 
 // Redirect if not logged in or not landlord
 if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
-    redirect('/fullstack/Views/home/index.php');
+    redirect('../../index.php');
 }
 ?>
 <!DOCTYPE html>

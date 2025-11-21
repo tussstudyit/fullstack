@@ -508,7 +508,7 @@ require_once __DIR__ . '/../../config.php';
                             <a href="tel:0912345678" class="btn btn-primary">
                                 <i class="fas fa-phone"></i> 0912 345 678
                             </a>
-                            <a href="../chat/index.php" class="btn btn-outline">
+                            <a href="../chat/chat.php" class="btn btn-outline">
                                 <i class="fas fa-comment"></i> Nhắn tin
                             </a>
                             <button class="btn btn-secondary" onclick="toggleFavorite(1, this)">

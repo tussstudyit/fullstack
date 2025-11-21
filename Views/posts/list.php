@@ -8,7 +8,7 @@ $category = sanitize($_GET['category'] ?? '');
 $posts = [];
 
 try {
-    $query = "SELECT * FROM posts WHERE 1=1";
+    $query = "SELECT * FROM posts WHERE status = 'approved'";
     $params = [];
     
     if (!empty($search)) {
@@ -334,7 +334,9 @@ try {
                 <?php if (isLoggedIn() && $_SESSION['role'] === 'tenant'): ?>
                 <li><a href="../user/favorites.php" class="nav-link">Yêu thích</a></li>
                 <?php endif; ?>
+                <?php if (isLoggedIn()): ?>
                 <li><a href="../chat/chat.php" class="nav-link">Tin nhắn</a></li>
+                <?php endif; ?>
             </ul>
 
             <div class="nav-actions">

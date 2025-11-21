@@ -1,10 +1,16 @@
 <?php
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../Models/Post.php';
 
 // Redirect if not logged in or not landlord
 if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
-    redirect('/fullstack/Views/home/index.php');
+    redirect('/fullstack/index.php');
 }
+
+// Get user's posts
+$postModel = new Post();
+$posts = $postModel->getByUserId($_SESSION['user_id']);
+$totalPosts = count($posts);
 ?>
 <!DOCTYPE html>
 <html lang=\"vi\">
@@ -151,7 +157,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
         <div class="container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <div>
-                    <h2>Tin đăng của tôi (3)</h2>
+                    <h2>Tin đăng của tôi (<?php echo $totalPosts; ?>)</h2>
                 </div>
                 <a href="../posts/create.php" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Đăng tin mới
@@ -159,114 +165,51 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
             </div>
 
             <div class="posts-list">
-                <div class="post-item">
+                <?php if (empty($posts)): ?>
+                <div style="padding: 3rem; text-align: center; color: var(--text-light);">
+                    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                    <p>Bạn chưa có tin đăng nào. <a href="../posts/create.php" style="color: var(--primary-color); font-weight: 500;">Đăng tin ngay</a></p>
+                </div>
+                <?php else: ?>
+                <?php foreach ($posts as $post): ?>
+                <div class="post-item" data-post-id="<?php echo $post['id']; ?>">
                     <div class="post-image">
-                        <img src="https://via.placeholder.com/200x150/667eea/ffffff?text=Post+1" alt="Post">
+                        <img src="https://via.placeholder.com/200x150/667eea/ffffff?text=<?php echo urlencode($post['title']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
                     </div>
                     <div class="post-info">
                         <span class="badge badge-success">Đã duyệt</span>
-                        <h3>Phòng trọ gần ĐH Bách Khoa - An ninh tốt</h3>
+                        <h3><?php echo htmlspecialchars($post['title']); ?></h3>
                         <div class="post-meta">
-                            <i class="fas fa-map-marker-alt"></i> 123 Nguyễn Chí Thanh, Quận Hải Châu, Đà Nẵng
+                            <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($post['address'] . ', ' . $post['district'] . ', ' . $post['city']); ?>
                         </div>
                         <div style="color: var(--primary-color); font-size: 1.25rem; font-weight: 700;">
-                            2.5 triệu/tháng
+                            <?php echo number_format($post['price']); ?> đ/tháng
                         </div>
                         <div class="post-stats">
                             <div class="stat-item">
                                 <i class="fas fa-eye"></i>
-                                <span>156 lượt xem</span>
-                            </div>
-                            <div class="stat-item">
-                                <i class="fas fa-heart"></i>
-                                <span>12 yêu thích</span>
+                                <span><?php echo $post['views'] ?? 0; ?> lượt xem</span>
                             </div>
                             <div class="stat-item">
                                 <i class="fas fa-clock"></i>
-                                <span>Đăng 2 ngày trước</span>
+                                <span>Đăng <?php echo timeAgo(strtotime($post['created_at'])); ?></span>
                             </div>
                         </div>
                     </div>
                     <div class="post-actions">
-                        <a href="../posts/detail.php?id=1" class="btn btn-sm btn-outline">
+                        <a href="../posts/detail.php?id=<?php echo $post['id']; ?>" class="btn btn-sm btn-outline">
                             <i class="fas fa-eye"></i> Xem
                         </a>
-                        <a href="../posts/create.php?id=1" class="btn btn-sm btn-primary">
+                        <a href="../posts/create.php?id=<?php echo $post['id']; ?>" class="btn btn-sm btn-primary">
                             <i class="fas fa-edit"></i> Sửa
                         </a>
-                        <button class="btn btn-sm btn-danger" onclick="if(confirmDelete('Bạn có chắc muốn xóa tin này?')) { showNotification('Đã xóa tin đăng', 'success'); this.closest('.post-item').remove(); }">
+                        <button class="btn btn-sm btn-danger" onclick="if(confirmDelete('Bạn có chắc muốn xóa tin này?')) { deletePost(<?php echo $post['id']; ?>); }">
                             <i class="fas fa-trash"></i> Xóa
                         </button>
                     </div>
                 </div>
-
-                <div class="post-item">
-                    <div class="post-image">
-                        <img src="https://via.placeholder.com/200x150/764ba2/ffffff?text=Post+2" alt="Post">
-                    </div>
-                    <div class="post-info">
-                        <span class="badge badge-warning">Chờ duyệt</span>
-                        <h3>Căn hộ mini cao cấp Quận 1</h3>
-                        <div class="post-meta">
-                            <i class="fas fa-map-marker-alt"></i> 456 Tran Phu, Quận Thanh Khê, Đà Nẵng
-                        </div>
-                        <div style="color: var(--primary-color); font-size: 1.25rem; font-weight: 700;">
-                            8 triệu/tháng
-                        </div>
-                        <div class="post-stats">
-                            <div class="stat-item">
-                                <i class="fas fa-eye"></i>
-                                <span>0 lượt xem</span>
-                            </div>
-                            <div class="stat-item">
-                                <i class="fas fa-clock"></i>
-                                <span>Đăng 1 giờ trước</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="post-actions">
-                        <a href="../posts/detail.php?id=2" class="btn btn-sm btn-outline">
-                            <i class="fas fa-eye"></i> Xem
-                        </a>
-                        <a href="../posts/create.php?id=2" class="btn btn-sm btn-primary">
-                            <i class="fas fa-edit"></i> Sửa
-                        </a>
-                        <button class="btn btn-sm btn-danger" onclick="if(confirmDelete('Bạn có chắc muốn xóa tin này?')) { showNotification('Đã xóa tin đăng', 'success'); this.closest('.post-item').remove(); }">
-                            <i class="fas fa-trash"></i> Xóa
-                        </button>
-                    </div>
-                </div>
-
-                <div class="post-item">
-                    <div class="post-image">
-                        <img src="https://via.placeholder.com/200x150/3b82f6/ffffff?text=Post+3" alt="Post">
-                    </div>
-                    <div class="post-info">
-                        <span class="badge badge-danger">Đã từ chối</span>
-                        <h3>Phòng trọ sinh viên giá rẻ</h3>
-                        <div class="post-meta">
-                            <i class="fas fa-map-marker-alt"></i> 789 Lê Văn Việt, Quận Cẩm Lệ, Đà Nẵng
-                        </div>
-                        <div style="color: var(--primary-color); font-size: 1.25rem; font-weight: 700;">
-                            1.8 triệu/tháng
-                        </div>
-                        <div class="post-stats">
-                            <div class="stat-item">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <span>Lý do: Thiếu thông tin liên hệ</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="post-actions">
-                        <a href="../posts/create.php?id=3" class="btn btn-sm btn-primary">
-                            <i class="fas fa-edit"></i> Chỉnh sửa
-                        </a>
-                        <button class="btn btn-sm btn-danger" onclick="if(confirmDelete('Bạn có chắc muốn xóa tin này?')) { showNotification('Đã xóa tin đăng', 'success'); this.closest('.post-item').remove(); }">
-                            <i class="fas fa-trash"></i> Xóa
-                        </button>
-                    </div>
-                </div>
-            </div>
+                <?php endforeach; ?>
+                <?php endif; ?>
         </div>
     </div>
 

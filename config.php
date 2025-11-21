@@ -72,4 +72,25 @@ function sanitize($data) {
     // Chỉ trim whitespace, không dùng htmlspecialchars cho password
     return trim($data);
 }
+
+function timeAgo($timestamp) {
+    $time_difference = time() - $timestamp;
+    
+    if ($time_difference < 60) {
+        return "1 phút trước";
+    } elseif ($time_difference < 3600) {
+        return floor($time_difference / 60) . " phút trước";
+    } elseif ($time_difference < 86400) {
+        return floor($time_difference / 3600) . " giờ trước";
+    } elseif ($time_difference < 2592000) {
+        $days = floor($time_difference / 86400);
+        return $days . " ngày trước";
+    } elseif ($time_difference < 31536000) {
+        $months = floor($time_difference / 2592000);
+        return $months . " tháng trước";
+    } else {
+        $years = floor($time_difference / 31536000);
+        return $years . " năm trước";
+    }
+}
 ?>

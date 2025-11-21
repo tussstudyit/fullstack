@@ -337,7 +337,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <li><a href="users.php"><i class="fas fa-users"></i> Quản lý người dùng</a></li>
                 <li><a href="reports.php"><i class="fas fa-flag"></i> Báo cáo vi phạm</a></li>
                 <li><a href="settings.php"><i class="fas fa-cog"></i> Cài đặt</a></li>
-                <li><a href="<?php echo '/fullstack/Controllers/AuthController.php?action=logout'; ?>"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                <li><a href="../../Controllers/AuthController.php?action=logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
             </ul>
         </aside>
 

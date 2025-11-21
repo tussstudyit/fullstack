@@ -20,7 +20,7 @@ try {
         SELECT p.id, p.title, p.description, p.address, p.district, p.city, p.price, p.area, p.status
         FROM posts p
         JOIN favorites f ON p.id = f.post_id
-        WHERE f.user_id = ?
+        WHERE f.user_id = ? AND p.status = 'approved'
         ORDER BY f.created_at DESC
     ");
     $stmt->execute([$_SESSION['user_id']]);

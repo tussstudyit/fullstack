@@ -223,7 +223,7 @@ class Post {
                 SELECT p.*, c.name as category_name
                 FROM {$this->table} p
                 JOIN categories c ON p.category_id = c.id
-                WHERE p.user_id = ?
+                WHERE p.user_id = ? AND p.status = 'approved'
                 ORDER BY p.created_at DESC
                 LIMIT ? OFFSET ?
             ");
@@ -240,7 +240,7 @@ class Post {
      */
     public function countByUserId($user_id) {
         try {
-            $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM {$this->table} WHERE user_id = ?");
+            $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM {$this->table} WHERE user_id = ? AND status = 'approved'");
             $stmt->execute([$user_id]);
             $result = $stmt->fetch();
             return $result['total'];
