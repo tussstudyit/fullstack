@@ -13,7 +13,9 @@ define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif']);
 
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 function getDB() {
     static $conn = null;

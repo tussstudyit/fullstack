@@ -1,7 +1,13 @@
 <?php
+// Set output buffering before any output
+if (!ob_get_level()) {
+    ob_start();
+}
+
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 ini_set('display_errors', '0');
+error_reporting(0);
 
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../Models/Post.php';
@@ -187,6 +193,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'success' => false,
             'message' => $e->getMessage()
         ]);
+    }
+    
+    // Flush output buffer
+    if (ob_get_level()) {
+        ob_end_flush();
     }
 } else {
     header('HTTP/1.0 404 Not Found');
