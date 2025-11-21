@@ -579,7 +579,19 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                     method: 'POST',
                     body: formData
                 })
-                .then(response => response.json())
+                .then(response => {
+                    // Log raw response for debugging
+                    return response.text().then(text => {
+                        console.log('Raw response:', text);
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            console.error('JSON parse error:', e);
+                            console.error('Response text:', text);
+                            throw new Error('Invalid JSON response: ' + text.substring(0, 100));
+                        }
+                    });
+                })
                 .then(data => {
                     if (data.success) {
                         showNotification('Đăng tin thành công! Bài viết đã được công bố.', 'success');
@@ -592,7 +604,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showNotification('Lỗi khi gửi dữ liệu', 'error');
+                    showNotification('Lỗi khi gửi dữ liệu: ' + error.message, 'error');
                 });
             }
         });

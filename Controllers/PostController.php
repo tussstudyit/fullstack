@@ -171,8 +171,6 @@ class PostController {
 
 // Xử lý request
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    header('Content-Type: application/json');
-    
     try {
         $action = sanitize($_POST['action'] ?? '');
         $controller = new PostController();
