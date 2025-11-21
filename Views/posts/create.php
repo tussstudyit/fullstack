@@ -570,12 +570,30 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
             
             if (validateForm('createPostForm')) {
                 showNotification('Đang xử lý...', 'info');
-                setTimeout(() => {
-                    showNotification('Đăng tin thành công! Bài viết đã được công bố.', 'success');
-                    setTimeout(() => {
-                        window.location.href = '../user/my-posts.php';
-                    }, 2000);
-                }, 1000);
+                
+                // Create FormData from form
+                const formData = new FormData(this);
+                
+                // Send AJAX request
+                fetch('../../Controllers/PostController.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Đăng tin thành công! Bài viết đã được công bố.', 'success');
+                        setTimeout(() => {
+                            window.location.href = '../user/my-posts.php';
+                        }, 2000);
+                    } else {
+                        showNotification(data.message || 'Có lỗi xảy ra', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Lỗi khi gửi dữ liệu', 'error');
+                });
             }
         });
     </script>
