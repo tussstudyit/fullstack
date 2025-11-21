@@ -1,4 +1,8 @@
 <?php
+header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
+ini_set('display_errors', '0');
+
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../Models/Post.php';
 require_once __DIR__ . '/../Models/User.php';
@@ -167,13 +171,24 @@ class PostController {
 
 // Xử lý request
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = sanitize($_POST['action'] ?? '');
-    $controller = new PostController();
-    $result = $controller->handleAction($action);
+    header('Content-Type: application/json');
     
-    if (is_array($result)) {
-        header('Content-Type: application/json');
-        echo json_encode($result);
+    try {
+        $action = sanitize($_POST['action'] ?? '');
+        $controller = new PostController();
+        $result = $controller->handleAction($action);
+        
+        if (is_array($result)) {
+            echo json_encode($result);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid response']);
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
     }
 } else {
     header('HTTP/1.0 404 Not Found');
