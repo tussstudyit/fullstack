@@ -488,7 +488,6 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                             <input 
                                 type="file" 
                                 id="imageInput" 
-                                name="images[]" 
                                 multiple 
                                 accept="image/*" 
                                 style="display: none;"
