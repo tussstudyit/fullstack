@@ -202,8 +202,8 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
             </ul>
 
             <div class="nav-actions">
-                <a href="profile.php" class="btn btn-outline btn-sm"><?php echo htmlspecialchars($_SESSION['username']); ?></a>
-                <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm">Đăng xuất</a>
+                    <a href="profile.php" class="btn btn-outline btn-sm"><i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($_SESSION['username']); ?></a>
+                    <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
             </div>
 
             <button class="mobile-menu-toggle">

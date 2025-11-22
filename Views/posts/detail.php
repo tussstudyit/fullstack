@@ -378,8 +378,8 @@ $primaryImage = $postImageModel->getPrimaryImage($post_id);
                         </span>
                         <?php endif; ?>
                     </div>
-                    <a href="../user/profile.php" class="btn btn-outline btn-sm"><?php echo htmlspecialchars($_SESSION['username']); ?></a>
-                    <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm">Đăng xuất</a>
+                    <a href="../user/profile.php" class="btn btn-outline btn-sm"><i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($_SESSION['username']); ?></a>
+                    <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
                 <?php else: ?>
                     <a href="../auth/login.php" class="btn btn-outline btn-sm">Đăng nhập</a>
                     <a href="../auth/register.php" class="btn btn-primary btn-sm">Đăng ký</a>
