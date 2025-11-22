@@ -688,7 +688,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
             formData.append('post_id', postId);
             
             for (let i = 0; i < uploadedImages.length; i++) {
-                formData.append('images[]', uploadedImages[i]);
+                formData.append('images', uploadedImages[i]);
             }
 
             return fetch('../../api/upload-image.php?action=upload-multiple', {
@@ -697,6 +697,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
             })
             .then(response => response.json())
             .then(data => {
+                console.log('Upload response:', data);
                 if (data.success) {
                     showNotification(data.message, 'success');
                 } else {
