@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../Models/PostImage.php';
 
 $search = sanitize($_GET['search'] ?? '');
 $district = sanitize($_GET['district'] ?? '');
@@ -12,6 +13,7 @@ $per_page = 6;
 $posts = [];
 $total_posts = 0;
 $total_pages = 0;
+$postImageModel = new PostImage();
 
 try {
     $db = getDB();
@@ -67,6 +69,12 @@ try {
     $stmt = $db->prepare($query);
     $stmt->execute($params);
     $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Thêm ảnh chính cho mỗi bài đăng
+    foreach ($posts as &$post) {
+        $post['image'] = $postImageModel->getPrimaryImage($post['id']);
+    }
+    unset($post);
 } catch (PDOException $e) {
     error_log("Query error: " . $e->getMessage());
     $posts = [];
@@ -513,7 +521,7 @@ try {
                         <?php foreach ($posts as $post): ?>
                         <div class="post-card">
                             <div class="post-image">
-                                <img src="https://via.placeholder.com/400x250/667eea/ffffff?text=<?php echo urlencode($post['room_type']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
+                                <img src="<?php echo $post['image'] ? '../../uploads/' . htmlspecialchars($post['image']) : 'https://via.placeholder.com/400x250/667eea/ffffff?text=' . urlencode($post['room_type']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
                                 <span class="post-badge">
                                     <?php 
                                     $created = strtotime($post['created_at']);

@@ -1,6 +1,7 @@
 <?php
 // Include configuration
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/Models/PostImage.php';
 
 // Initialize variables with default values
 $featured_posts = [];
@@ -19,11 +20,18 @@ $db_error = false;
 try {
     // Get database connection using config
     $conn = getDB();
+    $postImageModel = new PostImage();
     
     // Fetch featured posts
     $featured_stmt = $conn->prepare("SELECT id, title, address, district, city, price, area, room_type, max_people FROM posts WHERE status = 'approved' LIMIT 3");
     $featured_stmt->execute();
     $featured_posts = $featured_stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Thêm ảnh chính cho mỗi bài đăng
+    foreach ($featured_posts as &$post) {
+        $post['image'] = $postImageModel->getPrimaryImage($post['id']);
+    }
+    unset($post);
     
     // Fetch category counts
     $categories_stmt = $conn->prepare("SELECT category, COUNT(*) as count FROM posts WHERE status = 'approved' GROUP BY category");
@@ -528,7 +536,7 @@ try {
                     <?php foreach ($featured_posts as $index => $post): ?>
                     <div class="post-card">
                         <div class="post-image">
-                            <img src="https://via.placeholder.com/400x250?text=<?php echo urlencode($post['title']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
+                            <img src="<?php echo $post['image'] ? 'uploads/' . htmlspecialchars($post['image']) : 'https://via.placeholder.com/400x250?text=' . urlencode($post['title']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
                             <span class="post-badge"><?php 
                                 $badges = ['Mới đăng', 'Nổi bật', 'Giá rẻ'];
                                 echo $badges[$index % count($badges)];
