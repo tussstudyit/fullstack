@@ -7,6 +7,7 @@ if (!isLoggedIn()) {
 }
 
 require_once __DIR__ . '/../../Models/User.php';
+require_once __DIR__ . '/../../Models/Notification.php';
 
 $user = null;
 try {
@@ -27,30 +28,11 @@ try {
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        html {
-            height: 100%;
-        }
-
-        body {
-            background-color: #f8f9fa;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .header {
-            position: sticky !important;
-            top: 0 !important;
-            z-index: 1000 !important;
-            flex-shrink: 0;
-        }
-
         .page-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 3rem 0;
             text-align: center;
-            flex-shrink: 0;
         }
 
         .page-header h1 {
@@ -64,9 +46,8 @@ try {
             opacity: 0.9;
         }
 
-        .main-content {
+        .content-wrapper {
             padding: 3rem 0;
-            flex: 1;
         }
 
         .profile-container {
@@ -103,6 +84,7 @@ try {
             align-items: center;
             padding: 1rem 0;
             flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .profile-label {
@@ -166,11 +148,55 @@ try {
         }
 
         .footer {
-            margin-top: auto;
-            flex-shrink: 0;
+            background: var(--dark-color);
+            color: white;
+            padding: 3rem 0 1rem;
+            margin-top: 3rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-about h3 {
+            margin-bottom: 1rem;
+        }
+
+        .footer-links h4 {
+            margin-bottom: 1rem;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
         }
 
         @media (max-width: 768px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
             .page-header h1 {
                 font-size: 1.75rem;
             }
@@ -207,20 +233,33 @@ try {
                 <li><a href="../../index.php" class="nav-link">Trang chủ</a></li>
                 <li><a href="../posts/list.php" class="nav-link">Danh sách trọ</a></li>
                 <?php if (isLoggedIn() && $_SESSION['role'] === 'landlord'): ?>
-                    <li><a href="../posts/create.php" class="nav-link">Đăng tin</a></li>
+                <li><a href="../posts/create.php" class="nav-link">Đăng tin</a></li>
+                <?php endif; ?>
+                <?php if (isLoggedIn() && $_SESSION['role'] === 'tenant'): ?>
+                <li><a href="favorites.php" class="nav-link">Yêu thích</a></li>
                 <?php endif; ?>
                 <?php if (isLoggedIn()): ?>
-                    <li><a href="favorites.php" class="nav-link">Yêu thích</a></li>
-                    <li><a href="../chat/chat.php" class="nav-link">Tin nhắn</a></li>
+                <li><a href="../chat/chat.php" class="nav-link">Tin nhắn</a></li>
                 <?php endif; ?>
             </ul>
 
             <div class="nav-actions">
                 <?php if (isLoggedIn()): ?>
-                    <a href="notifications.php" class="btn btn-outline btn-sm" title="Thông báo">
-                        <i class="fas fa-bell"></i> Thông báo
-                    </a>
-                    <a href="#" class="btn btn-outline btn-sm"><?php echo htmlspecialchars($_SESSION['username']); ?></a>
+                    <div style="position: relative; display: inline-block;">
+                        <a href="notifications.php" class="btn btn-outline btn-sm" title="Thông báo">
+                            <i class="fas fa-bell"></i> Thông báo
+                        </a>
+                        <?php 
+                        $notifModel = new Notification();
+                        $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
+                        if ($unread > 0): 
+                        ?>
+                        <span style="position: absolute; top: -5px; right: -5px; background: var(--danger-color); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">
+                            <?php echo $unread > 99 ? '99+' : $unread; ?>
+                        </span>
+                        <?php endif; ?>
+                    </div>
+                    <a href="profile.php" class="btn btn-outline btn-sm"><?php echo htmlspecialchars($_SESSION['username']); ?></a>
                     <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm">Đăng xuất</a>
                 <?php else: ?>
                     <a href="../auth/login.php" class="btn btn-outline btn-sm">Đăng nhập</a>
@@ -241,106 +280,112 @@ try {
     </section>
 
     <!-- Main Content -->
-    <main class="main-content">
+    <div class="content-wrapper">
         <div class="container">
-                <?php if ($user): ?>
-                    <div class="profile-container">
-                        <!-- User Info Section -->
-                        <div class="profile-section">
-                            <h2>Thông tin cơ bản</h2>
-                            
-                            <div class="profile-item">
-                                <span class="profile-label">Tên đầy đủ:</span>
-                                <span class="profile-value"><?php echo htmlspecialchars($user['full_name'] ?? 'N/A'); ?></span>
-                            </div>
-
-                            <div class="profile-item">
-                                <span class="profile-label">Tên đăng nhập:</span>
-                                <span class="profile-value">@<?php echo htmlspecialchars($user['username']); ?></span>
-                            </div>
-
-                            <div class="profile-item">
-                                <span class="profile-label">Email:</span>
-                                <span class="profile-value"><?php echo htmlspecialchars($user['email']); ?></span>
-                            </div>
-
-                            <div class="profile-item">
-                                <span class="profile-label">Số điện thoại:</span>
-                                <span class="profile-value"><?php echo htmlspecialchars($user['phone'] ?? 'Chưa cập nhật'); ?></span>
-                            </div>
-
-                            <div class="profile-item">
-                                <span class="profile-label">Loại tài khoản:</span>
-                                <span class="role-badge <?php echo strtolower($user['role']); ?>">
-                                    <?php 
-                                    $role_text = [
-                                        'tenant' => 'Người thuê',
-                                        'landlord' => 'Chủ trọ',
-                                        'admin' => 'Quản trị viên'
-                                    ];
-                                    echo $role_text[$user['role']] ?? $user['role'];
-                                    ?>
-                                </span>
-                            </div>
-
-                            <div class="profile-item">
-                                <span class="profile-label">Tham gia lúc:</span>
-                                <span class="profile-value"><?php echo date('d/m/Y H:i', strtotime($user['created_at'])); ?></span>
-                            </div>
+            <?php if ($user): ?>
+                <div class="profile-container">
+                    <!-- User Info Section -->
+                    <div class="profile-section">
+                        <h2>Thông tin cơ bản</h2>
+                        
+                        <div class="profile-item">
+                            <span class="profile-label">Tên đầy đủ:</span>
+                            <span class="profile-value"><?php echo htmlspecialchars($user['full_name'] ?? 'N/A'); ?></span>
                         </div>
 
-                        <!-- Quick Actions -->
-                        <div class="profile-section">
-                            <h2>Hành động nhanh</h2>
-                            
-                            <div class="btn-group">
-                                <?php if ($_SESSION['role'] === 'landlord'): ?>
-                                    <a href="../user/my-posts.php" class="btn btn-primary">
-                                        <i class="fas fa-list"></i> Bài đăng của tôi
-                                    </a>
-                                <?php endif; ?>
-                                <a href="favorites.php" class="btn btn-primary">
-                                    <i class="fas fa-heart"></i> Yêu thích
-                                </a>
-                                <a href="notifications.php" class="btn btn-outline">
-                                    <i class="fas fa-bell"></i> Thông báo
-                                </a>
-                            </div>
+                        <div class="profile-item">
+                            <span class="profile-label">Tên đăng nhập:</span>
+                            <span class="profile-value">@<?php echo htmlspecialchars($user['username']); ?></span>
+                        </div>
 
-                            <div class="btn-group">
-                                <a href="../../index.php" class="btn btn-outline">
-                                    <i class="fas fa-arrow-left"></i> Quay lại
-                                </a>
-                                <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger">
-                                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
-                                </a>
-                            </div>
+                        <div class="profile-item">
+                            <span class="profile-label">Email:</span>
+                            <span class="profile-value"><?php echo htmlspecialchars($user['email']); ?></span>
+                        </div>
+
+                        <div class="profile-item">
+                            <span class="profile-label">Số điện thoại:</span>
+                            <span class="profile-value"><?php echo htmlspecialchars($user['phone'] ?? 'Chưa cập nhật'); ?></span>
+                        </div>
+
+                        <div class="profile-item">
+                            <span class="profile-label">Loại tài khoản:</span>
+                            <span class="role-badge <?php echo strtolower($user['role']); ?>">
+                                <?php 
+                                $role_text = [
+                                    'tenant' => 'Người thuê',
+                                    'landlord' => 'Chủ trọ',
+                                    'admin' => 'Quản trị viên'
+                                ];
+                                echo $role_text[$user['role']] ?? $user['role'];
+                                ?>
+                            </span>
+                        </div>
+
+                        <div class="profile-item">
+                            <span class="profile-label">Tham gia lúc:</span>
+                            <span class="profile-value"><?php echo date('d/m/Y H:i', strtotime($user['created_at'])); ?></span>
                         </div>
                     </div>
-                <?php else: ?>
-                    <div class="alert">
-                        <h2>Không tìm thấy thông tin người dùng</h2>
-                        <p><a href="../../index.php" class="btn btn-primary">Quay lại trang chủ</a></p>
+
+                    <!-- Quick Actions -->
+                    <div class="profile-section">
+                        <h2>Hành động nhanh</h2>
+                        
+                        <div class="btn-group">
+                            <?php if ($_SESSION['role'] === 'landlord'): ?>
+                                <a href="my-posts.php" class="btn btn-primary">
+                                    <i class="fas fa-list"></i> Bài đăng của tôi
+                                </a>
+                            <?php endif; ?>
+                            <a href="favorites.php" class="btn btn-primary">
+                                <i class="fas fa-heart"></i> Yêu thích
+                            </a>
+                            <a href="notifications.php" class="btn btn-outline">
+                                <i class="fas fa-bell"></i> Thông báo
+                            </a>
+                        </div>
+
+                        <div class="btn-group">
+                            <a href="../../index.php" class="btn btn-outline">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                            <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger">
+                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            </a>
+                        </div>
                     </div>
-                <?php endif; ?>
+                </div>
+            <?php else: ?>
+                <div class="alert">
+                    <h2>Không tìm thấy thông tin người dùng</h2>
+                    <p><a href="../../index.php" class="btn btn-primary">Quay lại trang chủ</a></p>
+                </div>
+            <?php endif; ?>
         </div>
-    </main>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>Giới thiệu</h4>
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <h3><i class="fas fa-home"></i> Tìm Trọ SV</h3>
+                    <p>Nền tảng tìm kiếm phòng trọ uy tín dành cho sinh viên. Giúp sinh viên tìm được phòng trọ phù hợp, giá rẻ, gần trường.</p>
+                </div>
+
+                <div class="footer-links">
+                    <h4>Về chúng tôi</h4>
                     <ul>
-                        <li><a href="#">Về chúng tôi</a></li>
+                        <li><a href="#">Giới thiệu</a></li>
                         <li><a href="#">Liên hệ</a></li>
                         <li><a href="#">Điều khoản</a></li>
                         <li><a href="#">Chính sách</a></li>
                     </ul>
                 </div>
-                <div class="footer-section">
-                    <h4>Hướng dẫn</h4>
+
+                <div class="footer-links">
+                    <h4>Hỗ trợ</h4>
                     <ul>
                         <li><a href="#">Hướng dẫn đăng tin</a></li>
                         <li><a href="#">Câu hỏi thường gặp</a></li>
@@ -348,8 +393,9 @@ try {
                         <li><a href="#">Góp ý</a></li>
                     </ul>
                 </div>
-                <div class="footer-section">
-                    <h4>Kết nối với chúng tôi</h4>
+
+                <div class="footer-links">
+                    <h4>Kết nối</h4>
                     <ul>
                         <li><a href="#"><i class="fab fa-facebook"></i> Facebook</a></li>
                         <li><a href="#"><i class="fab fa-instagram"></i> Instagram</a></li>
@@ -358,6 +404,7 @@ try {
                     </ul>
                 </div>
             </div>
+
             <div class="footer-bottom">
                 <p>&copy; 2025 Tìm Trọ Sinh Viên. Tất cả quyền được bảo lưu.</p>
             </div>
