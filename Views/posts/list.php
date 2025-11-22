@@ -11,6 +11,7 @@ $posts = [];
 $total_posts = 0;
 
 try {
+    $db = getDB();
     $query = "SELECT id, title, address, district, city, price, area, room_type, max_people, created_at FROM posts WHERE status = 'approved'";
     $params = [];
     
@@ -35,7 +36,8 @@ try {
     }
     
     // Count total
-    $count_stmt = $conn->prepare(str_replace("SELECT id, title, address, district, city, price, area, room_type, max_people, created_at", "SELECT COUNT(*) as cnt", $query));
+    $count_query = str_replace("SELECT id, title, address, district, city, price, area, room_type, max_people, created_at", "SELECT COUNT(*) as cnt", $query);
+    $count_stmt = $db->prepare($count_query);
     $count_stmt->execute($params);
     $count_result = $count_stmt->fetch(PDO::FETCH_ASSOC);
     $total_posts = $count_result['cnt'] ?? 0;
@@ -52,7 +54,7 @@ try {
             $query .= " ORDER BY created_at DESC";
     }
     
-    $stmt = $conn->prepare($query);
+    $stmt = $db->prepare($query);
     $stmt->execute($params);
     $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
