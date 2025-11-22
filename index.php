@@ -21,7 +21,7 @@ try {
     $conn = getDB();
     
     // Fetch featured posts
-    $featured_stmt = $conn->prepare("SELECT id, title, location, price, image, category FROM posts WHERE status = 'approved' LIMIT 3");
+    $featured_stmt = $conn->prepare("SELECT id, title, address, district, city, price, category, area, room_type FROM posts WHERE status = 'approved' LIMIT 3");
     $featured_stmt->execute();
     $featured_posts = $featured_stmt->fetchAll(PDO::FETCH_ASSOC);
     
@@ -528,7 +528,7 @@ try {
                     <?php foreach ($featured_posts as $index => $post): ?>
                     <div class="post-card">
                         <div class="post-image">
-                            <img src="<?php echo htmlspecialchars($post['image'] ?? 'https://via.placeholder.com/400x250'); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
+                            <img src="https://via.placeholder.com/400x250?text=<?php echo urlencode($post['title']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
                             <span class="post-badge"><?php 
                                 $badges = ['Mới đăng', 'Nổi bật', 'Giá rẻ'];
                                 echo $badges[$index % count($badges)];
@@ -541,20 +541,20 @@ try {
                             <h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3>
                             <div class="post-location">
                                 <i class="fas fa-map-marker-alt"></i>
-                                <span><?php echo htmlspecialchars($post['location']); ?></span>
+                                <span><?php echo htmlspecialchars($post['address'] . ', ' . $post['district']); ?></span>
                             </div>
                             <div class="post-features">
                                 <div class="feature-item">
                                     <i class="fas fa-expand"></i>
-                                    <span>20m²</span>
+                                    <span><?php echo htmlspecialchars($post['area']); ?>m²</span>
                                 </div>
                                 <div class="feature-item">
                                     <i class="fas fa-users"></i>
-                                    <span>2 người</span>
+                                    <span><?php echo htmlspecialchars($post['max_people']); ?> người</span>
                                 </div>
                                 <div class="feature-item">
-                                    <i class="fas fa-wifi"></i>
-                                    <span>WiFi</span>
+                                    <i class="fas fa-door-open"></i>
+                                    <span><?php echo ucfirst(str_replace('_', ' ', $post['room_type'])); ?></span>
                                 </div>
                             </div>
                             <div class="post-footer">
