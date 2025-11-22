@@ -27,11 +27,14 @@ try {
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        html, body {
+            height: 100%;
+        }
+
         body {
             background-color: #f8f9fa;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
         }
 
         .page-header {
@@ -39,6 +42,7 @@ try {
             color: white;
             padding: 3rem 0;
             text-align: center;
+            flex-shrink: 0;
         }
 
         .page-header h1 {
@@ -155,6 +159,7 @@ try {
 
         .footer {
             margin-top: auto;
+            flex-shrink: 0;
         }
 
         @media (max-width: 768px) {
