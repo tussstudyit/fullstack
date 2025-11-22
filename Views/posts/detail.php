@@ -1,6 +1,28 @@
 <?php
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../helpers.php';
+require_once __DIR__ . '/../../Models/Post.php';
+require_once __DIR__ . '/../../Models/PostImage.php';
+
+// Get post ID from URL
+$post_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+if (!$post_id) {
+    redirect('../../index.php');
+}
+
+// Get post data
+$postModel = new Post();
+$post = $postModel->findById($post_id);
+
+if (!$post) {
+    redirect('../../index.php');
+}
+
+// Get post images
+$postImageModel = new PostImage();
+$images = $postImageModel->getImages($post_id);
+$primaryImage = $postImageModel->getPrimaryImage($post_id);
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -375,12 +397,18 @@ require_once __DIR__ . '/../../helpers.php';
             <div class="detail-layout">
                 <div class="detail-main">
                     <div class="image-gallery">
-                        <img src="<?php echo getPlaceholderImage(1200, 600, '667eea', 'Main Image'); ?>" alt="Phòng trọ" class="main-image" id="mainImage">
+                        <img src="<?php echo $primaryImage ? 'uploads/' . htmlspecialchars($primaryImage) : getPlaceholderImage(1200, 600, '667eea', 'No Image'); ?>" alt="<?php echo htmlspecialchars($post['title'] ?? 'Phòng trọ'); ?>" class="main-image" id="mainImage">
                         <div class="thumbnail-grid">
-                            <img src="<?php echo getPlaceholderImage(300, 200, '667eea', '1'); ?>" alt="Thumbnail 1" class="thumbnail active" onclick="changeMainImage(this)">
-                            <img src="<?php echo getPlaceholderImage(300, 200, '764ba2', '2'); ?>" alt="Thumbnail 2" class="thumbnail" onclick="changeMainImage(this)">
-                            <img src="<?php echo getPlaceholderImage(300, 200, '3b82f6', '3'); ?>" alt="Thumbnail 3" class="thumbnail" onclick="changeMainImage(this)">
-                            <img src="<?php echo getPlaceholderImage(300, 200, '8b5cf6', '4'); ?>" alt="Thumbnail 4" class="thumbnail" onclick="changeMainImage(this)">
+                            <?php if (!empty($images)): ?>
+                                <?php foreach ($images as $img): ?>
+                                <img src="uploads/<?php echo htmlspecialchars($img['image_url']); ?>" alt="Thumbnail" class="thumbnail <?php echo $img['is_primary'] ? 'active' : ''; ?>" onclick="changeMainImage(this)">
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <img src="<?php echo getPlaceholderImage(300, 200, '667eea', '1'); ?>" alt="Placeholder" class="thumbnail active">
+                                <img src="<?php echo getPlaceholderImage(300, 200, '764ba2', '2'); ?>" alt="Placeholder" class="thumbnail">
+                                <img src="<?php echo getPlaceholderImage(300, 200, '3b82f6', '3'); ?>" alt="Placeholder" class="thumbnail">
+                                <img src="<?php echo getPlaceholderImage(300, 200, '8b5cf6', '4'); ?>" alt="Placeholder" class="thumbnail">
+                            <?php endif; ?>
                         </div>
                     </div>
 

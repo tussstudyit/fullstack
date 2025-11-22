@@ -481,7 +481,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                     <div class="form-step" data-step="3">
                         <h2 style="margin-bottom: 2rem;">Hình ảnh phòng trọ</h2>
 
-                        <div class="image-upload-area" onclick="document.getElementById('imageInput').click()">
+                        <div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById('imageInput').click()">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <h3>Tải lên hình ảnh</h3>
                             <p style="color: var(--text-secondary); margin-top: 0.5rem;">Kéo thả hoặc click để chọn ảnh (Tối đa 10 ảnh)</p>
@@ -491,11 +491,12 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                 multiple 
                                 accept="image/*" 
                                 style="display: none;"
-                                onchange="previewImages(this, document.getElementById('imagePreview'))"
+                                onchange="handleImageSelect(this)"
                             >
                         </div>
 
                         <div id="imagePreview" class="image-preview-container"></div>
+                        <input type="hidden" id="imageCount" value="0">
                     </div>
 
                     <div class="form-step" data-step="4">
@@ -604,6 +605,162 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                 .catch(error => {
                     console.error('Error:', error);
                     showNotification('Lỗi khi gửi dữ liệu: ' + error.message, 'error');
+                });
+            }
+        });
+
+        // Handle image selection and preview
+        const uploadedImages = [];
+
+        function handleImageSelect(input) {
+            const files = input.files;
+            const preview = document.getElementById('imagePreview');
+            
+            if (files.length === 0) return;
+            
+            for (let file of files) {
+                // Validate file size (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    showNotification('File ' + file.name + ' quá lớn (tối đa 5MB)', 'error');
+                    continue;
+                }
+                
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    showNotification('File ' + file.name + ' không phải là ảnh', 'error');
+                    continue;
+                }
+                
+                // Create preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview-item';
+                    div.innerHTML = `
+                        <div style="position: relative; overflow: hidden; border-radius: 8px;">
+                            <img src="${e.target.result}" alt="Preview" style="width: 100%; height: 150px; object-fit: cover;">
+                            <div style="position: absolute; top: 0; right: 0; background: rgba(0,0,0,0.5); color: white; padding: 0.5rem; border-radius: 0 8px 0 0;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                        <p style="margin-top: 0.5rem; font-size: 0.875rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${file.name}</p>
+                    `;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            // Store files for later upload
+            for (let file of files) {
+                uploadedImages.push(file);
+            }
+        }
+
+        // Drag and drop support
+        const uploadArea = document.getElementById('imageUploadArea');
+        if (uploadArea) {
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+            });
+
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '';
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '';
+                const input = document.getElementById('imageInput');
+                input.files = e.dataTransfer.files;
+                handleImageSelect(input);
+            });
+        }
+
+        // Upload images after post creation
+        function uploadPostImages(postId) {
+            if (uploadedImages.length === 0) {
+                return Promise.resolve({ success: true, message: 'Không có ảnh để upload' });
+            }
+
+            const formData = new FormData();
+            formData.append('post_id', postId);
+            
+            for (let i = 0; i < uploadedImages.length; i++) {
+                formData.append('images[]', uploadedImages[i]);
+            }
+
+            return fetch('../../api/upload-image.php?action=upload-multiple', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification('Lỗi upload ảnh: ' + data.message, 'error');
+                }
+                return data;
+            })
+            .catch(error => {
+                console.error('Error uploading images:', error);
+                showNotification('Lỗi khi upload ảnh', 'error');
+            });
+        }
+
+        // Update form submission to handle image upload
+        document.getElementById('createPostForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (validateForm('createPostForm')) {
+                showNotification('Đang xử lý...', 'info');
+                
+                const formData = new FormData(this);
+                
+                fetch('../../Controllers/PostController.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    return response.text().then(text => {
+                        console.log('Raw response:', text);
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            console.error('JSON parse error:', e);
+                            console.error('Response text:', text);
+                            throw new Error('Invalid JSON response: ' + text.substring(0, 100));
+                        }
+                    });
+                })
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Bài đăng được tạo, đang upload ảnh...', 'info');
+                        // Upload images if there are any
+                        if (uploadedImages.length > 0) {
+                            return uploadPostImages(data.post_id).then(() => data);
+                        }
+                        return data;
+                    } else {
+                        showNotification(data.message || 'Có lỗi xảy ra', 'error');
+                        throw new Error(data.message);
+                    }
+                })
+                .then(data => {
+                    if (data && data.success) {
+                        showNotification('Đăng tin thành công!', 'success');
+                        setTimeout(() => {
+                            window.location.href = '../user/my-posts.php';
+                        }, 2000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (error.message !== 'Có lỗi xảy ra') {
+                        showNotification('Lỗi khi gửi dữ liệu: ' + error.message, 'error');
+                    }
                 });
             }
         });

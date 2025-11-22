@@ -47,8 +47,18 @@ class PostImage {
         $stmt->execute([$post_id]);
 
         // Đặt ảnh chính mới
-        $stmt = $this->conn->prepare("UPDATE {$this->table} SET is_primary = TRUE WHERE id = ?");
-        return $stmt->execute([$image_id]);
+        if ($image_id !== null) {
+            $stmt = $this->conn->prepare("UPDATE {$this->table} SET is_primary = TRUE WHERE id = ?");
+            return $stmt->execute([$image_id]);
+        }
+        return true;
+    }
+
+    // Lấy ảnh theo ID
+    public function getImageById($image_id) {
+        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE id = ?");
+        $stmt->execute([$image_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }
 ?>
