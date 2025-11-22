@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../helpers.php';
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -349,7 +350,7 @@ require_once __DIR__ . '/../../config.php';
 
                 <div class="conversations-list">
                     <div class="conversation-item active">
-                        <img src="https://via.placeholder.com/50/667eea/ffffff?text=A" alt="User" class="conversation-avatar">
+                        <img src="<?php echo getPlaceholderImage(50, 50, '667eea', 'A'); ?>" alt="User" class="conversation-avatar">
                         <div class="conversation-info">
                             <div class="conversation-header">
                                 <span class="conversation-name">Nguyễn Văn A</span>
@@ -361,7 +362,7 @@ require_once __DIR__ . '/../../config.php';
                     </div>
 
                     <div class="conversation-item">
-                        <img src="https://via.placeholder.com/50/764ba2/ffffff?text=B" alt="User" class="conversation-avatar">
+                        <img src="<?php echo getPlaceholderImage(50, 50, '764ba2', 'B'); ?>" alt="User" class="conversation-avatar">
                         <div class="conversation-info">
                             <div class="conversation-header">
                                 <span class="conversation-name">Trần Thị B</span>
@@ -372,7 +373,7 @@ require_once __DIR__ . '/../../config.php';
                     </div>
 
                     <div class="conversation-item">
-                        <img src="https://via.placeholder.com/50/3b82f6/ffffff?text=C" alt="User" class="conversation-avatar">
+                        <img src="<?php echo getPlaceholderImage(50, 50, '3b82f6', 'C'); ?>" alt="User" class="conversation-avatar">
                         <div class="conversation-info">
                             <div class="conversation-header">
                                 <span class="conversation-name">Lê Văn C</span>
@@ -387,7 +388,7 @@ require_once __DIR__ . '/../../config.php';
             <main class="chat-main">
                 <div class="chat-header">
                     <div class="chat-user-info">
-                        <img src="https://via.placeholder.com/45/667eea/ffffff?text=A" alt="User" class="chat-user-avatar">
+                        <img src="<?php echo getPlaceholderImage(45, 45, '667eea', 'A'); ?>" alt="User" class="chat-user-avatar">
                         <div>
                             <div class="chat-user-name">Nguyễn Văn A</div>
                             <div class="chat-user-status"><i class="fas fa-circle" style="font-size: 0.5rem;"></i> Đang hoạt động</div>
@@ -405,7 +406,7 @@ require_once __DIR__ . '/../../config.php';
 
                 <div class="chat-messages" id="chatMessages">
                     <div class="message received">
-                        <img src="https://via.placeholder.com/40/667eea/ffffff?text=A" alt="User" class="message-avatar">
+                        <img src="<?php echo getPlaceholderImage(40, 40, '667eea', 'A'); ?>" alt="User" class="message-avatar">
                         <div class="message-content">
                             <div class="message-bubble">
                                 Xin chào! Mình thấy bài đăng phòng trọ của bạn. Phòng còn trống không?
@@ -415,7 +416,7 @@ require_once __DIR__ . '/../../config.php';
                     </div>
 
                     <div class="message sent">
-                        <img src="https://via.placeholder.com/40/3b82f6/ffffff?text=Me" alt="Me" class="message-avatar">
+                        <img src="<?php echo getPlaceholderImage(40, 40, '3b82f6', 'Me'); ?>" alt="Me" class="message-avatar">
                         <div class="message-content">
                             <div class="message-bubble">
                                 Chào bạn! Phòng vẫn còn trống ạ. Bạn muốn xem phòng khi nào?
@@ -425,7 +426,7 @@ require_once __DIR__ . '/../../config.php';
                     </div>
 
                     <div class="message received">
-                        <img src="https://via.placeholder.com/40/667eea/ffffff?text=A" alt="User" class="message-avatar">
+                        <img src="<?php echo getPlaceholderImage(40, 40, '667eea', 'A'); ?>" alt="User" class="message-avatar">
                         <div class="message-content">
                             <div class="message-bubble">
                                 Chiều nay mình có thể đến xem được không bạn?
@@ -435,7 +436,7 @@ require_once __DIR__ . '/../../config.php';
                     </div>
 
                     <div class="message sent">
-                        <img src="https://via.placeholder.com/40/3b82f6/ffffff?text=Me" alt="Me" class="message-avatar">
+                        <img src="<?php echo getPlaceholderImage(40, 40, '3b82f6', 'Me'); ?>" alt="Me" class="message-avatar">
                         <div class="message-content">
                             <div class="message-bubble">
                                 Được ạ. Bạn có thể đến lúc 3 giờ chiều nhé!
@@ -479,9 +480,9 @@ require_once __DIR__ . '/../../config.php';
             const messagesContainer = document.getElementById('chatMessages');
             const messageHTML = `
                 <div class="message sent">
-                    <img src="https://via.placeholder.com/40/3b82f6/ffffff?text=Me" alt="Me" class="message-avatar">
+                    <img src="<?php echo getPlaceholderImage(40, 40, '3b82f6', 'Me'); ?>" alt="Me" class="message-avatar">
                     <div class="message-content">
-                        <div class="message-bubble">${message}</div>
+                        <div class="message-bubble">\${message}</div>
                         <div class="message-time">Vừa xong</div>
                     </div>
                 </div>

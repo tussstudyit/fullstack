@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../helpers.php';
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -374,12 +375,12 @@ require_once __DIR__ . '/../../config.php';
             <div class="detail-layout">
                 <div class="detail-main">
                     <div class="image-gallery">
-                        <img src="https://via.placeholder.com/1200x600/667eea/ffffff?text=Main+Image" alt="Phòng trọ" class="main-image" id="mainImage">
+                        <img src="<?php echo getPlaceholderImage(1200, 600, '667eea', 'Main Image'); ?>" alt="Phòng trọ" class="main-image" id="mainImage">
                         <div class="thumbnail-grid">
-                            <img src="https://via.placeholder.com/300x200/667eea/ffffff?text=1" alt="Thumbnail 1" class="thumbnail active" onclick="changeMainImage(this)">
-                            <img src="https://via.placeholder.com/300x200/764ba2/ffffff?text=2" alt="Thumbnail 2" class="thumbnail" onclick="changeMainImage(this)">
-                            <img src="https://via.placeholder.com/300x200/3b82f6/ffffff?text=3" alt="Thumbnail 3" class="thumbnail" onclick="changeMainImage(this)">
-                            <img src="https://via.placeholder.com/300x200/8b5cf6/ffffff?text=4" alt="Thumbnail 4" class="thumbnail" onclick="changeMainImage(this)">
+                            <img src="<?php echo getPlaceholderImage(300, 200, '667eea', '1'); ?>" alt="Thumbnail 1" class="thumbnail active" onclick="changeMainImage(this)">
+                            <img src="<?php echo getPlaceholderImage(300, 200, '764ba2', '2'); ?>" alt="Thumbnail 2" class="thumbnail" onclick="changeMainImage(this)">
+                            <img src="<?php echo getPlaceholderImage(300, 200, '3b82f6', '3'); ?>" alt="Thumbnail 3" class="thumbnail" onclick="changeMainImage(this)">
+                            <img src="<?php echo getPlaceholderImage(300, 200, '8b5cf6', '4'); ?>" alt="Thumbnail 4" class="thumbnail" onclick="changeMainImage(this)">
                         </div>
                     </div>
 
@@ -498,7 +499,7 @@ require_once __DIR__ . '/../../config.php';
                     <div class="contact-card">
                         <h3 style="margin-bottom: 1.5rem;">Liên hệ</h3>
                         <div class="landlord-info">
-                            <img src="https://via.placeholder.com/60/667eea/ffffff?text=A" alt="Chủ trọ" class="landlord-avatar">
+                            <img src="<?php echo getPlaceholderImage(60, 60, '667eea', 'A'); ?>" alt="Chủ trọ" class="landlord-avatar">
                             <div class="landlord-details">
                                 <h4>Nguyễn Văn A</h4>
                                 <p>Chủ trọ</p>
@@ -557,7 +558,7 @@ require_once __DIR__ . '/../../config.php';
                 <div class="review-item">
                     <div class="review-header">
                         <div class="reviewer-info">
-                            <img src="https://via.placeholder.com/48/3b82f6/ffffff?text=B" alt="Reviewer" class="reviewer-avatar">
+                            <img src="<?php echo getPlaceholderImage(48, 48, '3b82f6', 'B'); ?>" alt="Reviewer" class="reviewer-avatar">
                             <div>
                                 <h4>Trần Văn B</h4>
                                 <div style="color: #fbbf24; margin: 0.25rem 0;">

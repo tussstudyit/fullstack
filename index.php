@@ -2,6 +2,7 @@
 // Include configuration
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/Models/PostImage.php';
+require_once __DIR__ . '/helpers.php';
 
 // Initialize variables with default values
 $featured_posts = [];
@@ -536,7 +537,7 @@ try {
                     <?php foreach ($featured_posts as $index => $post): ?>
                     <div class="post-card">
                         <div class="post-image">
-                            <img src="<?php echo $post['image'] ? 'uploads/' . htmlspecialchars($post['image']) : 'https://via.placeholder.com/400x250?text=' . urlencode($post['title']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
+                            <img src="<?php echo $post['image'] ? 'uploads/' . htmlspecialchars($post['image']) : getPlaceholderImage(400, 250, '667eea', urlencode($post['title'])); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
                             <span class="post-badge"><?php 
                                 $badges = ['Mới đăng', 'Nổi bật', 'Giá rẻ'];
                                 echo $badges[$index % count($badges)];

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../Models/PostImage.php';
+require_once __DIR__ . '/../../helpers.php';
 
 $search = sanitize($_GET['search'] ?? '');
 $district = sanitize($_GET['district'] ?? '');
@@ -521,7 +522,7 @@ try {
                         <?php foreach ($posts as $post): ?>
                         <div class="post-card">
                             <div class="post-image">
-                                <img src="<?php echo $post['image'] ? '../../uploads/' . htmlspecialchars($post['image']) : 'https://via.placeholder.com/400x250/667eea/ffffff?text=' . urlencode($post['room_type']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
+                                <img src="<?php echo $post['image'] ? '../../uploads/' . htmlspecialchars($post['image']) : getPlaceholderImage(400, 250, '667eea', urlencode($post['room_type'])); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
                                 <span class="post-badge">
                                     <?php 
                                     $created = strtotime($post['created_at']);

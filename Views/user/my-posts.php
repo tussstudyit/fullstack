@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../Models/Post.php';
+require_once __DIR__ . '/../../helpers.php';
 
 // Redirect if not logged in or not landlord
 if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
@@ -174,7 +175,7 @@ $totalPosts = count($posts);
                 <?php foreach ($posts as $post): ?>
                 <div class="post-item" data-post-id="<?php echo $post['id']; ?>">
                     <div class="post-image">
-                        <img src="https://via.placeholder.com/200x150/667eea/ffffff?text=<?php echo urlencode($post['title']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
+                        <img src="<?php echo getPlaceholderImage(200, 150, '667eea', urlencode($post['title'])); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
                     </div>
                     <div class="post-info">
                         <span class="badge badge-success">Đã duyệt</span>
