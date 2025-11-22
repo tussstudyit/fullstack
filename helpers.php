@@ -9,6 +9,9 @@
  * @return string Image URL
  */
 function getPlaceholderImage($width = 300, $height = 200, $bg = '667eea', $text = 'Image', $textColor = 'ffffff') {
+    // Get the base URL path from the current script location
+    $basePath = '/fullstack'; // Adjust this based on your setup
+    
     $params = http_build_query([
         'w' => $width,
         'h' => $height,
@@ -16,6 +19,6 @@ function getPlaceholderImage($width = 300, $height = 200, $bg = '667eea', $text 
         'text' => $text,
         'text_color' => $textColor
     ]);
-    return 'get-placeholder.php?' . $params;
+    return $basePath . '/get-placeholder.php?' . $params;
 }
 ?>
