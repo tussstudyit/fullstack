@@ -21,7 +21,7 @@ try {
     $conn = getDB();
     
     // Fetch featured posts
-    $featured_stmt = $conn->prepare("SELECT id, title, address, district, city, price, category, area, room_type FROM posts WHERE status = 'approved' LIMIT 3");
+    $featured_stmt = $conn->prepare("SELECT id, title, address, district, city, price, area, room_type, max_people FROM posts WHERE status = 'approved' LIMIT 3");
     $featured_stmt->execute();
     $featured_posts = $featured_stmt->fetchAll(PDO::FETCH_ASSOC);
     
