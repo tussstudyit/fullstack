@@ -3,42 +3,62 @@ require_once __DIR__ . '/../../config.php';
 
 $search = sanitize($_GET['search'] ?? '');
 $district = sanitize($_GET['district'] ?? '');
-$price_range = sanitize($_GET['price_range'] ?? '');
-$category = sanitize($_GET['category'] ?? '');
+$min_price = isset($_GET['min_price']) ? (int)$_GET['min_price'] : 0;
+$max_price = isset($_GET['max_price']) ? (int)$_GET['max_price'] : PHP_INT_MAX;
+$room_type = sanitize($_GET['room_type'] ?? '');
+$sort = sanitize($_GET['sort'] ?? 'newest');
 $posts = [];
+$total_posts = 0;
 
 try {
-    $query = "SELECT * FROM posts WHERE status = 'approved'";
+    $query = "SELECT id, title, address, district, city, price, area, room_type, max_people, created_at FROM posts WHERE status = 'approved'";
     $params = [];
     
     if (!empty($search)) {
-        $query .= " AND (title LIKE ? OR location LIKE ?)";
+        $query .= " AND (title LIKE ? OR address LIKE ?)";
         $search_term = "%$search%";
         $params[] = $search_term;
         $params[] = $search_term;
     }
     if (!empty($district)) {
-        $query .= " AND location LIKE ?";
-        $params[] = "%$district%";
+        $query .= " AND district = ?";
+        $params[] = $district;
     }
-    if (!empty($price_range)) {
-        [$min, $max] = explode('-', $price_range);
+    if ($min_price > 0 || $max_price < PHP_INT_MAX) {
         $query .= " AND price BETWEEN ? AND ?";
-        $params[] = (int)$min;
-        $params[] = (int)$max;
+        $params[] = $min_price * 1000000;
+        $params[] = $max_price * 1000000;
     }
-    if (!empty($category)) {
-        $query .= " AND category = ?";
-        $params[] = (int)$category;
+    if (!empty($room_type)) {
+        $query .= " AND room_type = ?";
+        $params[] = $room_type;
     }
     
-    $query .= " ORDER BY created_at DESC";
-    $stmt = getDB()->prepare($query);
+    // Count total
+    $count_stmt = $conn->prepare(str_replace("SELECT id, title, address, district, city, price, area, room_type, max_people, created_at", "SELECT COUNT(*) as cnt", $query));
+    $count_stmt->execute($params);
+    $count_result = $count_stmt->fetch(PDO::FETCH_ASSOC);
+    $total_posts = $count_result['cnt'] ?? 0;
+    
+    // Add sort
+    switch ($sort) {
+        case 'price_asc':
+            $query .= " ORDER BY price ASC";
+            break;
+        case 'price_desc':
+            $query .= " ORDER BY price DESC";
+            break;
+        default:
+            $query .= " ORDER BY created_at DESC";
+    }
+    
+    $stmt = $conn->prepare($query);
     $stmt->execute($params);
     $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     error_log("Query error: " . $e->getMessage());
     $posts = [];
+    $total_posts = 0;
 }
 ?>
 <!DOCTYPE html>
@@ -382,6 +402,10 @@ try {
                     <h3 style="margin-bottom: 1.5rem;">Bộ lọc</h3>
 
                     <div class="filter-section">
+                        <input type="text" class="form-control" placeholder="Tìm kiếm..." style="margin-bottom: 1rem;">
+                    </div>
+
+                    <div class="filter-section">
                         <div class="filter-title">Khu vực</div>
                         <select class="form-control" id="districtFilter">
                             <option value="">Tất cả quận/huyện</option>
@@ -455,140 +479,127 @@ try {
                 <main class="posts-main">
                     <div class="posts-header">
                         <div>
-                            <strong>402 phòng trọ</strong> phù hợp
+                            <strong><?php echo $total_posts; ?> phòng trọ</strong> phù hợp
                         </div>
                         <div class="sort-options">
                             <span>Sắp xếp:</span>
-                            <select class="form-control" style="width: auto;">
-                                <option>Mới nhất</option>
-                                <option>Giá thấp đến cao</option>
-                                <option>Giá cao đến thấp</option>
-                                <option>Diện tích lớn nhất</option>
+                            <select class="form-control" style="width: auto;" onchange="updateSort(this.value)">
+                                <option value="newest">Mới nhất</option>
+                                <option value="price_asc">Giá thấp đến cao</option>
+                                <option value="price_desc">Giá cao đến thấp</option>
                             </select>
                         </div>
                     </div>
 
+                    <?php if (count($posts) > 0): ?>
                     <div class="posts-grid">
+                        <?php foreach ($posts as $post): ?>
                         <div class="post-card">
                             <div class="post-image">
-                                <img src="https://via.placeholder.com/400x250/667eea/ffffff?text=Phong+Tro+1" alt="Phòng trọ 1">
-                                <span class="post-badge">Mới đăng</span>
-                                <button class="favorite-btn" onclick="toggleFavorite(1, this)">
+                                <img src="https://via.placeholder.com/400x250/667eea/ffffff?text=<?php echo urlencode($post['room_type']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
+                                <span class="post-badge">
+                                    <?php 
+                                    $created = strtotime($post['created_at']);
+                                    $diff = time() - $created;
+                                    if ($diff < 86400 * 7) echo 'Mới đăng';
+                                    elseif ($post['price'] < 2000000) echo 'Giá rẻ';
+                                    else echo 'Nổi bật';
+                                    ?>
+                                </span>
+                                <button class="favorite-btn" onclick="toggleFavorite(<?php echo $post['id']; ?>, this)">
                                     <i class="far fa-heart"></i>
                                 </button>
                             </div>
                             <div class="post-content">
-                                <h3 class="post-title">Phòng trọ gần ĐH Bách Khoa - An ninh tốt</h3>
+                                <h3 class="post-title"><?php echo htmlspecialchars(substr($post['title'], 0, 50)); ?></h3>
                                 <div class="post-location">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    <span>123 Nguyễn Chí Thanh, Quận Hải Châu, Đà Nẵng</span>
+                                    <span><?php echo htmlspecialchars($post['address']) . ', ' . htmlspecialchars($post['district']); ?></span>
                                 </div>
                                 <div class="post-features">
                                     <div class="feature-item">
                                         <i class="fas fa-expand"></i>
-                                        <span>20m²</span>
+                                        <span><?php echo number_format($post['area'], 1); ?>m²</span>
                                     </div>
                                     <div class="feature-item">
-                                        <i class="fas fa-users"></i>
-                                        <span>2 người</span>
+                                        <i class="fas fa-<?php echo $post['max_people'] > 1 ? 'users' : 'user'; ?>"></i>
+                                        <span><?php echo $post['max_people']; ?> người</span>
                                     </div>
                                     <div class="feature-item">
-                                        <i class="fas fa-wifi"></i>
-                                        <span>WiFi</span>
+                                        <i class="fas fa-door-open"></i>
+                                        <span><?php echo ucfirst($post['room_type']); ?></span>
                                     </div>
                                 </div>
                                 <div class="post-footer">
-                                    <div class="post-price">2.5tr/tháng</div>
-                                    <a href="detail.php?id=1" class="btn btn-primary btn-sm">Chi tiết</a>
+                                    <div class="post-price"><?php echo number_format($post['price'] / 1000000, 1); ?>tr/tháng</div>
+                                    <a href="detail.php?id=<?php echo $post['id']; ?>" class="btn btn-primary btn-sm">Chi tiết</a>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="post-card">
-                            <div class="post-image">
-                                <img src="https://via.placeholder.com/400x250/764ba2/ffffff?text=Can+Ho+Mini" alt="Căn hộ mini">
-                                <span class="post-badge">Nổi bật</span>
-                                <button class="favorite-btn" onclick="toggleFavorite(2, this)">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                            <div class="post-content">
-                                <h3 class="post-title">Căn hộ mini cao cấp Quận 1 - Full nội thất</h3>
-                                <div class="post-location">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>456 Tran Phu, Quận Thanh Khê, Đà Nẵng</span>
-                                </div>
-                                <div class="post-features">
-                                    <div class="feature-item">
-                                        <i class="fas fa-expand"></i>
-                                        <span>35m²</span>
-                                    </div>
-                                    <div class="feature-item">
-                                        <i class="fas fa-users"></i>
-                                        <span>2 người</span>
-                                    </div>
-                                    <div class="feature-item">
-                                        <i class="fas fa-snowflake"></i>
-                                        <span>Điều hòa</span>
-                                    </div>
-                                </div>
-                                <div class="post-footer">
-                                    <div class="post-price">8tr/tháng</div>
-                                    <a href="detail.php?id=2" class="btn btn-primary btn-sm">Chi tiết</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="post-card">
-                            <div class="post-image">
-                                <img src="https://via.placeholder.com/400x250/3b82f6/ffffff?text=Phong+SV" alt="Phòng SV">
-                                <span class="post-badge">Giá rẻ</span>
-                                <button class="favorite-btn" onclick="toggleFavorite(3, this)">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                            <div class="post-content">
-                                <h3 class="post-title">Phòng trọ sinh viên giá rẻ - Gần chợ trường</h3>
-                                <div class="post-location">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>789 Lê Văn Việt, Quận Cẩm Lệ, Đà Nẵng</span>
-                                </div>
-                                <div class="post-features">
-                                    <div class="feature-item">
-                                        <i class="fas fa-expand"></i>
-                                        <span>18m²</span>
-                                    </div>
-                                    <div class="feature-item">
-                                        <i class="fas fa-user"></i>
-                                        <span>1 người</span>
-                                    </div>
-                                    <div class="feature-item">
-                                        <i class="fas fa-wifi"></i>
-                                        <span>WiFi</span>
-                                    </div>
-                                </div>
-                                <div class="post-footer">
-                                    <div class="post-price">1.8tr/tháng</div>
-                                    <a href="detail.php?id=3" class="btn btn-primary btn-sm">Chi tiết</a>
-                                </div>
-                            </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
-
-                    <div class="pagination">
-                        <button><i class="fas fa-chevron-left"></i></button>
-                        <button class="active">1</button>
-                        <button>2</button>
-                        <button>3</button>
-                        <button>4</button>
-                        <button>5</button>
-                        <button><i class="fas fa-chevron-right"></i></button>
+                    <?php else: ?>
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <h3>Không tìm thấy phòng trọ</h3>
+                        <p>Vui lòng thử thay đổi điều kiện tìm kiếm</p>
                     </div>
+                    <?php endif; ?>
                 </main>
             </div>
         </div>
     </div>
 
     <script src="../../assets/js/main.js"></script>
-</body>
-</html>
+    <script>
+        function filterPosts() {
+            const search = document.querySelector('input[placeholder="Tìm kiếm"]')?.value || '';
+            const district = document.getElementById('districtFilter').value;
+            const minPrice = document.getElementById('minPrice').value;
+            const maxPrice = document.getElementById('maxPrice').value;
+            
+            let url = 'list.php?';
+            if (search) url += '&search=' + encodeURIComponent(search);
+            if (district) url += '&district=' + encodeURIComponent(district);
+            if (minPrice) url += '&min_price=' + minPrice;
+            if (maxPrice) url += '&max_price=' + maxPrice;
+            
+            window.location.href = url;
+        }
+        
+        function updateSort(value) {
+            const params = new URLSearchParams(window.location.search);
+            params.set('sort', value);
+            window.location.href = '?' + params.toString();
+        }
+        
+        function toggleFavorite(postId, btn) {
+            <?php if (!isLoggedIn()): ?>
+            alert('Vui lòng đăng nhập để yêu thích');
+            window.location.href = '../auth/login.php';
+            return;
+            <?php endif; ?>
+            
+            fetch('../../Controllers/FavoriteController.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=add&post_id=' + postId
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    btn.querySelector('i').classList.toggle('far');
+                    btn.querySelector('i').classList.toggle('fas');
+                }
+            });
+        }
+        
+        // Load search box if exists on page
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('input[placeholder="Tìm kiếm"]');
+            if (searchInput) {
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('search')) searchInput.value = params.get('search');
+            }
+        });
+    </script>
