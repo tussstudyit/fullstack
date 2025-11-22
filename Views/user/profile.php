@@ -338,9 +338,11 @@ try {
                                     <i class="fas fa-list"></i> Bài đăng của tôi
                                 </a>
                             <?php endif; ?>
+                            <?php if ($_SESSION['role'] === 'tenant'): ?>
                             <a href="favorites.php" class="btn btn-primary">
                                 <i class="fas fa-heart"></i> Yêu thích
                             </a>
+                            <?php endif; ?>
                             <a href="notifications.php" class="btn btn-outline">
                                 <i class="fas fa-bell"></i> Thông báo
                             </a>
