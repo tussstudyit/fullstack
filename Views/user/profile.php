@@ -29,6 +29,9 @@ try {
     <style>
         body {
             background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         .page-header {
@@ -51,7 +54,7 @@ try {
 
         .main-content {
             padding: 3rem 0;
-            min-height: calc(100vh - 400px);
+            flex: 1;
         }
 
         .profile-container {
@@ -148,6 +151,10 @@ try {
 
         .alert h2 {
             margin-bottom: 1rem;
+        }
+
+        .footer {
+            margin-top: auto;
         }
 
         @media (max-width: 768px) {
