@@ -660,3 +660,156 @@ try {
             }
         });
     </script>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Về Tìm Trọ Sinh Viên</h3>
+                    <p>Nền tảng kết nối sinh viên với các phòng trọ chất lượng, an toàn và giá cả phải chăng.</p>
+                    <div class="social-links">
+                        <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" title="Zalo"><i class="fab fa-comments"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Danh mục</h3>
+                    <ul>
+                        <li><a href="../../index.php">Trang chủ</a></li>
+                        <li><a href="list.php">Danh sách phòng trọ</a></li>
+                        <?php if (isLoggedIn() && isLandlord()): ?>
+                        <li><a href="create.php">Đăng tin mới</a></li>
+                        <?php endif; ?>
+                        <?php if (isLoggedIn() && !isAdmin()): ?>
+                        <li><a href="../user/profile.php">Hồ sơ của tôi</a></li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Hỗ trợ</h3>
+                    <ul>
+                        <li><a href="#">Câu hỏi thường gặp</a></li>
+                        <li><a href="#">Liên hệ chúng tôi</a></li>
+                        <li><a href="#">Điều khoản dịch vụ</a></li>
+                        <li><a href="#">Chính sách bảo mật</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Liên hệ</h3>
+                    <ul>
+                        <li><i class="fas fa-phone"></i> <a href="tel:+84123456789">+84 123 456 789</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:support@timtro.com">support@timtro.com</a></li>
+                        <li><i class="fas fa-map-marker-alt"></i> TP. Hồ Chí Minh, Việt Nam</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 Tìm Trọ Sinh Viên. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        footer.footer {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #e2e8f0;
+            padding: 3rem 0 0;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 3rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-section h3 {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .footer-section p {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            color: #cbd5e1;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .footer-section ul li a {
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section ul li a:hover {
+            color: var(--primary-color);
+        }
+
+        .footer-section ul li i {
+            margin-right: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.2);
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding: 2rem 0;
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        @media (max-width: 768px) {
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .social-links {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</body>
+</html>
