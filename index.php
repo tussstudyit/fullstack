@@ -638,7 +638,7 @@ try {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; 2024 Tìm Trọ Sinh Viên. All rights reserved.</p>
+                <p>&copy; 2025 Tìm Trọ Sinh Viên. All rights reserved.</p>
             </div>
         </div>
     </footer>
