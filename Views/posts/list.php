@@ -7,8 +7,11 @@ $min_price = isset($_GET['min_price']) ? (int)$_GET['min_price'] : 0;
 $max_price = isset($_GET['max_price']) ? (int)$_GET['max_price'] : PHP_INT_MAX;
 $room_type = sanitize($_GET['room_type'] ?? '');
 $sort = sanitize($_GET['sort'] ?? 'newest');
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$per_page = 6;
 $posts = [];
 $total_posts = 0;
+$total_pages = 0;
 
 try {
     $db = getDB();
@@ -41,6 +44,7 @@ try {
     $count_stmt->execute($params);
     $count_result = $count_stmt->fetch(PDO::FETCH_ASSOC);
     $total_posts = $count_result['cnt'] ?? 0;
+    $total_pages = ceil($total_posts / $per_page);
     
     // Add sort
     switch ($sort) {
@@ -53,6 +57,12 @@ try {
         default:
             $query .= " ORDER BY created_at DESC";
     }
+    
+    // Add pagination
+    $offset = ($page - 1) * $per_page;
+    $query .= " LIMIT ? OFFSET ?";
+    $params[] = $per_page;
+    $params[] = $offset;
     
     $stmt = $db->prepare($query);
     $stmt->execute($params);
@@ -287,6 +297,11 @@ try {
             justify-content: center;
             gap: 0.5rem;
             margin-top: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .pagination a {
+            text-decoration: none;
         }
 
         .pagination button {
@@ -547,10 +562,50 @@ try {
                         <p>Vui lòng thử thay đổi điều kiện tìm kiếm</p>
                     </div>
                     <?php endif; ?>
-                </main>
-            </div>
-        </div>
-    </div>
+
+                    <?php if ($total_pages > 1): ?>
+                    <div class="pagination">
+                        <?php if ($page > 1): ?>
+                        <a href="?page=<?php echo $page - 1; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?><?php echo !empty($district) ? '&district=' . urlencode($district) : ''; ?>">
+                            <button><i class="fas fa-chevron-left"></i></button>
+                        </a>
+                        <?php endif; ?>
+
+                        <?php 
+                        $start_page = max(1, $page - 2);
+                        $end_page = min($total_pages, $page + 2);
+                        
+                        if ($start_page > 1): ?>
+                        <a href="?page=1<?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">
+                            <button>1</button>
+                        </a>
+                        <?php if ($start_page > 2): ?>
+                        <span style="padding: 0.75rem 0.5rem;">...</span>
+                        <?php endif;
+                        endif;
+                        
+                        for ($i = $start_page; $i <= $end_page; $i++): ?>
+                        <a href="?page=<?php echo $i; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?><?php echo !empty($district) ? '&district=' . urlencode($district) : ''; ?>">
+                            <button <?php echo $i === $page ? 'class="active"' : ''; ?>><?php echo $i; ?></button>
+                        </a>
+                        <?php endfor;
+                        
+                        if ($end_page < $total_pages): 
+                            if ($end_page < $total_pages - 1): ?>
+                        <span style="padding: 0.75rem 0.5rem;">...</span>
+                            <?php endif; ?>
+                        <a href="?page=<?php echo $total_pages; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">
+                            <button><?php echo $total_pages; ?></button>
+                        </a>
+                        <?php endif; ?>
+
+                        <?php if ($page < $total_pages): ?>
+                        <a href="?page=<?php echo $page + 1; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?><?php echo !empty($district) ? '&district=' . urlencode($district) : ''; ?>">
+                            <button><i class="fas fa-chevron-right"></i></button>
+                        </a>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
 
     <script src="../../assets/js/main.js"></script>
     <script>
