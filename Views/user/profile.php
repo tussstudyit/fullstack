@@ -27,7 +27,7 @@ try {
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        html, body {
+        html {
             height: 100%;
         }
 
@@ -35,6 +35,14 @@ try {
             background-color: #f8f9fa;
             display: flex;
             flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 1000 !important;
+            flex-shrink: 0;
         }
 
         .page-header {
