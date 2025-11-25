@@ -565,50 +565,6 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        document.getElementById('createPostForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            if (validateForm('createPostForm')) {
-                showNotification('Đang xử lý...', 'info');
-                
-                // Create FormData from form
-                const formData = new FormData(this);
-                
-                // Send AJAX request
-                fetch('../../Controllers/PostController.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    // Log raw response for debugging
-                    return response.text().then(text => {
-                        console.log('Raw response:', text);
-                        try {
-                            return JSON.parse(text);
-                        } catch (e) {
-                            console.error('JSON parse error:', e);
-                            console.error('Response text:', text);
-                            throw new Error('Invalid JSON response: ' + text.substring(0, 100));
-                        }
-                    });
-                })
-                .then(data => {
-                    if (data.success) {
-                        showNotification('Đăng tin thành công! Bài viết đã được công bố.', 'success');
-                        setTimeout(() => {
-                            window.location.href = '../user/my-posts.php';
-                        }, 2000);
-                    } else {
-                        showNotification(data.message || 'Có lỗi xảy ra', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Lỗi khi gửi dữ liệu: ' + error.message, 'error');
-                });
-            }
-        });
-
         // Handle image selection and preview
         const uploadedImages = [];
 
@@ -739,8 +695,11 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                 .then(data => {
                     if (data.success) {
                         showNotification('Bài đăng được tạo, đang upload ảnh...', 'info');
+                        console.log('Post created with ID:', data.post_id);
+                        console.log('Uploaded images count:', uploadedImages.length);
                         // Upload images if there are any
                         if (uploadedImages.length > 0) {
+                            console.log('Uploading images...');
                             return uploadPostImages(data.post_id).then(() => data);
                         }
                         return data;
