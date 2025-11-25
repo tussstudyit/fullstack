@@ -647,23 +647,33 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                 formData.append('images', uploadedImages[i]);
             }
 
-            return fetch('../../test-upload.php', {
+            return fetch('../../api/upload-image.php?action=upload-multiple', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    return response.text().then(text => {
+                        console.error('Non-JSON response:', text);
+                        throw new Error('Server returned non-JSON: ' + text.substring(0, 200));
+                    });
+                }
+            })
             .then(data => {
                 console.log('Upload response:', data);
                 if (data.success) {
-                    showNotification(data.message, 'success');
+                    showNotification(data.message || 'Upload thành công', 'success');
                 } else {
-                    showNotification('Lỗi upload ảnh: ' + data.message, 'error');
+                    showNotification('Lỗi upload ảnh: ' + (data.message || 'Unknown error'), 'error');
                 }
                 return data;
             })
             .catch(error => {
                 console.error('Error uploading images:', error);
-                showNotification('Lỗi khi upload ảnh', 'error');
+                showNotification('Lỗi khi upload ảnh: ' + error.message, 'error');
             });
         }
 
