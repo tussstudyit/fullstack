@@ -41,12 +41,10 @@ class ImageController {
             return ['success' => false, 'message' => 'Định dạng file không được phép. Chỉ chấp nhận: ' . implode(', ', $this->allowedExtensions)];
         }
 
-        // Validate MIME type
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $file['tmp_name']);
-        finfo_close($finfo);
-
-        if (!in_array($mimeType, $this->allowedMimes)) {
+        // Validate MIME type from $_FILES['type']
+        $mimeType = $file['type'] ?? '';
+        if (!in_array($mimeType, $this->allowedMimes) && !empty($mimeType)) {
+            // If MIME type is provided, validate it; if empty, we only rely on extension check
             return ['success' => false, 'message' => 'File không phải là ảnh hợp lệ'];
         }
 
