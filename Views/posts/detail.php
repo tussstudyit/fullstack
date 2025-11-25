@@ -19,10 +19,8 @@ if (!$post) {
     redirect('../../index.php');
 }
 
-// Get post images
-$postImageModel = new PostImage();
-$images = $postImageModel->getImages($post_id);
-$primaryImage = $postImageModel->getPrimaryImage($post_id);
+// Get landlord info
+$landlord = $userModel->findById($post['user_id'] ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -414,19 +412,19 @@ $primaryImage = $postImageModel->getPrimaryImage($post_id);
 
                     <div class="detail-content">
                         <div class="detail-header">
-                            <h1 class="detail-title">Phòng trọ gần ĐH Bách Khoa - An ninh tốt</h1>
+                            <h1 class="detail-title"><?php echo htmlspecialchars($post['title'] ?? 'Phòng trọ'); ?></h1>
                             <div class="detail-meta">
                                 <div class="meta-item">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    <span>123 Lý Thường Kiệt, Quận 10, TP.HCM</span>
+                                    <span><?php echo htmlspecialchars($post['address'] ?? ''); ?>, <?php echo htmlspecialchars($post['district'] ?? ''); ?>, <?php echo htmlspecialchars($post['city'] ?? ''); ?></span>
                                 </div>
                                 <div class="meta-item">
                                     <i class="fas fa-clock"></i>
-                                    <span>Đăng 2 ngày trước</span>
+                                    <span>Đăng <?php echo date('d/m/Y', strtotime($post['created_at'] ?? date('Y-m-d H:i:s'))); ?></span>
                                 </div>
                                 <div class="meta-item">
                                     <i class="fas fa-eye"></i>
-                                    <span>156 lượt xem</span>
+                                    <span><?php echo $post['view_count'] ?? 0; ?> lượt xem</span>
                                 </div>
                             </div>
                         </div>
@@ -438,28 +436,34 @@ $primaryImage = $postImageModel->getPrimaryImage($post_id);
                                     <i class="fas fa-expand feature-icon"></i>
                                     <div>
                                         <strong>Diện tích</strong>
-                                        <p>20m²</p>
+                                        <p><?php echo $post['area'] ?? 0; ?>m²</p>
                                     </div>
                                 </div>
                                 <div class="feature-item">
                                     <i class="fas fa-users feature-icon"></i>
                                     <div>
                                         <strong>Số người tối đa</strong>
-                                        <p>2 người</p>
+                                        <p><?php echo $post['max_people'] ?? 1; ?> người</p>
                                     </div>
                                 </div>
                                 <div class="feature-item">
                                     <i class="fas fa-home feature-icon"></i>
                                     <div>
                                         <strong>Loại phòng</strong>
-                                        <p>Phòng đơn</p>
+                                        <p><?php 
+                                            $roomTypes = ['single' => 'Phòng đơn', 'shared' => 'Phòng ghép', 'apartment' => 'Căn hộ', 'house' => 'Nhà nguyên căn'];
+                                            echo $roomTypes[$post['room_type']] ?? 'Phòng đơn';
+                                        ?></p>
                                     </div>
                                 </div>
                                 <div class="feature-item">
                                     <i class="fas fa-venus-mars feature-icon"></i>
                                     <div>
                                         <strong>Giới tính</strong>
-                                        <p>Nam/Nữ</p>
+                                        <p><?php 
+                                            $genders = ['male' => 'Nam', 'female' => 'Nữ', 'any' => 'Nam/Nữ'];
+                                            echo $genders[$post['gender']] ?? 'Nam/Nữ';
+                                        ?></p>
                                     </div>
                                 </div>
                             </div>
@@ -467,84 +471,83 @@ $primaryImage = $postImageModel->getPrimaryImage($post_id);
 
                         <div class="detail-section">
                             <h2 class="section-title">Mô tả</h2>
-                            <p>Phòng trọ sạch sẽ, thoáng mát, an ninh tốt. Gần trường Đại học Bách Khoa, thuận tiện đi lại. Khu vực có đầy đủ tiện ích: siêu thị, chợ, quán ăn, tiệm giặt là.</p>
-                            <p>Phòng mới sơn sửa, nội thất cơ bản bao gồm: giường, tủ quần áo, bàn học. Có ban công thoáng mát.</p>
+                            <p><?php echo nl2br(htmlspecialchars($post['description'] ?? '')); ?></p>
                         </div>
 
+                        <?php 
+                        $amenities = !empty($post['amenities']) ? json_decode($post['amenities'], true) : [];
+                        if (!empty($amenities)):
+                        ?>
                         <div class="detail-section">
                             <h2 class="section-title">Tiện ích</h2>
                             <div class="amenities-list">
+                                <?php 
+                                $amenityIcons = [
+                                    'wifi' => 'fa-wifi',
+                                    'ac' => 'fa-snowflake',
+                                    'fridge' => 'fa-lightbulb',
+                                    'washing' => 'fa-wind',
+                                    'parking' => 'fa-parking',
+                                    'security' => 'fa-shield-alt',
+                                    'water_heater' => 'fa-tint',
+                                    'flexible_hours' => 'fa-clock'
+                                ];
+                                $amenityLabels = [
+                                    'wifi' => 'WiFi',
+                                    'ac' => 'Điều hòa',
+                                    'fridge' => 'Tủ lạnh',
+                                    'washing' => 'Máy giặt',
+                                    'parking' => 'Chỗ để xe',
+                                    'security' => 'An ninh 24/7',
+                                    'water_heater' => 'Máy nóng lạnh',
+                                    'flexible_hours' => 'Giờ giấc tự do'
+                                ];
+                                foreach ($amenities as $amenity): 
+                                ?>
                                 <div class="amenity-tag">
-                                    <i class="fas fa-wifi" style="color: var(--primary-color);"></i>
-                                    <span>WiFi</span>
+                                    <i class="fas <?php echo $amenityIcons[$amenity] ?? 'fa-check'; ?>" style="color: var(--primary-color);"></i>
+                                    <span><?php echo $amenityLabels[$amenity] ?? $amenity; ?></span>
                                 </div>
-                                <div class="amenity-tag">
-                                    <i class="fas fa-snowflake" style="color: var(--primary-color);"></i>
-                                    <span>Điều hòa</span>
-                                </div>
-                                <div class="amenity-tag">
-                                    <i class="fas fa-lightbulb" style="color: var(--primary-color);"></i>
-                                    <span>Tủ lạnh</span>
-                                </div>
-                                <div class="amenity-tag">
-                                    <i class="fas fa-shower" style="color: var(--primary-color);"></i>
-                                    <span>Nóng lạnh</span>
-                                </div>
-                                <div class="amenity-tag">
-                                    <i class="fas fa-parking" style="color: var(--primary-color);"></i>
-                                    <span>Chỗ để xe</span>
-                                </div>
-                                <div class="amenity-tag">
-                                    <i class="fas fa-shield-alt" style="color: var(--primary-color);"></i>
-                                    <span>An ninh 24/7</span>
-                                </div>
+                                <?php endforeach; ?>
                             </div>
                         </div>
-
-                        <div class="detail-section">
-                            <h2 class="section-title">Nội quy</h2>
-                            <ul style="padding-left: 1.5rem; color: var(--text-secondary);">
-                                <li>Không sử dụng chất cấm, hút thuốc trong phòng</li>
-                                <li>Giữ gìn vệ sinh chung</li>
-                                <li>Không gây ồn ào sau 22h</li>
-                                <li>Đóng tiền phòng đúng hạn mỗi tháng</li>
-                                <li>Báo trước 1 tháng khi muốn chuyển đi</li>
-                            </ul>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
                 <aside class="detail-sidebar">
                     <div class="price-card">
-                        <div class="price-amount">2.5 triệu</div>
+                        <div class="price-amount"><?php echo number_format($post['price'] ?? 0, 0, '.', '.'); ?> đ</div>
                         <div class="price-unit">VNĐ/tháng</div>
                         <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">Tiền cọc: 2.5 triệu</p>
+                            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">Tiền cọc: <?php echo number_format($post['price'] ?? 0, 0, '.', '.'); ?> đ</p>
                             <p style="color: var(--text-secondary); font-size: 0.875rem;">Điện: 3,500đ/kWh | Nước: 20,000đ/người</p>
                         </div>
                     </div>
 
+                    <?php if ($landlord): ?>
                     <div class="contact-card">
                         <h3 style="margin-bottom: 1.5rem;">Liên hệ</h3>
                         <div class="landlord-info">
-                            <img src="<?php echo getPlaceholderImage(60, 60, '667eea', 'A'); ?>" alt="Chủ trọ" class="landlord-avatar">
+                            <img src="<?php echo getPlaceholderImage(60, 60, '667eea', substr($landlord['username'], 0, 1)); ?>" alt="Chủ trọ" class="landlord-avatar">
                             <div class="landlord-details">
-                                <h4>Nguyễn Văn A</h4>
+                                <h4><?php echo htmlspecialchars($landlord['username'] ?? 'Chủ trọ'); ?></h4>
                                 <p>Chủ trọ</p>
                             </div>
                         </div>
                         <div class="contact-actions">
-                            <a href="tel:0912345678" class="btn btn-primary">
-                                <i class="fas fa-phone"></i> 0912 345 678
+                            <a href="tel:<?php echo htmlspecialchars($landlord['phone'] ?? ''); ?>" class="btn btn-primary">
+                                <i class="fas fa-phone"></i> <?php echo htmlspecialchars($landlord['phone'] ?? 'Không có'); ?>
                             </a>
-                            <a href="../chat/chat.php" class="btn btn-outline">
+                            <a href="../chat/chat.php?user_id=<?php echo $post['user_id']; ?>" class="btn btn-outline">
                                 <i class="fas fa-comment"></i> Nhắn tin
                             </a>
-                            <button class="btn btn-secondary" onclick="toggleFavorite(1, this)">
+                            <button class="btn btn-secondary" onclick="toggleFavorite(<?php echo $post_id; ?>, this)">
                                 <i class="far fa-heart"></i> Yêu thích
                             </button>
                         </div>
                     </div>
+                    <?php endif; ?>
 
                     <div class="contact-card">
                         <h4 style="margin-bottom: 1rem;">Chia sẻ</h4>
