@@ -1,0 +1,166 @@
+<?php
+require_once __DIR__ . '/config.php';
+?>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Upload Ảnh</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; padding: 2rem; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { margin-bottom: 1rem; color: #333; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #666; font-weight: bold; }
+        input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; }
+        textarea { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 12px; height: 300px; }
+        button { background: #4CAF50; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-right: 0.5rem; }
+        button:hover { background: #45a049; }
+        .result { margin-top: 2rem; padding: 1rem; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; }
+        .result h3 { margin-bottom: 1rem; }
+        .error { color: #d32f2f; }
+        .success { color: #388e3c; }
+        .info { color: #1976d2; padding: 1rem; background: #e3f2fd; border-radius: 4px; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Upload Ảnh</h1>
+        
+        <div class="info">
+            <strong>Login Status:</strong>
+            <?php if (isLoggedIn()): ?>
+                ✓ Đã đăng nhập (Role: <?php echo $_SESSION['role']; ?>)
+            <?php else: ?>
+                ✗ Chưa đăng nhập - <a href="Views/auth/login.php">Login tại đây</a>
+            <?php endif; ?>
+        </div>
+        
+        <div class="form-group">
+            <label>Post ID:</label>
+            <input type="number" id="postId" value="1" min="1">
+        </div>
+        
+        <div class="form-group">
+            <label>Chọn ảnh:</label>
+            <input type="file" id="imageFiles" multiple accept="image/*">
+        </div>
+        
+        <button onclick="testUpload()">Upload (Real API)</button>
+        <button onclick="testDebug()">Test Debug</button>
+        
+        <div class="result" id="result" style="display:none;">
+            <h3>Response:</h3>
+            <textarea id="response" readonly></textarea>
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: #e3f2fd; border-radius: 4px;">
+            <h3 style="margin-bottom: 1rem;">Hướng dẫn:</h3>
+            <ol style="margin-left: 1.5rem; line-height: 1.6;">
+                <li>Chắc chắn bạn đã đăng nhập (xem phía trên)</li>
+                <li>Nhập Post ID (hoặc để mặc định = 1)</li>
+                <li>Chọn 1 hoặc nhiều ảnh</li>
+                <li>Click "Upload (Real API)" để test upload thực tế</li>
+                <li>Hoặc click "Test Debug" để xem POST data được nhận</li>
+                <li>Kiểm tra Response bên dưới</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        async function testUpload() {
+            const postId = document.getElementById('postId').value;
+            const files = document.getElementById('imageFiles').files;
+            
+            if (!files.length) {
+                alert('Vui lòng chọn ảnh');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('post_id', postId);
+            
+            for (let file of files) {
+                formData.append('images', file);
+                console.log('Added file:', file.name);
+            }
+            
+            console.log('Uploading to API...');
+            console.log('Post ID:', postId);
+            console.log('Files count:', files.length);
+            
+            try {
+                const response = await fetch('api/upload-image.php?action=upload-multiple', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                const data = JSON.parse(text);
+                console.log('Response data:', data);
+                
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('response').value = JSON.stringify(data, null, 2);
+                
+                if (data.success) {
+                    document.getElementById('result').innerHTML = '<h3>✓ Upload thành công!</h3><textarea id="response" readonly></textarea>';
+                    document.getElementById('response').value = JSON.stringify(data, null, 2);
+                } else {
+                    document.getElementById('result').innerHTML = '<h3 class="error">✗ Lỗi: ' + data.message + '</h3><textarea id="response" readonly></textarea>';
+                    document.getElementById('response').value = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('result').innerHTML = '<h3 class="error">✗ Exception: ' + error.message + '</h3><textarea id="response" readonly></textarea>';
+                document.getElementById('response').value = error.message + '\n\n' + error.stack;
+            }
+        }
+        
+        async function testDebug() {
+            const postId = document.getElementById('postId').value;
+            const files = document.getElementById('imageFiles').files;
+            
+            if (!files.length) {
+                alert('Vui lòng chọn ảnh');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('post_id', postId);
+            
+            for (let file of files) {
+                formData.append('images', file);
+            }
+            
+            console.log('Sending to debug endpoint...');
+            
+            try {
+                const response = await fetch('test-upload.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                const data = JSON.parse(text);
+                console.log('Response data:', data);
+                
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('result').innerHTML = '<h3>Debug Info:</h3><textarea id="response" readonly></textarea>';
+                document.getElementById('response').value = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('result').innerHTML = '<h3 class="error">✗ Exception: ' + error.message + '</h3><textarea id="response" readonly></textarea>';
+                document.getElementById('response').value = error.message;
+            }
+        }
+    </script>
+</body>
+</html>
