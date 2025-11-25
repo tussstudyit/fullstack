@@ -53,6 +53,9 @@ CREATE TABLE posts (
     utilities TEXT,
     rules TEXT,
     available_from DATE,
+    deposit_amount DECIMAL(10, 2),
+    electric_price DECIMAL(10, 2),
+    water_price DECIMAL(10, 2),
     status ENUM('pending', 'approved', 'rejected', 'rented') DEFAULT 'pending',
     is_featured BOOLEAN DEFAULT FALSE,
     views INT DEFAULT 0,
@@ -205,10 +208,10 @@ INSERT INTO users (username, email, password, full_name, phone, role) VALUES
 ('tenant2', 'tenant2@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Phạm Thị D', '0945678901', 'tenant');
 
 -- Insert sample posts
-INSERT INTO posts (user_id, category_id, title, description, address, district, city, price, area, room_type, max_people, gender, amenities, utilities, status) VALUES
-(2, 1, 'Phòng trọ gần ĐH Bách Khoa', 'Phòng trọ sạch sẽ, thoáng mát, an ninh tốt', '123 Nguyễn Chí Thanh', 'Quận Hải Châu', 'Đà Nẵng', 2500000, 20, 'single', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh', 'Điện, nước, internet', 'approved'),
-(2, 2, 'Căn hộ mini cao cấp Quận 1', 'Căn hộ đầy đủ nội thất, view đẹp', '456 Tran Phu', 'Quận Thanh Khê', 'Đà Nẵng', 8000000, 35, 'apartment', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh, Máy giặt, Bếp', 'Điện, nước, internet, dọn dẹp', 'approved'),
-(3, 1, 'Phòng trọ sinh viên giá rẻ', 'Phòng mới xây, gần chợ, trường học', '789 Lê Văn Việt', 'Quận Cẩm Lệ', 'Đà Nẵng', 1800000, 18, 'single', 1, 'female', 'WiFi, Điều hòa', 'Điện, nước', 'approved');
+INSERT INTO posts (user_id, category_id, title, description, address, district, city, price, area, room_type, max_people, gender, amenities, utilities, deposit_amount, electric_price, water_price, status) VALUES
+(2, 1, 'Phòng trọ gần ĐH Bách Khoa', 'Phòng trọ sạch sẽ, thoáng mát, an ninh tốt', '123 Nguyễn Chí Thanh', 'Quận Hải Châu', 'Đà Nẵng', 2500000, 20, 'single', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh', 'Điện, nước, internet', 2500000, 3500, 20000, 'approved'),
+(2, 2, 'Căn hộ mini cao cấp Quận 1', 'Căn hộ đầy đủ nội thất, view đẹp', '456 Tran Phu', 'Quận Thanh Khê', 'Đà Nẵng', 8000000, 35, 'apartment', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh, Máy giặt, Bếp', 'Điện, nước, internet, dọn dẹp', 8000000, 3500, 25000, 'approved'),
+(3, 1, 'Phòng trọ sinh viên giá rẻ', 'Phòng mới xây, gần chợ, trường học', '789 Lê Văn Việt', 'Quận Cẩm Lệ', 'Đà Nẵng', 1800000, 18, 'single', 1, 'female', 'WiFi, Điều hòa', 'Điện, nước', 1800000, 3500, 15000, 'approved');
 
 -- Insert sample images
 INSERT INTO post_images (post_id, image_url, is_primary, display_order) VALUES

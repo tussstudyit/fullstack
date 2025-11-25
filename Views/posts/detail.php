@@ -527,8 +527,13 @@ $landlord = $userModel->findById($post['user_id'] ?? 0);
                         <div class="price-amount"><?php echo number_format($post['price'] ?? 0, 0, '.', '.'); ?> đ</div>
                         <div class="price-unit">VNĐ/tháng</div>
                         <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">Tiền cọc: <?php echo number_format($post['price'] ?? 0, 0, '.', '.'); ?> đ</p>
-                            <p style="color: var(--text-secondary); font-size: 0.875rem;">Điện: 3,500đ/kWh | Nước: 20,000đ/người</p>
+                            <?php if (!empty($post['deposit_amount'])): ?>
+                            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">Tiền cọc: <?php echo number_format($post['deposit_amount'], 0, '.', '.'); ?> đ</p>
+                            <?php endif; ?>
+                            <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                                Điện: <?php echo !empty($post['electric_price']) ? number_format($post['electric_price'], 0, '.', '.') . 'đ/kWh' : 'Theo thoả thuận'; ?> 
+                                | Nước: <?php echo !empty($post['water_price']) ? number_format($post['water_price'], 0, '.', '.') . 'đ/người' : 'Theo thoả thuận'; ?>
+                            </p>
                         </div>
                     </div>
 

@@ -283,10 +283,14 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                     </div>
                     <div class="step">
                         <div class="step-number">3</div>
-                        <div class="step-title">Hình ảnh</div>
+                        <div class="step-title">Chi phí tiện ích</div>
                     </div>
                     <div class="step">
                         <div class="step-number">4</div>
+                        <div class="step-title">Hình ảnh</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">5</div>
                         <div class="step-title">Xác nhận</div>
                     </div>
                 </div>
@@ -479,6 +483,55 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                     </div>
 
                     <div class="form-step" data-step="3">
+                        <h2 style="margin-bottom: 2rem;">Chi phí tiện ích</h2>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="deposit_amount">Tiền cọc (VNĐ)</label>
+                                <input 
+                                    type="number" 
+                                    class="form-control" 
+                                    id="deposit_amount" 
+                                    name="deposit_amount" 
+                                    placeholder="2500000"
+                                    min="0"
+                                    step="1000"
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="electric_price">Giá điện (đ/kWh)</label>
+                                <input 
+                                    type="number" 
+                                    class="form-control" 
+                                    id="electric_price" 
+                                    name="electric_price" 
+                                    placeholder="3500"
+                                    min="0"
+                                    step="100"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="water_price">Giá nước (đ/người/tháng)</label>
+                            <input 
+                                type="number" 
+                                class="form-control" 
+                                id="water_price" 
+                                name="water_price" 
+                                placeholder="20000"
+                                min="0"
+                                step="1000"
+                            >
+                        </div>
+
+                        <div style="background: var(--light-color); padding: 1.5rem; border-radius: var(--radius-md); margin-top: 2rem;">
+                            <p style="margin: 0; color: var(--text-secondary);"><strong>Ghi chú:</strong> Nhập giá tiền cọc, điện, nước để hiển thị trên trang chi tiết. Để trống nếu không áp dụng.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-step" data-step="4">
                         <h2 style="margin-bottom: 2rem;">Hình ảnh phòng trọ</h2>
 
                         <div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById('imageInput').click()">
@@ -499,7 +552,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                         <input type="hidden" id="imageCount" value="0">
                     </div>
 
-                    <div class="form-step" data-step="4">
+                    <div class="form-step" data-step="5">
                         <h2 style="margin-bottom: 2rem;">Xác nhận thông tin</h2>
 
                         <div style="background: var(--light-color); padding: 2rem; border-radius: var(--radius-md); margin-bottom: 2rem;">
@@ -540,7 +593,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
     <script src="../../assets/js/main.js"></script>
     <script>
         let currentStep = 1;
-        const totalSteps = 4;
+        const totalSteps = 5;
 
         function changeStep(direction) {
             const newStep = currentStep + direction;

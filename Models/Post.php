@@ -38,8 +38,8 @@ class Post {
                 INSERT INTO {$this->table} (
                     user_id, category_id, title, description, address, district, city, 
                     price, area, room_type, max_people, gender, amenities, utilities, 
-                    rules, available_from, status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    rules, available_from, deposit_amount, electric_price, water_price, status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
 
             $result = $stmt->execute([
@@ -59,6 +59,9 @@ class Post {
                 $data['utilities'] ?? null,
                 $data['rules'] ?? null,
                 $data['available_from'] ?? date('Y-m-d'),
+                $data['deposit_amount'] ?? null,
+                $data['electric_price'] ?? null,
+                $data['water_price'] ?? null,
                 $data['status'] ?? 'approved'
             ]);
 
@@ -85,7 +88,7 @@ class Post {
             $fields = [];
             $values = [];
 
-            $allowedFields = ['title', 'description', 'address', 'district', 'city', 'price', 'area', 'room_type', 'max_people', 'gender', 'amenities', 'utilities', 'rules', 'available_from', 'status'];
+            $allowedFields = ['title', 'description', 'address', 'district', 'city', 'price', 'area', 'room_type', 'max_people', 'gender', 'amenities', 'utilities', 'rules', 'available_from', 'deposit_amount', 'electric_price', 'water_price', 'status'];
 
             foreach ($allowedFields as $field) {
                 if (isset($data[$field])) {

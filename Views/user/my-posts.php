@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../Models/Post.php';
+require_once __DIR__ . '/../../Models/PostImage.php';
 require_once __DIR__ . '/../../helpers.php';
 
 // Redirect if not logged in or not landlord
@@ -10,6 +11,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
 
 // Get user's posts
 $postModel = new Post();
+$postImageModel = new PostImage();
 $posts = $postModel->getByUserId($_SESSION['user_id']);
 $totalPosts = count($posts);
 ?>
@@ -173,9 +175,13 @@ $totalPosts = count($posts);
                 </div>
                 <?php else: ?>
                 <?php foreach ($posts as $post): ?>
+                <?php 
+                $primaryImage = $postImageModel->getPrimaryImage($post['id']);
+                $imageUrl = $primaryImage ? '../../uploads/' . htmlspecialchars($primaryImage) : getPlaceholderImage(200, 150, '667eea', urlencode($post['title']));
+                ?>
                 <div class="post-item" data-post-id="<?php echo $post['id']; ?>">
                     <div class="post-image">
-                        <img src="<?php echo getPlaceholderImage(200, 150, '667eea', urlencode($post['title'])); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
+                        <img src="<?php echo $imageUrl; ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
                     </div>
                     <div class="post-info">
                         <span class="badge badge-success">Đã duyệt</span>

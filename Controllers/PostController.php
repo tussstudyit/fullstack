@@ -76,6 +76,9 @@ class PostController {
             'utilities' => !empty($utilities) ? json_encode($utilities) : null,
             'rules' => !empty($rules) ? json_encode($rules) : null,
             'available_from' => $_POST['available_from'] ?? date('Y-m-d'),
+            'deposit_amount' => $_POST['deposit_amount'] ?? null,
+            'electric_price' => $_POST['electric_price'] ?? null,
+            'water_price' => $_POST['water_price'] ?? null,
             'status' => 'approved'
         ];
 
@@ -113,7 +116,7 @@ class PostController {
         }
 
         $data = [];
-        $allowedFields = ['title', 'description', 'address', 'district', 'city', 'price', 'area', 'room_type', 'max_people', 'gender', 'amenities', 'utilities', 'rules'];
+        $allowedFields = ['title', 'description', 'address', 'district', 'city', 'price', 'area', 'room_type', 'max_people', 'gender', 'amenities', 'utilities', 'rules', 'deposit_amount', 'electric_price', 'water_price'];
 
         foreach ($allowedFields as $field) {
             if (isset($_POST[$field])) {
