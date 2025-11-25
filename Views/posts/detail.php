@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../helpers.php';
 require_once __DIR__ . '/../../Models/Post.php';
 require_once __DIR__ . '/../../Models/PostImage.php';
+require_once __DIR__ . '/../../Models/User.php';
 
 // Get post ID from URL
 $post_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -19,7 +20,13 @@ if (!$post) {
     redirect('../../index.php');
 }
 
+// Get post images
+$postImageModel = new PostImage();
+$images = $postImageModel->getImages($post_id);
+$primaryImage = $postImageModel->getPrimaryImage($post_id);
+
 // Get landlord info
+$userModel = new User();
 $landlord = $userModel->findById($post['user_id'] ?? 0);
 ?>
 <!DOCTYPE html>
