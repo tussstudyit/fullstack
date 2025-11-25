@@ -566,7 +566,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
         }
 
         // Handle image selection and preview
-        const uploadedImages = [];
+        let uploadedImages = [];
 
         function handleImageSelect(input) {
             const files = input.files;
@@ -574,6 +574,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
             
             if (files.length === 0) return;
             
+            // Add new files to uploadedImages (don't clear old ones - allow multiple selections)
             for (let file of files) {
                 // Validate file size (5MB max)
                 if (file.size > 5 * 1024 * 1024) {
@@ -590,26 +591,47 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                 // Create preview
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    const fileIndex = uploadedImages.length; // Index của file này
                     const div = document.createElement('div');
                     div.className = 'image-preview-item';
+                    div.id = 'preview-' + fileIndex;
                     div.innerHTML = `
                         <div style="position: relative; overflow: hidden; border-radius: 8px;">
                             <img src="${e.target.result}" alt="Preview" style="width: 100%; height: 150px; object-fit: cover;">
-                            <div style="position: absolute; top: 0; right: 0; background: rgba(0,0,0,0.5); color: white; padding: 0.5rem; border-radius: 0 8px 0 0;">
-                                <i class="fas fa-spinner fa-spin"></i>
-                            </div>
+                            <button type="button" class="remove-preview-btn" onclick="removeImagePreview(${fileIndex})" style="position: absolute; top: 0.5rem; right: 0.5rem;">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                         <p style="margin-top: 0.5rem; font-size: 0.875rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${file.name}</p>
                     `;
                     preview.appendChild(div);
                 };
                 reader.readAsDataURL(file);
-            }
-            
-            // Store files for later upload
-            for (let file of files) {
+                
+                // Add to uploadedImages array
                 uploadedImages.push(file);
             }
+            
+            console.log('Total images selected:', uploadedImages.length);
+            
+            // Reset input so same file can be selected again
+            input.value = '';
+        }
+        
+        // Remove image from preview and uploadedImages
+        function removeImagePreview(index) {
+            const element = document.getElementById('preview-' + index);
+            if (element) {
+                element.remove();
+            }
+            
+            // Mark as null instead of splicing to keep indices correct
+            uploadedImages[index] = null;
+            
+            // Clean up null values
+            uploadedImages = uploadedImages.filter(f => f !== null);
+            
+            console.log('Images after removal:', uploadedImages.length);
         }
 
         // Drag and drop support
