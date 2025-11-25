@@ -254,7 +254,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                     </span>
                     <?php endif; ?>
                 </div>
-                <a href="../user/my-posts.php" class="btn btn-outline btn-sm"><i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($_SESSION['username']); ?></a>
+                <a href="../user/profile.php" class="btn btn-outline btn-sm"><i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($_SESSION['username']); ?></a>
                 <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
             </div>
 

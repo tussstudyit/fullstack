@@ -397,11 +397,11 @@ $primaryImage = $postImageModel->getPrimaryImage($post_id);
             <div class="detail-layout">
                 <div class="detail-main">
                     <div class="image-gallery">
-                        <img src="<?php echo $primaryImage ? 'uploads/' . htmlspecialchars($primaryImage) : getPlaceholderImage(1200, 600, '667eea', 'No Image'); ?>" alt="<?php echo htmlspecialchars($post['title'] ?? 'Phòng trọ'); ?>" class="main-image" id="mainImage">
+                        <img src="<?php echo $primaryImage ? '../../uploads/' . htmlspecialchars($primaryImage) : getPlaceholderImage(1200, 600, '667eea', 'No Image'); ?>" alt="<?php echo htmlspecialchars($post['title'] ?? 'Phòng trọ'); ?>" class="main-image" id="mainImage">
                         <div class="thumbnail-grid">
                             <?php if (!empty($images)): ?>
                                 <?php foreach ($images as $img): ?>
-                                <img src="uploads/<?php echo htmlspecialchars($img['image_url']); ?>" alt="Thumbnail" class="thumbnail <?php echo $img['is_primary'] ? 'active' : ''; ?>" onclick="changeMainImage(this)">
+                                <img src="../../uploads/<?php echo htmlspecialchars($img['image_url']); ?>" alt="Thumbnail" class="thumbnail <?php echo $img['is_primary'] ? 'active' : ''; ?>" onclick="changeMainImage(this)">
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <img src="<?php echo getPlaceholderImage(300, 200, '667eea', '1'); ?>" alt="Placeholder" class="thumbnail active">
