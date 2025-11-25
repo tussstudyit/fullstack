@@ -647,7 +647,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                 formData.append('images', uploadedImages[i]);
             }
 
-            return fetch('../../api/upload-image.php?action=upload-multiple', {
+            return fetch('../../test-upload.php', {
                 method: 'POST',
                 body: formData
             })
