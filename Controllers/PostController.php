@@ -12,14 +12,17 @@ error_reporting(0);
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../Models/Post.php';
 require_once __DIR__ . '/../Models/User.php';
+require_once __DIR__ . '/../Models/PostImage.php';
 
 class PostController {
     private $postModel;
     private $userModel;
+    private $postImageModel;
 
     public function __construct() {
         $this->postModel = new Post();
         $this->userModel = new User();
+        $this->postImageModel = new PostImage();
     }
 
     /**
@@ -116,12 +119,27 @@ class PostController {
         }
 
         $data = [];
-        $allowedFields = ['title', 'description', 'address', 'district', 'city', 'price', 'area', 'room_type', 'max_people', 'gender', 'amenities', 'utilities', 'rules', 'deposit_amount', 'electric_price', 'water_price'];
+        $allowedFields = ['title', 'description', 'address', 'district', 'city', 'price', 'area', 'room_type', 'max_people', 'gender', 'deposit_amount', 'electric_price', 'water_price'];
 
         foreach ($allowedFields as $field) {
             if (isset($_POST[$field])) {
                 $data[$field] = sanitize($_POST[$field]);
             }
+        }
+
+        // Handle JSON arrays
+        $amenities = $_POST['amenities'] ?? [];
+        $utilities = $_POST['utilities'] ?? [];
+        $rules = $_POST['rules'] ?? [];
+
+        if (!empty($amenities)) {
+            $data['amenities'] = json_encode($amenities);
+        }
+        if (!empty($utilities)) {
+            $data['utilities'] = json_encode($utilities);
+        }
+        if (!empty($rules)) {
+            $data['rules'] = json_encode($rules);
         }
 
         $result = $this->postModel->update($post_id, $data);
