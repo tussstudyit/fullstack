@@ -330,7 +330,7 @@ if ($postId) {
                 <form id="createPostForm" action="../../Controllers/PostController.php" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="<?php echo $editingPost ? 'update' : 'create'; ?>">
                     <?php if ($editingPost): ?>
-                    <input type="hidden" name="id" value="<?php echo $editingPost['id']; ?>">
+                    <input type="hidden" name="post_id" value="<?php echo $editingPost['id']; ?>">
                     <?php endif; ?>
 
                     <div class="form-step active" data-step="1">
