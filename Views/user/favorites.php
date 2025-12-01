@@ -241,7 +241,7 @@ try {
                 <div class="posts-grid">
                     <?php foreach ($favorites as $post): ?>
                     <?php 
-                    $imageUrl = $post['image'] ? getBasePath() . 'uploads/' . htmlspecialchars($post['image']) : getPlaceholderImage(320, 220, '667eea', urlencode($post['title']));
+                    $imageUrl = $post['image'] ? getBasePath() . '/uploads/' . htmlspecialchars($post['image']) : getPlaceholderImage(320, 220, '667eea', urlencode($post['title']));
                     ?>
                     <div class="post-card" data-post-id="<?php echo $post['id']; ?>">
                         <div class="post-image">
