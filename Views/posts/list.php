@@ -81,6 +81,20 @@ try {
     $posts = [];
     $total_posts = 0;
 }
+
+// Get user's favorites if logged in
+$user_favorites = [];
+if (isLoggedIn()) {
+    try {
+        $db = getDB();
+        $fav_stmt = $db->prepare("SELECT post_id FROM favorites WHERE user_id = ?");
+        $fav_stmt->execute([$_SESSION['user_id']]);
+        $favs = $fav_stmt->fetchAll(PDO::FETCH_ASSOC);
+        $user_favorites = array_column($favs, 'post_id');
+    } catch (PDOException $e) {
+        error_log("Error fetching favorites: " . $e->getMessage());
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -532,8 +546,13 @@ try {
                                     else echo 'Nổi bật';
                                     ?>
                                 </span>
-                                <button class="favorite-btn" onclick="toggleFavorite(<?php echo $post['id']; ?>, this)">
-                                    <i class="far fa-heart"></i>
+                                <?php 
+                                $isFavorited = in_array($post['id'], $user_favorites);
+                                $activeClass = $isFavorited ? 'active' : '';
+                                $iconClass = $isFavorited ? 'fas' : 'far';
+                                ?>
+                                <button class="favorite-btn <?php echo $activeClass; ?>" onclick="toggleFavorite(<?php echo $post['id']; ?>, this)">
+                                    <i class="<?php echo $iconClass; ?> fa-heart"></i>
                                 </button>
                             </div>
                             <div class="post-content">

@@ -28,6 +28,19 @@ $primaryImage = $postImageModel->getPrimaryImage($post_id);
 // Get landlord info
 $userModel = new User();
 $landlord = $userModel->findById($post['user_id'] ?? 0);
+
+// Check if post is favorited by current user
+$is_favorited = false;
+if (isLoggedIn()) {
+    try {
+        $conn = getDB();
+        $fav_check = $conn->prepare("SELECT id FROM favorites WHERE post_id = ? AND user_id = ?");
+        $fav_check->execute([$post_id, $_SESSION['user_id']]);
+        $is_favorited = $fav_check->rowCount() > 0;
+    } catch (PDOException $e) {
+        error_log("Error checking favorite: " . $e->getMessage());
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -554,8 +567,12 @@ $landlord = $userModel->findById($post['user_id'] ?? 0);
                             <a href="../chat/chat.php?user_id=<?php echo $post['user_id']; ?>" class="btn btn-outline">
                                 <i class="fas fa-comment"></i> Nhắn tin
                             </a>
-                            <button class="btn btn-secondary" onclick="toggleFavorite(<?php echo $post_id; ?>, this)">
-                                <i class="far fa-heart"></i> Yêu thích
+                            <?php 
+                            $fav_icon_class = $is_favorited ? 'fas' : 'far';
+                            $fav_btn_class = $is_favorited ? 'btn-danger' : 'btn-secondary';
+                            ?>
+                            <button class="btn <?php echo $fav_btn_class; ?> <?php echo $is_favorited ? 'active' : ''; ?>" onclick="toggleFavorite(<?php echo $post_id; ?>, this)" id="favBtn">
+                                <i class="<?php echo $fav_icon_class; ?> fa-heart"></i> Yêu thích
                             </button>
                         </div>
                     </div>
@@ -649,6 +666,44 @@ $landlord = $userModel->findById($post['user_id'] ?? 0);
             document.getElementById('mainImage').src = thumbnail.src.replace('300x200', '1200x600');
             document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
             thumbnail.classList.add('active');
+        }
+
+        function toggleFavorite(postId, button) {
+            <?php if (!isLoggedIn()): ?>
+            alert('Vui lòng đăng nhập để yêu thích');
+            window.location.href = '../auth/login.php';
+            return;
+            <?php endif; ?>
+            
+            const isFavorited = button.classList.contains('active');
+            const action = isFavorited ? 'remove' : 'add';
+            
+            fetch('../../Controllers/FavoriteController.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=' + action + '&post_id=' + postId
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    button.classList.toggle('active');
+                    const icon = button.querySelector('i');
+                    icon.classList.toggle('far');
+                    icon.classList.toggle('fas');
+                    
+                    // Update button class
+                    if (button.classList.contains('active')) {
+                        button.classList.remove('btn-secondary');
+                        button.classList.add('btn-danger');
+                    } else {
+                        button.classList.remove('btn-danger');
+                        button.classList.add('btn-secondary');
+                    }
+                } else {
+                    alert(data.message || 'Lỗi khi thay đổi yêu thích');
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
     </script>
 </body>

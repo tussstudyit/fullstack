@@ -69,6 +69,19 @@ try {
     $db_error = true;
     // Continue with default values
 }
+
+// Get user's favorites if logged in
+$user_favorites = [];
+if (isLoggedIn()) {
+    try {
+        $fav_stmt = $conn->prepare("SELECT post_id FROM favorites WHERE user_id = ?");
+        $fav_stmt->execute([$_SESSION['user_id']]);
+        $favs = $fav_stmt->fetchAll(PDO::FETCH_ASSOC);
+        $user_favorites = array_column($favs, 'post_id');
+    } catch (PDOException $e) {
+        error_log("Error fetching favorites: " . $e->getMessage());
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -542,8 +555,13 @@ try {
                                 $badges = ['Mới đăng', 'Nổi bật', 'Giá rẻ'];
                                 echo $badges[$index % count($badges)];
                             ?></span>
-                            <button class="favorite-btn" onclick="toggleFavorite(<?php echo $post['id']; ?>, this)">
-                                <i class="far fa-heart"></i>
+                            <?php 
+                            $isFavorited = in_array($post['id'], $user_favorites);
+                            $activeClass = $isFavorited ? 'active' : '';
+                            $iconClass = $isFavorited ? 'fas' : 'far';
+                            ?>
+                            <button class="favorite-btn <?php echo $activeClass; ?>" onclick="toggleFavorite(<?php echo $post['id']; ?>, this)">
+                                <i class="<?php echo $iconClass; ?> fa-heart"></i>
                             </button>
                         </div>
                         <div class="post-content">
@@ -655,15 +673,32 @@ try {
     <script src="assets/js/main.js"></script>
     <script>
         function toggleFavorite(postId, button) {
-            button.classList.toggle('active');
-            const icon = button.querySelector('i');
-            if (button.classList.contains('active')) {
-                icon.classList.remove('far');
-                icon.classList.add('fas');
-            } else {
-                icon.classList.remove('fas');
-                icon.classList.add('far');
-            }
+            <?php if (!isLoggedIn()): ?>
+            alert('Vui lòng đăng nhập để yêu thích');
+            window.location.href = 'Views/auth/login.php';
+            return;
+            <?php endif; ?>
+            
+            const isFavorited = button.classList.contains('active');
+            const action = isFavorited ? 'remove' : 'add';
+            
+            fetch('Controllers/FavoriteController.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=' + action + '&post_id=' + postId
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    button.classList.toggle('active');
+                    const icon = button.querySelector('i');
+                    icon.classList.toggle('far');
+                    icon.classList.toggle('fas');
+                } else {
+                    alert(data.message || 'Lỗi khi thay đổi yêu thích');
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
     </script>
 </body>

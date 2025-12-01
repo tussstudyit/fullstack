@@ -9,8 +9,11 @@
  * @return string Image URL
  */
 function getPlaceholderImage($width = 300, $height = 200, $bg = '667eea', $text = 'Image', $textColor = 'ffffff') {
-    // Get the base URL path from the current script location
-    $basePath = '/fullstack'; // Adjust this based on your setup
+    // Get base path dynamically
+    $basePath = getBasePath();
+    if (!$basePath) {
+        $basePath = '/fullstack'; // Fallback
+    }
     
     $params = http_build_query([
         'w' => $width,

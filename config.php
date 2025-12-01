@@ -65,7 +65,25 @@ function isLandlord() {
     return isset($_SESSION['role']) && $_SESSION['role'] === 'landlord';
 }
 
+function getBasePath() {
+    // Determine base path dynamically
+    // If script is at /index.php, base path is /
+    // If script is at /fullstack/index.php, base path is /fullstack
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
+    if (strpos($scriptName, '/fullstack/') !== false) {
+        return '/fullstack';
+    }
+    return '';
+}
+
 function redirect($url) {
+    // If URL starts with /, prepend base path if needed
+    if (strpos($url, '/') === 0 && strpos($url, '/fullstack') === false) {
+        $basePath = getBasePath();
+        if ($basePath) {
+            $url = $basePath . $url;
+        }
+    }
     header("Location: $url");
     exit();
 }
