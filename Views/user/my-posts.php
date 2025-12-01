@@ -177,7 +177,7 @@ $totalPosts = count($posts);
                 <?php foreach ($posts as $post): ?>
                 <?php 
                 $primaryImage = $postImageModel->getPrimaryImage($post['id']);
-                $imageUrl = $primaryImage ? '../../uploads/' . htmlspecialchars($primaryImage) : getPlaceholderImage(200, 150, '667eea', urlencode($post['title']));
+                $imageUrl = $primaryImage ? getBasePath() . '/uploads/' . htmlspecialchars($primaryImage) : getPlaceholderImage(200, 150, '667eea', urlencode($post['title']));
                 ?>
                 <div class="post-item" data-post-id="<?php echo $post['id']; ?>">
                     <div class="post-image">
@@ -221,5 +221,47 @@ $totalPosts = count($posts);
     </div>
 
     <script src="../../assets/js/main.js"></script>
-</body>
-</html>
+    <script>
+        function deletePost(postId) {
+            fetch('../../Controllers/PostController.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=delete&post_id=' + postId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove post card from UI
+                    const postItem = document.querySelector(`[data-post-id="${postId}"]`);
+                    if (postItem) {
+                        postItem.style.opacity = '0';
+                        postItem.style.transition = 'opacity 0.3s ease';
+                        setTimeout(() => postItem.remove(), 300);
+                        
+                        // Update total posts count
+                        const countElement = document.querySelector('h2');
+                        if (countElement) {
+                            const match = countElement.textContent.match(/\((\d+)\)/);
+                            if (match) {
+                                const newCount = parseInt(match[1]) - 1;
+                                countElement.textContent = 'Tin đăng của tôi (' + newCount + ')';
+                            }
+                        }
+                    }
+                    alert('Xóa tin đăng thành công');
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể xóa tin đăng'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Lỗi khi xóa tin đăng');
+            });
+        }
+
+        function confirmDelete(message) {
+            return confirm(message);
+        }
+    </script>
