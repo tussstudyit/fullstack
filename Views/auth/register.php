@@ -121,7 +121,7 @@ if (isset($_GET['success'])) {
         .password-toggle {
             position: absolute;
             right: 1rem;
-            top: 50%;
+            top: 65%;
             transform: translateY(-50%);
             cursor: pointer;
             color: var(--text-secondary);
@@ -334,7 +334,7 @@ if (isset($_GET['success'])) {
                     </label>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-lg">
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
                     <i class="fas fa-user-plus"></i> Đăng ký
                 </button>
             </form>

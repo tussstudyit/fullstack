@@ -88,7 +88,7 @@ if (isset($_GET['error'])) {
         .password-toggle {
             position: absolute;
             right: 1rem;
-            top: 50%;
+            top: 73%;
             transform: translateY(-50%);
             cursor: pointer;
             color: var(--text-secondary);
@@ -187,7 +187,7 @@ if (isset($_GET['error'])) {
                     <a href="forgot-password.php">Quên mật khẩu?</a>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-lg">
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
                     <i class="fas fa-sign-in-alt"></i> Đăng nhập
                 </button>
             </form>

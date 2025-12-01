@@ -1,9 +1,41 @@
 <?php
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../Models/Post.php';
+require_once __DIR__ . '/../../Models/PostImage.php';
 
 // Redirect if not logged in or not landlord
 if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
     redirect('../../index.php');
+}
+
+$postModel = new Post();
+$postImageModel = new PostImage();
+$postId = isset($_GET['id']) ? (int)$_GET['id'] : null;
+$editingPost = null;
+$existingImages = [];
+$amenitiesArray = [];
+$utilitiesArray = [];
+$rulesArray = [];
+
+// Load existing post data for editing
+if ($postId) {
+    $editingPost = $postModel->findById($postId);
+    // Verify ownership
+    if (!$editingPost || $editingPost['user_id'] != $_SESSION['user_id']) {
+        redirect('../../index.php');
+    }
+    $existingImages = $postImageModel->getImages($postId);
+    
+    // Parse JSON arrays
+    if ($editingPost['amenities']) {
+        $amenitiesArray = json_decode($editingPost['amenities'], true) ?: [];
+    }
+    if ($editingPost['utilities']) {
+        $utilitiesArray = json_decode($editingPost['utilities'], true) ?: [];
+    }
+    if ($editingPost['rules']) {
+        $rulesArray = json_decode($editingPost['rules'], true) ?: [];
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -11,7 +43,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng tin - Tìm Trọ Sinh Viên</title>
+    <title><?php echo $editingPost ? 'Chỉnh sửa tin' : 'Đăng tin'; ?> - Tìm Trọ Sinh Viên</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -265,8 +297,8 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
     </header>
 
     <div class="page-header">
-        <h1>Đăng Tin Cho Thuê Phòng Trọ</h1>
-        <p>Chia sẻ thông tin phòng trọ của bạn</p>
+        <h1><?php echo $editingPost ? 'Chỉnh Sửa Tin Đăng' : 'Đăng Tin Cho Thuê Phòng Trọ'; ?></h1>
+        <p><?php echo $editingPost ? 'Cập nhật thông tin phòng trọ của bạn' : 'Chia sẻ thông tin phòng trọ của bạn'; ?></p>
     </div>
 
     <div class="content-wrapper">
@@ -296,7 +328,10 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                 </div>
 
                 <form id="createPostForm" action="../../Controllers/PostController.php" method="POST" enctype="multipart/form-data">
-                    <input type="hidden" name="action" value="create">
+                    <input type="hidden" name="action" value="<?php echo $editingPost ? 'update' : 'create'; ?>">
+                    <?php if ($editingPost): ?>
+                    <input type="hidden" name="id" value="<?php echo $editingPost['id']; ?>">
+                    <?php endif; ?>
 
                     <div class="form-step active" data-step="1">
                         <h2 style="margin-bottom: 2rem;">Thông tin cơ bản</h2>
@@ -309,6 +344,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                 id="title" 
                                 name="title" 
                                 placeholder="VD: Phòng trọ gần trường ĐH Bách Khoa"
+                                value="<?php echo $editingPost ? htmlspecialchars($editingPost['title']) : ''; ?>"
                                 required
                             >
                         </div>
@@ -317,10 +353,10 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                             <label class="form-label" for="category">Loại phòng *</label>
                             <select class="form-control" id="category" name="category_id" required>
                                 <option value="">Chọn loại phòng</option>
-                                <option value="1">Phòng trọ sinh viên</option>
-                                <option value="2">Căn hộ mini</option>
-                                <option value="3">Nhà nguyên căn</option>
-                                <option value="4">Ở ghép</option>
+                                <option value="1" <?php echo $editingPost && $editingPost['category_id'] == 1 ? 'selected' : ''; ?>>Phòng trọ sinh viên</option>
+                                <option value="2" <?php echo $editingPost && $editingPost['category_id'] == 2 ? 'selected' : ''; ?>>Căn hộ mini</option>
+                                <option value="3" <?php echo $editingPost && $editingPost['category_id'] == 3 ? 'selected' : ''; ?>>Nhà nguyên căn</option>
+                                <option value="4" <?php echo $editingPost && $editingPost['category_id'] == 4 ? 'selected' : ''; ?>>Ở ghép</option>
                             </select>
                         </div>
 
@@ -333,7 +369,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                 rows="6"
                                 placeholder="Mô tả chi tiết về phòng trọ: vị trí, tiện ích, nội thất..."
                                 required
-                            ></textarea>
+                            ><?php echo $editingPost ? htmlspecialchars($editingPost['description']) : ''; ?></textarea>
                         </div>
 
                         <div class="form-row">
@@ -346,6 +382,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                     name="price" 
                                     placeholder="2500000"
                                     min="0"
+                                    value="<?php echo $editingPost ? $editingPost['price'] : ''; ?>"
                                     required
                                 >
                             </div>
@@ -360,6 +397,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                     placeholder="20"
                                     min="0"
                                     step="0.1"
+                                    value="<?php echo $editingPost ? $editingPost['area'] : ''; ?>"
                                     required
                                 >
                             </div>
@@ -377,6 +415,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                 id="address" 
                                 name="address" 
                                 placeholder="Số nhà, tên đường"
+                                value="<?php echo $editingPost ? htmlspecialchars($editingPost['address']) : ''; ?>"
                                 required
                             >
                         </div>
@@ -386,13 +425,13 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                 <label class="form-label" for="district">Quận/Huyện *</label>
                                 <select class="form-control" id="district" name="district" required>
                                     <option value="">Chọn quận/huyện</option>
-                                    <option value="Quận Hải Châu">Quận Hải Châu</option>
-                                    <option value="Quận Thanh Khê">Quận Thanh Khê</option>
-                                    <option value="Quận Cẩm Lệ">Quận Cẩm Lệ</option>
-                                    <option value="Quận Ngũ Hành Sơn">Quận Ngũ Hành Sơn</option>
-                                    <option value="Quận Sơn Trà">Quận Sơn Trà</option>
-                                    <option value="Quận Liên Chiểu">Quận Liên Chiểu</option>
-                                    <option value="Huyện Hòa Vang">Huyện Hòa Vang</option>
+                                    <option value="Quận Hải Châu" <?php echo $editingPost && $editingPost['district'] == 'Quận Hải Châu' ? 'selected' : ''; ?>>Quận Hải Châu</option>
+                                    <option value="Quận Thanh Khê" <?php echo $editingPost && $editingPost['district'] == 'Quận Thanh Khê' ? 'selected' : ''; ?>>Quận Thanh Khê</option>
+                                    <option value="Quận Cẩm Lệ" <?php echo $editingPost && $editingPost['district'] == 'Quận Cẩm Lệ' ? 'selected' : ''; ?>>Quận Cẩm Lệ</option>
+                                    <option value="Quận Ngũ Hành Sơn" <?php echo $editingPost && $editingPost['district'] == 'Quận Ngũ Hành Sơn' ? 'selected' : ''; ?>>Quận Ngũ Hành Sơn</option>
+                                    <option value="Quận Sơn Trà" <?php echo $editingPost && $editingPost['district'] == 'Quận Sơn Trà' ? 'selected' : ''; ?>>Quận Sơn Trà</option>
+                                    <option value="Quận Liên Chiểu" <?php echo $editingPost && $editingPost['district'] == 'Quận Liên Chiểu' ? 'selected' : ''; ?>>Quận Liên Chiểu</option>
+                                    <option value="Huyện Hòa Vang" <?php echo $editingPost && $editingPost['district'] == 'Huyện Hòa Vang' ? 'selected' : ''; ?>>Huyện Hòa Vang</option>
                                 </select>
                             </div>
 
@@ -403,7 +442,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                     class="form-control" 
                                     id="city" 
                                     name="city" 
-                                    value="Đà Nẵng"
+                                    value="<?php echo $editingPost ? htmlspecialchars($editingPost['city']) : 'Đà Nẵng'; ?>"
                                     required
                                 >
                             </div>
@@ -413,10 +452,10 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                             <div class="form-group">
                                 <label class="form-label" for="room_type">Loại hình *</label>
                                 <select class="form-control" id="room_type" name="room_type" required>
-                                    <option value="single">Phòng đơn</option>
-                                    <option value="shared">Phòng ghép</option>
-                                    <option value="apartment">Căn hộ</option>
-                                    <option value="house">Nhà nguyên căn</option>
+                                    <option value="single" <?php echo $editingPost && $editingPost['room_type'] == 'single' ? 'selected' : ''; ?>>Phòng đơn</option>
+                                    <option value="shared" <?php echo $editingPost && $editingPost['room_type'] == 'shared' ? 'selected' : ''; ?>>Phòng ghép</option>
+                                    <option value="apartment" <?php echo $editingPost && $editingPost['room_type'] == 'apartment' ? 'selected' : ''; ?>>Căn hộ</option>
+                                    <option value="house" <?php echo $editingPost && $editingPost['room_type'] == 'house' ? 'selected' : ''; ?>>Nhà nguyên căn</option>
                                 </select>
                             </div>
 
@@ -427,7 +466,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                     class="form-control" 
                                     id="max_people" 
                                     name="max_people" 
-                                    value="1"
+                                    value="<?php echo $editingPost ? $editingPost['max_people'] : '1'; ?>"
                                     min="1"
                                     required
                                 >
@@ -437,9 +476,9 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                         <div class="form-group">
                             <label class="form-label">Giới tính *</label>
                             <select class="form-control" name="gender" required>
-                                <option value="any">Nam/Nữ</option>
-                                <option value="male">Nam</option>
-                                <option value="female">Nữ</option>
+                                <option value="any" <?php echo $editingPost && $editingPost['gender'] == 'any' ? 'selected' : ''; ?>>Nam/Nữ</option>
+                                <option value="male" <?php echo $editingPost && $editingPost['gender'] == 'male' ? 'selected' : ''; ?>>Nam</option>
+                                <option value="female" <?php echo $editingPost && $editingPost['gender'] == 'female' ? 'selected' : ''; ?>>Nữ</option>
                             </select>
                         </div>
 
@@ -447,35 +486,35 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                             <label class="form-label">Tiện ích</label>
                             <div class="amenities-grid">
                                 <label class="amenity-checkbox">
-                                    <input type="checkbox" name="amenities[]" value="wifi">
+                                    <input type="checkbox" name="amenities[]" value="wifi" <?php echo in_array('wifi', $amenitiesArray) ? 'checked' : ''; ?>>
                                     <span><i class="fas fa-wifi"></i> WiFi</span>
                                 </label>
                                 <label class="amenity-checkbox">
-                                    <input type="checkbox" name="amenities[]" value="ac">
+                                    <input type="checkbox" name="amenities[]" value="ac" <?php echo in_array('ac', $amenitiesArray) ? 'checked' : ''; ?>>
                                     <span><i class="fas fa-snowflake"></i> Điều hòa</span>
                                 </label>
                                 <label class="amenity-checkbox">
-                                    <input type="checkbox" name="amenities[]" value="fridge">
+                                    <input type="checkbox" name="amenities[]" value="fridge" <?php echo in_array('fridge', $amenitiesArray) ? 'checked' : ''; ?>>
                                     <span><i class="fas fa-lightbulb"></i> Tủ lạnh</span>
                                 </label>
                                 <label class="amenity-checkbox">
-                                    <input type="checkbox" name="amenities[]" value="washing">
+                                    <input type="checkbox" name="amenities[]" value="washing" <?php echo in_array('washing', $amenitiesArray) ? 'checked' : ''; ?>>
                                     <span><i class="fas fa-wind"></i> Máy giặt</span>
                                 </label>
                                 <label class="amenity-checkbox">
-                                    <input type="checkbox" name="amenities[]" value="parking">
+                                    <input type="checkbox" name="amenities[]" value="parking" <?php echo in_array('parking', $amenitiesArray) ? 'checked' : ''; ?>>
                                     <span><i class="fas fa-parking"></i> Chỗ để xe</span>
                                 </label>
                                 <label class="amenity-checkbox">
-                                    <input type="checkbox" name="amenities[]" value="security">
+                                    <input type="checkbox" name="amenities[]" value="security" <?php echo in_array('security', $amenitiesArray) ? 'checked' : ''; ?>>
                                     <span><i class="fas fa-shield-alt"></i> An ninh 24/7</span>
                                 </label>
                                 <label class="amenity-checkbox">
-                                    <input type="checkbox" name="amenities[]" value="water_heater">
+                                    <input type="checkbox" name="amenities[]" value="water_heater" <?php echo in_array('water_heater', $amenitiesArray) ? 'checked' : ''; ?>>
                                     <span><i class="fas fa-tint"></i> Máy nóng lạnh</span>
                                 </label>
                                 <label class="amenity-checkbox">
-                                    <input type="checkbox" name="amenities[]" value="flexible_hours">
+                                    <input type="checkbox" name="amenities[]" value="flexible_hours" <?php echo in_array('flexible_hours', $amenitiesArray) ? 'checked' : ''; ?>>
                                     <span><i class="fas fa-clock"></i> Giờ giấc tự do</span>
                                 </label>
                             </div>
@@ -496,6 +535,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                     placeholder="2500000"
                                     min="0"
                                     step="1000"
+                                    value="<?php echo $editingPost && $editingPost['deposit_amount'] ? $editingPost['deposit_amount'] : ''; ?>"
                                 >
                             </div>
 
@@ -509,6 +549,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                     placeholder="3500"
                                     min="0"
                                     step="100"
+                                    value="<?php echo $editingPost && $editingPost['electric_price'] ? $editingPost['electric_price'] : ''; ?>"
                                 >
                             </div>
                         </div>
@@ -523,6 +564,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'landlord') {
                                 placeholder="20000"
                                 min="0"
                                 step="1000"
+                                value="<?php echo $editingPost && $editingPost['water_price'] ? $editingPost['water_price'] : ''; ?>"
                             >
                         </div>
 
