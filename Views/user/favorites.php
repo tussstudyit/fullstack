@@ -8,9 +8,12 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'tenant') {
 
 require_once __DIR__ . '/../../Models/Favorite.php';
 require_once __DIR__ . '/../../Models/Post.php';
+require_once __DIR__ . '/../../Models/PostImage.php';
+require_once __DIR__ . '/../../helpers.php';
 
 $favoriteModel = new Favorite();
 $postModel = new Post();
+$postImageModel = new PostImage();
 $conn = getDB();
 
 // Lấy danh sách yêu thích của user
@@ -25,6 +28,12 @@ try {
     ");
     $stmt->execute([$_SESSION['user_id']]);
     $favorites = $stmt->fetchAll();
+    
+    // Lấy ảnh cho mỗi post
+    foreach ($favorites as &$post) {
+        $post['image'] = $postImageModel->getPrimaryImage($post['id']);
+    }
+    unset($post);
 } catch (PDOException $e) {
     error_log("Error fetching favorites: " . $e->getMessage());
 }
@@ -231,9 +240,12 @@ try {
             <?php else: ?>
                 <div class="posts-grid">
                     <?php foreach ($favorites as $post): ?>
+                    <?php 
+                    $imageUrl = $post['image'] ? 'uploads/' . htmlspecialchars($post['image']) : getPlaceholderImage(320, 220, '667eea', urlencode($post['title']));
+                    ?>
                     <div class="post-card" data-post-id="<?php echo $post['id']; ?>">
                         <div class="post-image">
-                            <i class="fas fa-home"></i>
+                            <img src="<?php echo $imageUrl; ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" style="width: 100%; height: 100%; object-fit: cover;">
                             <button class="favorite-btn active" onclick="toggleFavorite(<?php echo $post['id']; ?>, this); if(!this.classList.contains('active')) this.closest('.post-card').remove();">
                                 <i class="fas fa-heart"></i>
                             </button>
