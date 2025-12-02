@@ -753,6 +753,10 @@ if ($postId) {
 
         // Upload images after post creation
         function uploadPostImages(postId) {
+            console.log('=== uploadPostImages called ===');
+            console.log('postId:', postId);
+            console.log('uploadedImages.length:', uploadedImages.length);
+            
             if (uploadedImages.length === 0) {
                 return Promise.resolve({ success: true, message: 'Không có ảnh để upload' });
             }
@@ -760,9 +764,13 @@ if ($postId) {
             const formData = new FormData();
             formData.append('post_id', postId);
             
+            console.log('Appending images to FormData...');
             for (let i = 0; i < uploadedImages.length; i++) {
+                console.log('Appending image', i, ':', uploadedImages[i].name);
                 formData.append('images', uploadedImages[i]);
             }
+            
+            console.log('Sending to API...');
 
             return fetch('../../api/upload-image.php?action=upload-multiple', {
                 method: 'POST',
@@ -797,6 +805,11 @@ if ($postId) {
         // Update form submission to handle image upload
         document.getElementById('createPostForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            // DEBUG: Check uploadedImages before submit
+            console.log('=== FORM SUBMIT ===');
+            console.log('uploadedImages count:', uploadedImages.length);
+            console.log('uploadedImages:', uploadedImages);
             
             if (validateForm('createPostForm')) {
                 showNotification('Đang xử lý...', 'info');
@@ -838,6 +851,11 @@ if ($postId) {
                 .then(data => {
                     if (data && data.success) {
                         showNotification('Đăng tin thành công!', 'success');
+                        // Reset uploadedImages array
+                        uploadedImages = [];
+                        // Clear preview
+                        const preview = document.getElementById('imagePreview');
+                        if (preview) preview.innerHTML = '';
                         setTimeout(() => {
                             window.location.href = '../user/my-posts.php';
                         }, 2000);
