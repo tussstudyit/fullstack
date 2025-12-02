@@ -35,96 +35,86 @@ try {
     $stmt = $conn->prepare("SELECT COUNT(*) as count FROM reports WHERE status = 'pending'");
     $stmt->execute();
     $pending_reports = $stmt->fetch()['count'];
+    
+    // Bài đăng theo trạng thái
+    $stmt = $conn->prepare("
+        SELECT status, COUNT(*) as count 
+        FROM posts 
+        GROUP BY status
+    ");
+    $stmt->execute();
+    $posts_by_status = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    
+    // Người dùng theo vai trò
+    $stmt = $conn->prepare("
+        SELECT role, COUNT(*) as count 
+        FROM users 
+        GROUP BY role
+    ");
+    $stmt->execute();
+    $users_by_role = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    
+    // Bài đăng trong 7 ngày gần nhất
+    $stmt = $conn->prepare("
+        SELECT DATE(created_at) as date, COUNT(*) as count 
+        FROM posts 
+        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+    ");
+    $stmt->execute();
+    $posts_7days = $stmt->fetchAll();
+    
+    // Giá thuê trung bình
+    $stmt = $conn->prepare("SELECT AVG(price) as avg_price, MIN(price) as min_price, MAX(price) as max_price FROM posts");
+    $stmt->execute();
+    $price_stats = $stmt->fetch();
+    
 } catch (PDOException $e) {
+    error_log("Dashboard stats error: " . $e->getMessage());
     $total_posts = 0;
     $total_users = 0;
     $pending_posts = 0;
     $pending_reports = 0;
+    $posts_by_status = [];
+    $users_by_role = [];
+    $posts_7days = [];
+    $price_stats = ['avg_price' => 0, 'min_price' => 0, 'max_price' => 0];
 }
+// Chuẩn bị dữ liệu cho biểu đồ
+$chart_posts_status = [
+    'pending' => $posts_by_status['pending'] ?? 0,
+    'approved' => $posts_by_status['approved'] ?? 0,
+    'rejected' => $posts_by_status['rejected'] ?? 0
+];
 
-// Lấy danh sách bài đăng chờ duyệt
-$pending_list = [];
-try {
-    $stmt = $conn->prepare("
-        SELECT p.id, p.title, p.created_at, u.full_name
-        FROM posts p
-        JOIN users u ON p.user_id = u.id
-        WHERE p.status = 'pending'
-        ORDER BY p.created_at DESC
-        LIMIT 5
-    ");
-    $stmt->execute();
-    $pending_list = $stmt->fetchAll();
-} catch (PDOException $e) {
-    error_log("Error fetching pending posts: " . $e->getMessage());
-}
+$chart_users_role = [
+    'admin' => $users_by_role['admin'] ?? 0,
+    'landlord' => $users_by_role['landlord'] ?? 0,
+    'tenant' => $users_by_role['tenant'] ?? 0
+];
 
-// Xử lý phê duyệt/từ chối bài đăng
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['action']) && isset($_POST['post_id'])) {
-        $post_id = intval($_POST['post_id']);
-        $action = $_POST['action'];
-        
-        try {
-            if ($action === 'approve') {
-                $stmt = $conn->prepare("UPDATE posts SET status = 'approved', updated_at = NOW() WHERE id = ?");
-                $stmt->execute([$post_id]);
-                
-                // Tạo notification cho user
-                $stmt = $conn->prepare("SELECT user_id FROM posts WHERE id = ?");
-                $stmt->execute([$post_id]);
-                $post = $stmt->fetch();
-                
-                if ($post) {
-                    $stmt = $conn->prepare("
-                        INSERT INTO notifications (recipient_id, sender_id, type, title, message, related_post_id, is_read)
-                        VALUES (?, 1, 'post_approved', 'Bài viết được phê duyệt', 'Bài viết của bạn đã được phê duyệt', ?, 0)
-                    ");
-                    $stmt->execute([$post['user_id'], $post_id]);
-                }
-                
-                $message = "Đã phê duyệt bài đăng";
-            } elseif ($action === 'reject') {
-                $stmt = $conn->prepare("UPDATE posts SET status = 'rejected', updated_at = NOW() WHERE id = ?");
-                $stmt->execute([$post_id]);
-                
-                // Tạo notification cho user
-                $stmt = $conn->prepare("SELECT user_id FROM posts WHERE id = ?");
-                $stmt->execute([$post_id]);
-                $post = $stmt->fetch();
-                
-                if ($post) {
-                    $stmt = $conn->prepare("
-                        INSERT INTO notifications (recipient_id, sender_id, type, title, message, related_post_id, is_read)
-                        VALUES (?, 1, 'post_rejected', 'Bài viết bị từ chối', 'Bài viết của bạn bị từ chối vì không tuân thủ quy tắc', ?, 0)
-                    ");
-                    $stmt->execute([$post['user_id'], $post_id]);
-                }
-                
-                $message = "Đã từ chối bài đăng";
-            }
-            
-            // Reload pending list
-            $stmt = $conn->prepare("
-                SELECT p.id, p.title, p.created_at, u.full_name
-                FROM posts p
-                JOIN users u ON p.user_id = u.id
-                WHERE p.status = 'pending'
-                ORDER BY p.created_at DESC
-                LIMIT 5
-            ");
-            $stmt->execute();
-            $pending_list = $stmt->fetchAll();
-            
-            // Reload pending count
-            $stmt = $conn->prepare("SELECT COUNT(*) as count FROM posts WHERE status = 'pending'");
-            $stmt->execute();
-            $pending_posts = $stmt->fetch()['count'];
-        } catch (PDOException $e) {
-            error_log("Error updating post status: " . $e->getMessage());
+// Chuẩn bị dữ liệu bài đăng 7 ngày
+$dates_7days = [];
+$counts_7days = [];
+for ($i = 6; $i >= 0; $i--) {
+    $date = date('Y-m-d', strtotime("-$i days"));
+    $dates_7days[] = date('d/m', strtotime($date));
+    
+    $count = 0;
+    foreach ($posts_7days as $data) {
+        if ($data['date'] === $date) {
+            $count = $data['count'];
+            break;
         }
     }
+    $counts_7days[] = $count;
 }
+
+$avg_price = number_format($price_stats['avg_price'] ?? 0, 0, ',', '.');
+$min_price = number_format($price_stats['min_price'] ?? 0, 0, ',', '.');
+$max_price = number_format($price_stats['max_price'] ?? 0, 0, ',', '.');
+?>
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -303,22 +293,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #f59e0b;
         }
 
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chart-card h3 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .price-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .price-stat {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+        }
+
+        .price-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .price-stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
         @media (max-width: 1024px) {
-            .admin-layout {
+            .charts-grid {
                 grid-template-columns: 1fr;
             }
 
-            .admin-sidebar {
-                display: none;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 640px) {
-            .stats-grid {
+            .price-stats {
                 grid-template-columns: 1fr;
             }
         }
@@ -353,6 +385,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="admin-content">
+                <!-- Stats Cards -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon blue">
@@ -387,57 +420,156 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
 
-                <div class="data-table">
-                    <div class="table-header">
-                        <h3>Bài đăng chờ phê duyệt</h3>
+                <!-- Price Statistics -->
+                <div class="price-stats">
+                    <div class="price-stat">
+                        <div class="price-stat-value">đ<?php echo $avg_price; ?></div>
+                        <div class="price-stat-label">Giá trung bình</div>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Tiêu đề</th>
-                                <th>Người đăng</th>
-                                <th>Ngày đăng</th>
-                                <th>Trạng thái</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (!empty($pending_list)): ?>
-                                <?php foreach ($pending_list as $post): ?>
-                                <tr>
-                                    <td>#<?php echo htmlspecialchars($post['id']); ?></td>
-                                    <td><?php echo htmlspecialchars(substr($post['title'], 0, 50)); ?></td>
-                                    <td><?php echo htmlspecialchars($post['full_name']); ?></td>
-                                    <td><?php echo date('d/m/Y', strtotime($post['created_at'])); ?></td>
-                                    <td><span class="badge badge-warning">Chờ duyệt</span></td>
-                                    <td>
-                                        <form method="POST" style="display: inline;">
-                                            <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
-                                            <button type="submit" name="action" value="approve" class="btn btn-sm btn-success">
-                                                <i class="fas fa-check"></i> Duyệt
-                                            </button>
-                                            <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-times"></i> Từ chối
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="6" style="text-align: center; color: var(--text-secondary);">
-                                        Không có bài đăng chờ phê duyệt
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                    <div class="price-stat">
+                        <div class="price-stat-value">đ<?php echo $min_price; ?></div>
+                        <div class="price-stat-label">Giá thấp nhất</div>
+                    </div>
+                    <div class="price-stat">
+                        <div class="price-stat-value">đ<?php echo $max_price; ?></div>
+                        <div class="price-stat-label">Giá cao nhất</div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <!-- Posts Status Chart -->
+                    <div class="chart-card">
+                        <h3><i class="fas fa-pie-chart"></i> Trạng thái bài đăng</h3>
+                        <div class="chart-container">
+                            <canvas id="postsStatusChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Users Role Chart -->
+                    <div class="chart-card">
+                        <h3><i class="fas fa-doughnut-chart"></i> Người dùng theo vai trò</h3>
+                        <div class="chart-container">
+                            <canvas id="usersRoleChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Posts 7 Days Chart -->
+                    <div class="chart-card" style="grid-column: 1 / -1;">
+                        <h3><i class="fas fa-chart-line"></i> Bài đăng 7 ngày gần nhất</h3>
+                        <div class="chart-container" style="height: 350px;">
+                            <canvas id="posts7DaysChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="../../assets/js/main.js"></script>
-</body>
-</html>
+    <script>
+        // Posts Status Chart
+        const postsStatusCtx = document.getElementById('postsStatusChart').getContext('2d');
+        new Chart(postsStatusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Chờ duyệt', 'Đã duyệt', 'Từ chối'],
+                datasets: [{
+                    data: [<?php echo $chart_posts_status['pending']; ?>, <?php echo $chart_posts_status['approved']; ?>, <?php echo $chart_posts_status['rejected']; ?>],
+                    backgroundColor: [
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(239, 68, 68, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(239, 68, 68, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Users Role Chart
+        const usersRoleCtx = document.getElementById('usersRoleChart').getContext('2d');
+        new Chart(usersRoleCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Admin', 'Chủ trọ', 'Người thuê'],
+                datasets: [{
+                    data: [<?php echo $chart_users_role['admin']; ?>, <?php echo $chart_users_role['landlord']; ?>, <?php echo $chart_users_role['tenant']; ?>],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(139, 92, 246, 0.8)',
+                        'rgba(236, 72, 153, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(139, 92, 246, 1)',
+                        'rgba(236, 72, 153, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Posts 7 Days Chart
+        const posts7DaysCtx = document.getElementById('posts7DaysChart').getContext('2d');
+        new Chart(posts7DaysCtx, {
+            type: 'line',
+            data: {
+                labels: <?php echo json_encode($dates_7days); ?>,
+                datasets: [{
+                    label: 'Bài đăng',
+                    data: <?php echo json_encode($counts_7days); ?>,
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    </script>
