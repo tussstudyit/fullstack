@@ -181,6 +181,19 @@ class PostController {
             return ['success' => false, 'message' => 'Bạn không có quyền xóa bài đăng này'];
         }
 
+        // Delete images from filesystem first
+        $images = $this->postImageModel->getImages($post_id);
+        $uploadDir = __DIR__ . '/../uploads/';
+        
+        foreach ($images as $image) {
+            $filePath = $uploadDir . $image['image_url'];
+            if (file_exists($filePath)) {
+                @unlink($filePath);
+                error_log("Deleted image file: " . $filePath);
+            }
+        }
+
+        // Delete from database
         $result = $this->postModel->delete($post_id);
         return $result;
     }
