@@ -853,6 +853,9 @@ if ($postId) {
             
             const element = document.getElementById(elementId);
             if (element) {
+                // Check if this was the primary image
+                const wasPrimary = element.querySelector('span') && element.querySelector('span').textContent.includes('Ảnh bìa');
+                
                 element.remove();
                 
                 // Add to deleted images list
@@ -865,7 +868,40 @@ if ($postId) {
                 document.getElementById('deletedImageIds').value = deletedIds;
                 
                 console.log('✓ Marked for deletion:', imageId);
-                showNotification('Ảnh sẽ bị xóa khi bạn lưu thay đổi', 'info');
+                console.log('Was primary:', wasPrimary);
+                
+                // If deleted image was primary, promote first remaining image to primary
+                if (wasPrimary) {
+                    const container = document.getElementById('existingImagesContainer');
+                    const firstRemainingImage = container.querySelector('.image-preview-item');
+                    
+                    if (firstRemainingImage) {
+                        // Remove old primary badge from all images
+                        container.querySelectorAll('span').forEach(span => {
+                            if (span.textContent.includes('Ảnh bìa')) {
+                                span.remove();
+                            }
+                        });
+                        
+                        // Add primary badge to first image
+                        const badge = document.createElement('span');
+                        badge.style.cssText = 'position: absolute; top: 0.5rem; left: 0.5rem; background: #4CAF50; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold;';
+                        badge.textContent = 'Ảnh bìa';
+                        firstRemainingImage.querySelector('div').style.position = 'relative';
+                        firstRemainingImage.querySelector('div').appendChild(badge);
+                        
+                        // Update text below image
+                        const textEl = firstRemainingImage.querySelector('p');
+                        if (textEl) textEl.textContent = '✓ Ảnh bìa';
+                        
+                        console.log('✓ Promoted first image to primary');
+                        showNotification('Ảnh đầu tiên được chuyển làm ảnh bìa', 'info');
+                    } else {
+                        console.log('⚠️ No remaining images to promote');
+                    }
+                } else {
+                    showNotification('Ảnh sẽ bị xóa khi bạn lưu thay đổi', 'info');
+                }
             }
         }
 
@@ -907,9 +943,9 @@ if ($postId) {
             });
         }
 
-        // Upload images after post creation
+        // Upload images after post creation (Sequential upload - one at a time)
         function uploadPostImages(postId, imagesToUpload) {
-            console.log('%c=== uploadPostImages START ===', 'background: #667eea; color: white; padding: 10px; font-weight: bold;');
+            console.log('%c=== uploadPostImages START (SEQUENTIAL MODE) ===', 'background: #667eea; color: white; padding: 10px; font-weight: bold;');
             console.log('postId:', postId);
             console.log('imagesToUpload.length:', imagesToUpload ? imagesToUpload.length : 0);
             
@@ -918,105 +954,77 @@ if ($postId) {
                 return Promise.resolve({ success: true, message: 'Không có ảnh để upload' });
             }
 
-            const formData = new FormData();
-            formData.append('post_id', postId);
+            console.log('%c📸 Preparing for sequential upload...', 'color: blue; font-weight: bold;');
             
-            console.log('%c📸 Appending images to FormData...', 'color: blue; font-weight: bold;');
-            console.log('Total images to append:', imagesToUpload.length);
-            
-            let appendedCount = 0;
-            for (let i = 0; i < imagesToUpload.length; i++) {
-                const img = imagesToUpload[i];
-                console.log(`[${i}] Image object:`, img);
-                console.log(`[${i}] Image type:`, typeof img);
-                console.log(`[${i}] Is File?:`, img instanceof File);
-                
-                if (!img) {
-                    console.warn(`  [${i}] Image is null/undefined, skipping`);
-                    continue;
-                }
-                
-                if (!(img instanceof File)) {
-                    console.warn(`  [${i}] Not a File object, skipping:`, img);
-                    continue;
-                }
-                
-                console.log(`  [${i}] ✓ Appending File: ${img.name} (${img.size} bytes, type: ${img.type})`);
-                formData.append('images', img, img.name);  // Add filename as 3rd param
-                appendedCount++;
-            }
-            
-            console.log(`✓ Successfully appended ${appendedCount} images to FormData`);
-            
-            // Verify FormData has all images
-            console.log('%c📋 Verifying FormData content:', 'color: green; font-weight: bold;');
-            let imageCount = 0;
-            let formDataContent = [];
-            for (let pair of formData.entries()) {
-                if (pair[0] === 'images') {
-                    imageCount++;
-                    console.log(`  - images[${imageCount-1}]: ${pair[1].name || 'unnamed'} (${pair[1].size} bytes)`);
-                    formDataContent.push(`images: ${pair[1].name || 'unnamed'}`);
-                } else {
-                    console.log(`  - ${pair[0]}: ${pair[1]}`);
-                    formDataContent.push(`${pair[0]}: ${pair[1]}`);
-                }
-            }
-            console.log(`✓ FormData contains ${imageCount} images total`);
-            
-            if (imageCount === 0) {
-                console.error('%c✗ ERROR: FormData has 0 images!', 'background: red; color: white;');
-                showNotification('Lỗi: Không thể thêm ảnh vào FormData', 'error');
-                return Promise.reject(new Error('No images in FormData'));
-            }
-            
-            console.log('%c🚀 Sending to API: ../../api/upload-image.php?action=upload-multiple', 'background: green; color: white; padding: 5px; font-weight: bold;');
-            console.log('FormData content:', formDataContent);
+            // Upload images one at a time
+            let uploadedCount = 0;
+            let uploadPromise = Promise.resolve();
 
-            return fetch('../../api/upload-image.php?action=upload-multiple', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                console.log('API response status:', response.status, response.statusText);
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    return response.json();
-                } else {
-                    return response.text().then(text => {
-                        console.error('Non-JSON response:', text);
-                        throw new Error('Server returned non-JSON: ' + text.substring(0, 200));
-                    });
-                }
-            })
-            .then(data => {
-                console.log('%c📊 Upload API response received:', 'background: #28a745; color: white; padding: 5px; font-weight: bold;');
-                console.log('Success:', data.success);
-                console.log('Message:', data.message);
-                console.log('Uploaded count:', data.uploaded ? data.uploaded.length : 0);
-                if (data.uploaded) {
-                    for (let i = 0; i < data.uploaded.length; i++) {
-                        console.log(`  [${i}] ${data.uploaded[i].filename} (isPrimary: ${data.uploaded[i].isPrimary})`);
+            for (let i = 0; i < imagesToUpload.length; i++) {
+                uploadPromise = uploadPromise.then(() => {
+                    const img = imagesToUpload[i];
+                    
+                    console.log(`%c[${i + 1}/${imagesToUpload.length}] Uploading: ${img.name}`, 'background: #FFB84D; color: white; padding: 3px;');
+                    
+                    if (!img || !(img instanceof File)) {
+                        console.warn(`  ✗ Invalid image object at index ${i}`);
+                        return Promise.resolve();
                     }
-                }
-                console.log('Full response:', data);
+
+                    const formData = new FormData();
+                    formData.append('post_id', postId);
+                    formData.append('image', img, img.name);
+                    formData.append('image_order', i);  // Send order so server can determine isPrimary
+                    
+                    console.log(`  - File: ${img.name} (${img.size} bytes, ${img.type})`);
+                    console.log(`  - Order: ${i} (isPrimary: ${i === 0 ? 'YES' : 'NO'})`);
+                    console.log(`  - Sending to API...`);
+
+                    return fetch('../../api/upload-image.php?action=upload', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        console.log(`  - Response status: ${response.status}`);
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            uploadedCount++;
+                            console.log(`%c  ✓ Upload success: ${data.filename} (isPrimary: ${data.isPrimary})`, 'color: green; font-weight: bold;');
+                            return data;
+                        } else {
+                            console.error(`  ✗ Upload failed: ${data.message}`);
+                            return data;
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`  ✗ Upload error: ${error.message}`);
+                        throw error;
+                    });
+                });
+            }
+
+            return uploadPromise.then(() => {
+                console.log(`%c=== uploadPostImages COMPLETE ===`, 'background: #667eea; color: white; padding: 10px; font-weight: bold;');
+                console.log(`✓ Successfully uploaded ${uploadedCount}/${imagesToUpload.length} images`);
                 
-                if (data.success) {
-                    console.log('%c✓ Upload thành công!', 'color: green; font-weight: bold; font-size: 14px;');
-                    showNotification(data.message || 'Upload thành công', 'success');
+                if (uploadedCount === imagesToUpload.length) {
+                    showNotification(`Upload thành công tất cả ${uploadedCount} ảnh`, 'success');
+                    return { success: true, message: `Upload thành công ${uploadedCount} ảnh` };
+                } else if (uploadedCount > 0) {
+                    showNotification(`Upload thành công ${uploadedCount}/${imagesToUpload.length} ảnh`, 'warning');
+                    return { success: true, message: `Upload thành công ${uploadedCount}/${imagesToUpload.length} ảnh` };
                 } else {
-                    console.log('%c✗ Upload thất bại!', 'color: red; font-weight: bold; font-size: 14px;');
-                    showNotification('Lỗi upload ảnh: ' + (data.message || 'Unknown error'), 'error');
+                    showNotification('Upload ảnh thất bại', 'error');
+                    return { success: false, message: 'Upload ảnh thất bại' };
                 }
-                return data;
             })
             .catch(error => {
-                console.error('%c✗ Error uploading images:', 'background: #dc3545; color: white; padding: 5px; font-weight: bold;');
+                console.error('%c✗ Upload sequence error:', 'background: #dc3545; color: white; padding: 5px; font-weight: bold;');
                 console.error(error);
                 showNotification('Lỗi khi upload ảnh: ' + error.message, 'error');
-            })
-            .finally(() => {
-                console.log('%c=== uploadPostImages END ===', 'background: #667eea; color: white; padding: 10px; font-weight: bold;');
+                return { success: false, message: error.message };
             });
         }
 

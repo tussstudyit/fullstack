@@ -39,7 +39,14 @@ if ($action === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $isPrimary = isset($_POST['is_primary']) && $_POST['is_primary'] === 'true';
+    // Check if this image should be primary (first image = order 0)
+    $imageOrder = isset($_POST['image_order']) ? (int)$_POST['image_order'] : 0;
+    
+    // Only set as primary if this is the first image being uploaded (order === 0)
+    $isPrimary = ($imageOrder === 0);
+    
+    error_log("uploadImage action: postId=$postId, order=$imageOrder, isPrimary=" . ($isPrimary ? 'true' : 'false'));
+    
     $result = $imageController->uploadImage($postId, $_FILES['image'], $isPrimary);
     
     echo json_encode($result);

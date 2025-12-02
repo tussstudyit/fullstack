@@ -149,6 +149,7 @@ class PostController {
         if (!empty($deletedIds)) {
             $ids = explode(',', $deletedIds);
             $uploadDir = __DIR__ . '/../uploads/';
+            $primaryImageDeleted = false;
             
             foreach ($ids as $imageId) {
                 $imageId = (int)trim($imageId);
@@ -156,6 +157,12 @@ class PostController {
                     // Get image details
                     $image = $this->postImageModel->getImageById($imageId);
                     if ($image) {
+                        // Check if this is primary image
+                        if ($image['is_primary']) {
+                            $primaryImageDeleted = true;
+                            error_log("Primary image deleted: $imageId");
+                        }
+                        
                         // Delete file
                         $filePath = $uploadDir . $image['image_url'];
                         if (file_exists($filePath)) {
@@ -166,6 +173,17 @@ class PostController {
                         $this->postImageModel->deleteImage($imageId);
                         error_log("Deleted image record: $imageId");
                     }
+                }
+            }
+            
+            // If primary image was deleted, promote first remaining image to primary
+            if ($primaryImageDeleted) {
+                $remainingImages = $this->postImageModel->getImages($post_id);
+                if (!empty($remainingImages)) {
+                    // Set first remaining image as primary
+                    $firstImageId = $remainingImages[0]['id'];
+                    $this->postImageModel->setPrimaryImage($post_id, $firstImageId);
+                    error_log("Promoted image $firstImageId to primary");
                 }
             }
         }
