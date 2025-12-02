@@ -71,7 +71,7 @@ class Comment {
     }
 
     /**
-     * Get replies for a comment
+     * Get replies for a comment (recursive - includes nested replies)
      */
     public function getReplies($parent_id) {
         $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
@@ -88,7 +88,14 @@ class Comment {
         );
         
         $stmt->execute([$user_id, $parent_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $replies = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Recursively load nested replies for each reply
+        foreach ($replies as &$reply) {
+            $reply['replies'] = $this->getReplies($reply['id']);
+        }
+        
+        return $replies;
     }
 
     /**

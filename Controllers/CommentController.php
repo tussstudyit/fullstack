@@ -112,11 +112,6 @@ class CommentController {
                 return $this->error('You must be logged in to reply', 401);
             }
 
-            // Check role - only landlord and admin can reply
-            if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['landlord', 'admin'])) {
-                return $this->error('Chỉ chủ trọ mới có thể phản hồi bình luận', 403);
-            }
-
             $data = json_decode(file_get_contents("php://input"), true);
 
             if (!isset($data['parent_id']) || !isset($data['post_id']) || !isset($data['content'])) {

@@ -693,6 +693,71 @@ if (isLoggedIn()) {
                 });
         }
 
+        // Helper function to render nested replies recursively
+        function renderNestedReplies(replies) {
+            if (!replies || replies.length === 0) return '';
+            
+            return `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">` +
+                replies.map(reply => `
+                <div style="margin-top: 0.75rem; padding-left: 1rem; border-left: 3px solid #10b981;">
+                    <div style="display: flex; gap: 0.75rem;">
+                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 0.75rem;">
+                            ${reply.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.25rem;">
+                                <div>
+                                    <strong style="font-size: 0.85rem;">
+                                        ${escapeHtml(reply.username)}
+                                        ${(reply.role === 'landlord' || reply.role === 'admin') ? `<span style="background: #10b981; color: white; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; margin-left: 0.5rem;">Chủ trọ</span>` : ''}
+                                    </strong>
+                                    <br>
+                                    <small style="color: #6b7280; font-size: 0.75rem;">${formatDate(reply.created_at)}</small>
+                                </div>
+                                ${isCurrentUserComment(reply.user_id_display) ? `
+                                    <button onclick="deleteComment(${reply.id})" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0; font-size: 0.8rem;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                            <p style="margin: 0 0 0.5rem 0; color: #374151; line-height: 1.5; font-size: 0.85rem;">${escapeHtml(reply.content)}</p>
+                            <div style="display: flex; gap: 1rem; align-items: center; font-size: 0.8rem;">
+                                <button class="vote-btn upvote ${reply.user_vote === 1 ? 'active' : ''}" onclick="voteComment(${reply.id}, 1)" style="background: none; border: none; color: #6b7280; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    <span>${reply.upvotes || 0}</span>
+                                </button>
+                                <button class="vote-btn downvote ${reply.user_vote === -1 ? 'active' : ''}" onclick="voteComment(${reply.id}, -1)" style="background: none; border: none; color: #6b7280; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                                    <i class="fas fa-thumbs-down"></i>
+                                    <span>${reply.downvotes || 0}</span>
+                                </button>
+                                ${USER_ROLE && USER_ROLE !== 'guest' ? `
+                                    <button onclick="toggleReplyForm(${reply.id})" style="background: none; border: none; color: var(--primary-color); cursor: pointer; display: flex; align-items: center; gap: 0.25rem; margin-left: auto;">
+                                        <i class="fas fa-reply"></i>
+                                        <span>Phản hồi</span>
+                                    </button>
+                                ` : ''}
+                            </div>
+                            <div id="reply-form-${reply.id}" style="margin-top: 0.75rem; display: none; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem; width: 100%; box-sizing: border-box;">
+                                <textarea id="reply-content-${reply.id}" placeholder="Nhập phản hồi của bạn..." style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-family: inherit; resize: vertical; min-height: 60px; box-sizing: border-box; font-size: 0.85rem;" maxlength="5000"></textarea>
+                                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #6b7280;">
+                                    <span id="reply-char-count-${reply.id}">0</span>/5000
+                                </div>
+                                <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+                                    <button onclick="submitReply(${reply.id}); return false;" style="flex: 1; padding: 0.4rem 0.75rem; background: var(--primary-color); color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.8rem;">
+                                        Gửi
+                                    </button>
+                                    <button onclick="toggleReplyForm(${reply.id}); return false;" style="flex: 1; padding: 0.4rem 0.75rem; background: white; color: #6b7280; border: 1px solid #d1d5db; border-radius: 0.5rem; cursor: pointer; font-size: 0.8rem;">
+                                        Hủy
+                                    </button>
+                                </div>
+                            </div>
+                            ${renderNestedReplies(reply.replies)}
+                        </div>
+                    </div>
+                </div>
+            `).join('') + `</div>`;
+        }
+
         // Display comments on page
         function displayComments(data) {
             const commentsList = document.getElementById('comments-list');
@@ -712,47 +777,7 @@ if (isLoggedIn()) {
             }
 
             commentsList.innerHTML = comments.map(comment => {
-                let repliesHtml = '';
-                if (comment.replies && comment.replies.length > 0) {
-                    repliesHtml = `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">` +
-                        comment.replies.map(reply => `
-                        <div style="margin-top: 0.75rem; padding-left: 1rem; border-left: 3px solid #10b981;">
-                            <div style="display: flex; gap: 0.75rem;">
-                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 0.75rem;">
-                                    ${reply.username.charAt(0).toUpperCase()}
-                                </div>
-                                <div style="flex: 1;">
-                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.25rem;">
-                                        <div>
-                                            <strong style="font-size: 0.85rem;">
-                                                ${escapeHtml(reply.username)}
-                                                ${(reply.role === 'landlord' || reply.role === 'admin') ? `<span style="background: #10b981; color: white; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; margin-left: 0.5rem;">Chủ trọ</span>` : ''}
-                                            </strong>
-                                            <br>
-                                            <small style="color: #6b7280; font-size: 0.75rem;">${formatDate(reply.created_at)}</small>
-                                        </div>
-                                        ${isCurrentUserComment(reply.user_id_display) ? `
-                                            <button onclick="deleteComment(${reply.id})" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0; font-size: 0.8rem;">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        ` : ''}
-                                    </div>
-                                    <p style="margin: 0 0 0.5rem 0; color: #374151; line-height: 1.5; font-size: 0.85rem;">${escapeHtml(reply.content)}</p>
-                                    <div style="display: flex; gap: 1rem; align-items: center; font-size: 0.8rem;">
-                                        <button class="vote-btn upvote ${reply.user_vote === 1 ? 'active' : ''}" onclick="voteComment(${reply.id}, 1)" style="background: none; border: none; color: #6b7280; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
-                                            <i class="fas fa-thumbs-up"></i>
-                                            <span>${reply.upvotes || 0}</span>
-                                        </button>
-                                        <button class="vote-btn downvote ${reply.user_vote === -1 ? 'active' : ''}" onclick="voteComment(${reply.id}, -1)" style="background: none; border: none; color: #6b7280; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
-                                            <i class="fas fa-thumbs-down"></i>
-                                            <span>${reply.downvotes || 0}</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('') + `</div>`;
-                }
+                let repliesHtml = renderNestedReplies(comment.replies);
 
                 return `
                     <div class="comment-item" style="border: 1px solid #e5e7eb; padding: 1.25rem; margin-bottom: 1rem; border-radius: 0.5rem; background: white; box-sizing: border-box;">
@@ -786,7 +811,7 @@ if (isLoggedIn()) {
                                 <i class="fas fa-thumbs-down"></i>
                                 <span>${comment.downvotes || 0}</span>
                             </button>
-                            ${(USER_ROLE === 'landlord' || USER_ROLE === 'admin') ? `
+                            ${USER_ROLE && USER_ROLE !== 'guest' ? `
                                 <button onclick="toggleReplyForm(${comment.id})" style="background: none; border: none; color: var(--primary-color); cursor: pointer; display: flex; align-items: center; gap: 0.25rem; margin-left: auto;">
                                     <i class="fas fa-reply"></i>
                                     <span>Phản hồi</span>
@@ -802,10 +827,10 @@ if (isLoggedIn()) {
                                 <span id="reply-char-count-${comment.id}">0</span>/5000
                             </div>
                             <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
-                                <button onclick="submitReply(${comment.id})" style="flex: 1; padding: 0.5rem 1rem; background: var(--primary-color); color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+                                <button onclick="submitReply(${comment.id}); return false;" style="flex: 1; padding: 0.5rem 1rem; background: var(--primary-color); color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.9rem;">
                                     Gửi phản hồi
                                 </button>
-                                <button onclick="toggleReplyForm(${comment.id})" style="flex: 1; padding: 0.5rem 1rem; background: white; color: #6b7280; border: 1px solid #d1d5db; border-radius: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+                                <button onclick="toggleReplyForm(${comment.id}); return false;" style="flex: 1; padding: 0.5rem 1rem; background: white; color: #6b7280; border: 1px solid #d1d5db; border-radius: 0.5rem; cursor: pointer; font-size: 0.9rem;">
                                     Hủy
                                 </button>
                             </div>
@@ -814,6 +839,22 @@ if (isLoggedIn()) {
                 `;
             }).join('');
 
+            // Helper function to setup character counters for nested replies recursively
+            function setupCharCounters(replies) {
+                if (!replies || replies.length === 0) return;
+                
+                replies.forEach(reply => {
+                    const textarea = document.getElementById(`reply-content-${reply.id}`);
+                    if (textarea) {
+                        textarea.addEventListener('input', (e) => {
+                            document.getElementById(`reply-char-count-${reply.id}`).textContent = e.target.value.length;
+                        });
+                    }
+                    // Recursively setup counters for nested replies
+                    setupCharCounters(reply.replies);
+                });
+            }
+            
             // Setup character counters for reply forms
             comments.forEach(comment => {
                 const textarea = document.getElementById(`reply-content-${comment.id}`);
@@ -822,6 +863,9 @@ if (isLoggedIn()) {
                         document.getElementById(`reply-char-count-${comment.id}`).textContent = e.target.value.length;
                     });
                 }
+                
+                // Setup character counters for nested replies
+                setupCharCounters(comment.replies);
             });
         }
 
@@ -964,34 +1008,58 @@ if (isLoggedIn()) {
 
         // Toggle reply form visibility
         function toggleReplyForm(commentId) {
+            console.log('Toggling reply form for ID:', commentId);
             const form = document.getElementById(`reply-form-${commentId}`);
+            console.log('Form found:', form !== null);
             if (form) {
                 form.style.display = form.style.display === 'none' ? 'block' : 'none';
                 if (form.style.display === 'block') {
-                    document.getElementById(`reply-content-${commentId}`).focus();
+                    const textarea = document.getElementById(`reply-content-${commentId}`);
+                    if (textarea) {
+                        textarea.focus();
+                    }
                 }
+            } else {
+                console.error(`Form #reply-form-${commentId} not found`);
             }
         }
 
         // Submit reply
         function submitReply(parentId) {
+            console.log('submitReply called with parentId:', parentId);
             const content = document.getElementById(`reply-content-${parentId}`).value.trim();
+            console.log('Content:', content);
 
             if (!content) {
                 alert('Vui lòng nhập phản hồi');
-                return;
+                return false;
             }
 
             <?php if (!isLoggedIn()): ?>
             alert('Vui lòng đăng nhập');
             window.location.href = '../auth/login.php';
-            return;
+            return false;
             <?php endif; ?>
 
-            const submitBtn = event.target;
-            submitBtn.disabled = true;
+            // Find all submit buttons in this reply form and disable them
+            const form = document.getElementById(`reply-form-${parentId}`);
+            console.log('Form found for parentId', parentId, ':', form !== null);
+            
+            if (!form) {
+                console.error(`Form #reply-form-${parentId} not found`);
+                alert('Form not found');
+                return false;
+            }
+            
+            const buttons = form.querySelectorAll('button');
+            const submitBtn = buttons[0]; // First button is submit
             const originalText = submitBtn.textContent;
+            
+            // Disable both buttons
+            buttons.forEach(btn => btn.disabled = true);
             submitBtn.textContent = 'Đang gửi...';
+
+            console.log('Sending reply with post_id:', POST_ID, 'parent_id:', parentId);
 
             fetch('../../api/comments.php?action=addReply', {
                 method: 'POST',
@@ -1004,24 +1072,31 @@ if (isLoggedIn()) {
             })
             .then(r => r.json())
             .then(data => {
+                console.log('Response:', data);
                 if (data.success) {
                     document.getElementById(`reply-content-${parentId}`).value = '';
-                    document.getElementById(`reply-char-count-${parentId}`).textContent = '0';
+                    if (document.getElementById(`reply-char-count-${parentId}`)) {
+                        document.getElementById(`reply-char-count-${parentId}`).textContent = '0';
+                    }
                     toggleReplyForm(parentId);
                     loadComments();
                     alert('Phản hồi đã được gửi!');
                 } else {
                     alert('Lỗi: ' + (data.error || 'Không thể gửi phản hồi'));
+                    // Re-enable buttons on error
+                    buttons.forEach(btn => btn.disabled = false);
+                    submitBtn.textContent = originalText;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('Lỗi kết nối');
-            })
-            .finally(() => {
-                submitBtn.disabled = false;
+                // Re-enable buttons on error
+                buttons.forEach(btn => btn.disabled = false);
                 submitBtn.textContent = originalText;
             });
+            
+            return false;
         }
 
         // Helper functions
