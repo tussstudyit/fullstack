@@ -143,6 +143,12 @@ class PostController {
         }
 
         $result = $this->postModel->update($post_id, $data);
+        
+        // Return post_id for image upload
+        if ($result['success']) {
+            $result['post_id'] = $post_id;
+        }
+        
         return $result;
     }
 

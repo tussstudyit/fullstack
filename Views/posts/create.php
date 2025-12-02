@@ -662,12 +662,19 @@ if ($postId) {
 
         // Handle image selection and preview
         let uploadedImages = [];
+        
+        // Backup uploadedImages in case it gets cleared
+        window.uploadedImagesBackup = [];
 
         function handleImageSelect(input) {
             const files = input.files;
             const preview = document.getElementById('imagePreview');
             
             if (files.length === 0) return;
+            
+            console.log('%c=== handleImageSelect CALLED ===', 'background: orange; color: white; padding: 5px;');
+            console.log('Current uploadedImages before add:', uploadedImages.length);
+            console.log('New files being added:', files.length);
             
             // Add new files to uploadedImages (don't clear old ones - allow multiple selections)
             for (let file of files) {
@@ -705,9 +712,12 @@ if ($postId) {
                 
                 // Add to uploadedImages array
                 uploadedImages.push(file);
+                window.uploadedImagesBackup = [...uploadedImages]; // Backup
+                console.log(`  ✓ Added: ${file.name} (${(file.size / 1024).toFixed(1)}KB) → uploadedImages[${uploadedImages.length - 1}]`);
             }
             
-            console.log('Total images selected:', uploadedImages.length);
+            console.log('%c✓ handleImageSelect COMPLETE - Total images: ' + uploadedImages.length, 'background: green; color: white; padding: 5px;');
+            console.log('Backup updated:', window.uploadedImagesBackup.length);
             
             // Reset input so same file can be selected again
             input.value = '';
@@ -755,36 +765,47 @@ if ($postId) {
         function uploadPostImages(postId) {
             console.log('%c=== uploadPostImages START ===', 'background: #667eea; color: white; padding: 10px; font-weight: bold;');
             console.log('postId:', postId);
-            console.log('uploadedImages count:', uploadedImages.length);
+            console.log('uploadedImages.length:', uploadedImages.length);
             console.log('uploadedImages array:', uploadedImages);
             
             if (uploadedImages.length === 0) {
-                console.log('No images to upload, returning success');
+                console.log('%c✓ No images selected, skipping upload', 'color: orange; font-weight: bold;');
                 return Promise.resolve({ success: true, message: 'Không có ảnh để upload' });
             }
 
             const formData = new FormData();
             formData.append('post_id', postId);
             
-            console.log('%cAppending images to FormData...', 'color: blue; font-weight: bold;');
+            console.log('%c📸 Appending images to FormData...', 'color: blue; font-weight: bold;');
             for (let i = 0; i < uploadedImages.length; i++) {
                 const img = uploadedImages[i];
                 console.log(`  [${i}] Ảnh ${i+1}/${uploadedImages.length}:`);
-                console.log(`      - Tên: ${img.name}`);
+                console.log(`      - Tên file: ${img.name}`);
                 console.log(`      - Kích thước: ${(img.size / 1024 / 1024).toFixed(2)} MB`);
                 console.log(`      - Loại: ${img.type}`);
-                console.log(`      - Sẽ là ảnh bìa: ${i === 0 ? 'CÓ (ảnh đầu tiên)' : 'KHÔNG'}`);
+                console.log(`      - Là ảnh bìa: ${i === 0 ? '✓ CÓ (ảnh đầu tiên)' : '✗ KHÔNG'}`);
                 formData.append('images', img);
+                console.log(`      → Appended to FormData`);
             }
             
-            console.log('%cSending to API: ../../api/upload-image.php?action=upload-multiple', 'color: green; font-weight: bold;');
+            // Verify FormData has all images
+            console.log('%c📋 FormData content:', 'color: green; font-weight: bold;');
+            for (let pair of formData.entries()) {
+                if (pair[0] === 'images') {
+                    console.log(`  - ${pair[0]}: ${pair[1].name}`);
+                } else {
+                    console.log(`  - ${pair[0]}: ${pair[1]}`);
+                }
+            }
+            
+            console.log('%c🚀 Sending to API: ../../api/upload-image.php?action=upload-multiple', 'background: green; color: white; padding: 5px; font-weight: bold;');
 
             return fetch('../../api/upload-image.php?action=upload-multiple', {
                 method: 'POST',
                 body: formData
             })
             .then(response => {
-                console.log('API response status:', response.status);
+                console.log('API response status:', response.status, response.statusText);
                 const contentType = response.headers.get('content-type');
                 if (contentType && contentType.includes('application/json')) {
                     return response.json();
@@ -796,10 +817,15 @@ if ($postId) {
                 }
             })
             .then(data => {
-                console.log('%cUpload response received:', 'background: #28a745; color: white; padding: 5px; font-weight: bold;');
+                console.log('%c📊 Upload API response received:', 'background: #28a745; color: white; padding: 5px; font-weight: bold;');
                 console.log('Success:', data.success);
                 console.log('Message:', data.message);
-                console.log('Uploaded images count:', data.uploaded ? data.uploaded.length : 0);
+                console.log('Uploaded count:', data.uploaded ? data.uploaded.length : 0);
+                if (data.uploaded) {
+                    for (let i = 0; i < data.uploaded.length; i++) {
+                        console.log(`  [${i}] ${data.uploaded[i].filename} (isPrimary: ${data.uploaded[i].isPrimary})`);
+                    }
+                }
                 console.log('Full response:', data);
                 
                 if (data.success) {
@@ -812,7 +838,7 @@ if ($postId) {
                 return data;
             })
             .catch(error => {
-                console.error('%cError uploading images:', 'background: #dc3545; color: white; padding: 5px; font-weight: bold;');
+                console.error('%c✗ Error uploading images:', 'background: #dc3545; color: white; padding: 5px; font-weight: bold;');
                 console.error(error);
                 showNotification('Lỗi khi upload ảnh: ' + error.message, 'error');
             })
@@ -862,18 +888,25 @@ if ($postId) {
                     console.log('Success:', data.success);
                     console.log('Message:', data.message);
                     console.log('Post ID:', data.post_id);
+                    console.log('Current uploadedImages.length at response:', uploadedImages.length);
+                    console.log('Current uploadedImages:', uploadedImages);
                     
                     if (data.success) {
-                        showNotification('Bài đăng được tạo, đang upload ảnh...', 'info');
-                        console.log('Post created with ID:', data.post_id);
-                        console.log('Chuẩn bị upload', uploadedImages.length, 'ảnh');
+                        const action = formData.get('action');
+                        const message = action === 'update' ? 'Bài đăng được cập nhật' : 'Bài đăng được tạo';
+                        showNotification(message + ', đang upload ảnh...', 'info');
+                        console.log('Post ID:', data.post_id);
+                        console.log('Action:', action);
+                        console.log('%c📊 BEFORE uploadPostImages - uploadedImages.length:', 'background: orange; color: white; padding: 3px;');
+                        console.log(uploadedImages.length);
+                        console.log('uploadedImages array:', uploadedImages);
                         
                         // Upload images if there are any
                         if (uploadedImages.length > 0) {
-                            console.log('%cBắt đầu upload ảnh...', 'color: green; font-weight: bold;');
+                            console.log('%c🚀 Bắt đầu upload ảnh...', 'color: green; font-weight: bold;');
                             return uploadPostImages(data.post_id).then(() => data);
                         } else {
-                            console.log('Không có ảnh để upload');
+                            console.log('%c⚠️ Không có ảnh để upload (uploadedImages.length === 0)', 'background: red; color: white; padding: 3px;');
                             return data;
                         }
                     } else {
