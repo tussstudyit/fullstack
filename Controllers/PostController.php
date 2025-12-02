@@ -144,6 +144,32 @@ class PostController {
 
         $result = $this->postModel->update($post_id, $data);
         
+        // Handle deleted images
+        $deletedIds = $_POST['deleted_image_ids'] ?? '';
+        if (!empty($deletedIds)) {
+            $ids = explode(',', $deletedIds);
+            $uploadDir = __DIR__ . '/../uploads/';
+            
+            foreach ($ids as $imageId) {
+                $imageId = (int)trim($imageId);
+                if ($imageId > 0) {
+                    // Get image details
+                    $image = $this->postImageModel->getImageById($imageId);
+                    if ($image) {
+                        // Delete file
+                        $filePath = $uploadDir . $image['image_url'];
+                        if (file_exists($filePath)) {
+                            unlink($filePath);
+                            error_log("Deleted image file: $filePath");
+                        }
+                        // Delete from database
+                        $this->postImageModel->deleteImage($imageId);
+                        error_log("Deleted image record: $imageId");
+                    }
+                }
+            }
+        }
+        
         // Return post_id for image upload
         if ($result['success']) {
             $result['post_id'] = $post_id;

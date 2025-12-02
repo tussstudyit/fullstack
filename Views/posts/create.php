@@ -576,10 +576,73 @@ if ($postId) {
                     <div class="form-step" data-step="4">
                         <h2 style="margin-bottom: 2rem;">Hình ảnh phòng trọ</h2>
 
+                        <!-- EDIT MODE: Display existing images with delete buttons -->
+                        <?php if ($editingPost): ?>
+                            <div style="margin-bottom: 3rem;">
+                                <h3 style="margin-bottom: 1rem; color: var(--text-dark);">Hình ảnh hiện tại</h3>
+                                <div id="existingImagesContainer" class="image-preview-container">
+                                    <?php if ($existingImages): ?>
+                                        <?php foreach ($existingImages as $index => $image): ?>
+                                            <div class="image-preview-item" id="existing-image-<?php echo $image['id']; ?>">
+                                                <div style="position: relative; overflow: hidden; border-radius: 8px;">
+                                                    <img src="<?php echo getBasePath(); ?>/uploads/<?php echo htmlspecialchars($image['image_url']); ?>" alt="Post image" style="width: 100%; height: 150px; object-fit: cover;">
+                                                    <?php if ($image['is_primary']): ?>
+                                                        <span style="position: absolute; top: 0.5rem; left: 0.5rem; background: #4CAF50; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">Ảnh bìa</span>
+                                                    <?php endif; ?>
+                                                    <button type="button" class="remove-preview-btn" onclick="deleteExistingImage(<?php echo $image['id']; ?>, 'existing-image-<?php echo $image['id']; ?>')" style="position: absolute; top: 0.5rem; right: 0.5rem; background: #ff4444; color: white; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                                <p style="margin-top: 0.5rem; font-size: 0.875rem; text-align: center;">
+                                                    <?php echo $image['is_primary'] ? '✓ Ảnh bìa' : 'Ảnh phụ'; ?>
+                                                </p>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                            <div>
+                                <h3 style="margin-bottom: 1rem; color: var(--text-dark);">Thêm hình ảnh mới</h3>
+                        <?php endif; ?>
+
+                        <!-- CREATE MODE: Select cover image first -->
+                        <?php if (!$editingPost): ?>
+                            <div style="margin-bottom: 3rem; padding: 1.5rem; background: var(--light-color); border-radius: var(--radius-md); border-left: 4px solid var(--primary-color);">
+                                <h3 style="margin-bottom: 1rem; color: var(--text-dark);">
+                                    <i class="fas fa-star" style="color: var(--primary-color);"></i> Chọn ảnh bìa
+                                </h3>
+                                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem;">Ảnh bìa là ảnh đầu tiên sẽ hiển thị. Hãy chọn ảnh chất lượng cao, cuốn hút.</p>
+                                <div class="image-upload-area" id="coverImageArea" onclick="document.getElementById('coverImageInput').click()" style="cursor: pointer;">
+                                    <i class="fas fa-image"></i>
+                                    <h4>Tải lên ảnh bìa</h4>
+                                    <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">Click để chọn 1 ảnh bìa (bắt buộc)</p>
+                                    <input 
+                                        type="file" 
+                                        id="coverImageInput" 
+                                        accept="image/*" 
+                                        style="display: none;"
+                                        onchange="handleCoverImageSelect(this)"
+                                    >
+                                </div>
+                                <div id="coverImagePreview" style="margin-top: 1rem;"></div>
+                            </div>
+
+                            <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                            <div>
+                                <h3 style="margin-bottom: 1rem; color: var(--text-dark);">
+                                    <i class="fas fa-images"></i> Thêm ảnh khác (tùy chọn)
+                                </h3>
+                                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem;">Thêm tối đa 9 ảnh bổ sung để giới thiệu thêm về phòng trọ.</p>
+                        <?php endif; ?>
+
                         <div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById('imageInput').click()">
                             <i class="fas fa-cloud-upload-alt"></i>
-                            <h3>Tải lên hình ảnh</h3>
-                            <p style="color: var(--text-secondary); margin-top: 0.5rem;">Kéo thả hoặc click để chọn ảnh (Tối đa 10 ảnh)</p>
+                            <h3><?php echo $editingPost ? 'Tải lên hình ảnh' : 'Tải lên hình ảnh'; ?></h3>
+                            <p style="color: var(--text-secondary); margin-top: 0.5rem;">Kéo thả hoặc click để chọn ảnh (Tối đa <?php echo $editingPost ? '10' : '9'; ?> ảnh)</p>
                             <input 
                                 type="file" 
                                 id="imageInput" 
@@ -592,6 +655,8 @@ if ($postId) {
 
                         <div id="imagePreview" class="image-preview-container"></div>
                         <input type="hidden" id="imageCount" value="0">
+                        <input type="hidden" id="deletedImageIds" value="">
+                        </div>
                     </div>
 
                     <div class="form-step" data-step="5">
@@ -723,6 +788,87 @@ if ($postId) {
             input.value = '';
         }
         
+        // Handle cover image selection (CREATE mode only)
+        let coverImage = null;
+        
+        function handleCoverImageSelect(input) {
+            const files = input.files;
+            const preview = document.getElementById('coverImagePreview');
+            
+            if (files.length === 0) return;
+            
+            const file = files[0];
+            
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('File quá lớn (tối đa 5MB)', 'error');
+                return;
+            }
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showNotification('File không phải là ảnh', 'error');
+                return;
+            }
+            
+            // Clear previous preview
+            preview.innerHTML = '';
+            
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'image-preview-item';
+                div.innerHTML = `
+                    <div style="position: relative; overflow: hidden; border-radius: 8px;">
+                        <img src="${e.target.result}" alt="Cover preview" style="width: 100%; height: 200px; object-fit: cover;">
+                        <span style="position: absolute; top: 0.5rem; left: 0.5rem; background: #4CAF50; color: white; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">Ảnh bìa</span>
+                        <button type="button" class="remove-preview-btn" onclick="removeCoverImage()" style="position: absolute; top: 0.5rem; right: 0.5rem; background: #ff4444; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <p style="margin-top: 0.5rem; font-size: 0.875rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${file.name}</p>
+                `;
+                preview.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+            
+            // Set cover image
+            coverImage = file;
+            console.log('✓ Cover image selected:', file.name);
+            
+            // Reset input
+            input.value = '';
+        }
+        
+        function removeCoverImage() {
+            coverImage = null;
+            document.getElementById('coverImagePreview').innerHTML = '';
+            console.log('✓ Cover image removed');
+        }
+        
+        // Delete existing image (EDIT mode)
+        function deleteExistingImage(imageId, elementId) {
+            if (!confirm('Xác nhận xóa ảnh này?')) return;
+            
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.remove();
+                
+                // Add to deleted images list
+                let deletedIds = document.getElementById('deletedImageIds').value;
+                if (deletedIds) {
+                    deletedIds += ',' + imageId;
+                } else {
+                    deletedIds = imageId.toString();
+                }
+                document.getElementById('deletedImageIds').value = deletedIds;
+                
+                console.log('✓ Marked for deletion:', imageId);
+                showNotification('Ảnh sẽ bị xóa khi bạn lưu thay đổi', 'info');
+            }
+        }
+
         // Remove image from preview and uploadedImages
         function removeImagePreview(index) {
             const element = document.getElementById('preview-' + index);
@@ -762,13 +908,15 @@ if ($postId) {
         }
 
         // Upload images after post creation
-        function uploadPostImages(postId) {
+        function uploadPostImages(postId, imagesToUpload) {
             console.log('%c=== uploadPostImages START ===', 'background: #667eea; color: white; padding: 10px; font-weight: bold;');
             console.log('postId:', postId);
-            console.log('uploadedImages.length:', uploadedImages.length);
-            console.log('uploadedImages array:', uploadedImages);
+            console.log('imagesToUpload.length:', imagesToUpload ? imagesToUpload.length : 0);
             
-            if (uploadedImages.length === 0) {
+            // Use provided array or fall back to uploadedImages
+            const images = imagesToUpload || uploadedImages;
+            
+            if (!images || images.length === 0) {
                 console.log('%c✓ No images selected, skipping upload', 'color: orange; font-weight: bold;');
                 return Promise.resolve({ success: true, message: 'Không có ảnh để upload' });
             }
@@ -777,26 +925,30 @@ if ($postId) {
             formData.append('post_id', postId);
             
             console.log('%c📸 Appending images to FormData...', 'color: blue; font-weight: bold;');
-            for (let i = 0; i < uploadedImages.length; i++) {
-                const img = uploadedImages[i];
-                console.log(`  [${i}] Ảnh ${i+1}/${uploadedImages.length}:`);
-                console.log(`      - Tên file: ${img.name}`);
-                console.log(`      - Kích thước: ${(img.size / 1024 / 1024).toFixed(2)} MB`);
-                console.log(`      - Loại: ${img.type}`);
-                console.log(`      - Là ảnh bìa: ${i === 0 ? '✓ CÓ (ảnh đầu tiên)' : '✗ KHÔNG'}`);
+            console.log('Total images to append:', images.length);
+            
+            for (let i = 0; i < images.length; i++) {
+                const img = images[i];
+                if (!img) {
+                    console.warn(`  [${i}] Image is null/undefined, skipping`);
+                    continue;
+                }
+                console.log(`  [${i}] Appending: ${img.name} (${img.size} bytes, type: ${img.type})`);
                 formData.append('images', img);
-                console.log(`      → Appended to FormData`);
             }
             
             // Verify FormData has all images
-            console.log('%c📋 FormData content:', 'color: green; font-weight: bold;');
+            console.log('%c📋 Verifying FormData content:', 'color: green; font-weight: bold;');
+            let imageCount = 0;
             for (let pair of formData.entries()) {
                 if (pair[0] === 'images') {
-                    console.log(`  - ${pair[0]}: ${pair[1].name}`);
+                    imageCount++;
+                    console.log(`  - images[${imageCount-1}]: ${pair[1].name} (${pair[1].size} bytes)`);
                 } else {
                     console.log(`  - ${pair[0]}: ${pair[1]}`);
                 }
             }
+            console.log(`✓ FormData contains ${imageCount} images total`);
             
             console.log('%c🚀 Sending to API: ../../api/upload-image.php?action=upload-multiple', 'background: green; color: white; padding: 5px; font-weight: bold;');
 
@@ -854,6 +1006,17 @@ if ($postId) {
             console.log('%c=== FORM SUBMIT START ===', 'background: #667eea; color: white; padding: 10px; font-weight: bold;');
             console.log('Thời gian submit:', new Date().toLocaleString('vi-VN'));
             console.log('uploadedImages count:', uploadedImages.length);
+            console.log('coverImage:', coverImage ? coverImage.name : 'null');
+            console.log('deletedImageIds:', document.getElementById('deletedImageIds').value);
+            
+            const isEditing = document.querySelector('input[name="post_id"]') !== null;
+            
+            // Validate cover image for CREATE mode
+            if (!isEditing && !coverImage) {
+                showNotification('Vui lòng chọn ảnh bìa', 'error');
+                return;
+            }
+            
             console.log('Các ảnh đã chọn:');
             for (let i = 0; i < uploadedImages.length; i++) {
                 console.log(`  ${i+1}. ${uploadedImages[i].name} (${(uploadedImages[i].size / 1024).toFixed(1)}KB)`);
@@ -863,8 +1026,13 @@ if ($postId) {
                 showNotification('Đang xử lý...', 'info');
                 
                 const formData = new FormData(this);
-                const isEditing = document.querySelector('input[name="post_id"]') !== null;
                 console.log('Chế độ:', isEditing ? 'CHỈNH SỬA' : 'ĐĂNG TIN MỚI');
+                
+                // Add deleted image IDs for edit mode
+                const deletedIds = document.getElementById('deletedImageIds').value;
+                if (deletedIds) {
+                    formData.append('deleted_image_ids', deletedIds);
+                }
                 
                 fetch('../../Controllers/PostController.php', {
                     method: 'POST',
@@ -888,8 +1056,6 @@ if ($postId) {
                     console.log('Success:', data.success);
                     console.log('Message:', data.message);
                     console.log('Post ID:', data.post_id);
-                    console.log('Current uploadedImages.length at response:', uploadedImages.length);
-                    console.log('Current uploadedImages:', uploadedImages);
                     
                     if (data.success) {
                         const action = formData.get('action');
@@ -897,16 +1063,21 @@ if ($postId) {
                         showNotification(message + ', đang upload ảnh...', 'info');
                         console.log('Post ID:', data.post_id);
                         console.log('Action:', action);
-                        console.log('%c📊 BEFORE uploadPostImages - uploadedImages.length:', 'background: orange; color: white; padding: 3px;');
-                        console.log(uploadedImages.length);
-                        console.log('uploadedImages array:', uploadedImages);
+                        
+                        // Prepare images for upload (cover image first for CREATE mode)
+                        const imagesToUpload = [];
+                        if (coverImage) {
+                            imagesToUpload.push(coverImage);
+                            console.log('✓ Added cover image:', coverImage.name);
+                        }
+                        imagesToUpload.push(...uploadedImages);
                         
                         // Upload images if there are any
-                        if (uploadedImages.length > 0) {
+                        if (imagesToUpload.length > 0) {
                             console.log('%c🚀 Bắt đầu upload ảnh...', 'color: green; font-weight: bold;');
-                            return uploadPostImages(data.post_id).then(() => data);
+                            return uploadPostImages(data.post_id, imagesToUpload).then(() => data);
                         } else {
-                            console.log('%c⚠️ Không có ảnh để upload (uploadedImages.length === 0)', 'background: red; color: white; padding: 3px;');
+                            console.log('%c⚠️ Không có ảnh để upload', 'background: red; color: white; padding: 3px;');
                             return data;
                         }
                     } else {
