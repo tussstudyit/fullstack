@@ -598,63 +598,60 @@ if (isLoggedIn()) {
             <div class="reviews-section">
                 <div class="reviews-header">
                     <div>
-                        <h2 class="section-title" style="margin-bottom: 0;">Đánh giá</h2>
+                        <h2 class="section-title" style="margin-bottom: 0;">Bình luận</h2>
                     </div>
                     <div class="rating-summary">
-                        <div class="rating-score">4.5</div>
+                        <div class="rating-score" id="avgRating">0</div>
                         <div>
-                            <div class="rating-stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star-half-alt"></i>
+                            <div class="rating-stars" id="ratingStars">
+                                <i class="far fa-star"></i>
+                                <i class="far fa-star"></i>
+                                <i class="far fa-star"></i>
+                                <i class="far fa-star"></i>
+                                <i class="far fa-star"></i>
                             </div>
-                            <p style="color: var(--text-secondary); margin-top: 0.25rem;">12 đánh giá</p>
+                            <p style="color: var(--text-secondary); margin-top: 0.25rem;"><span id="commentCount">0</span> bình luận</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="review-item">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <img src="<?php echo getPlaceholderImage(48, 48, '3b82f6', 'B'); ?>" alt="Reviewer" class="reviewer-avatar">
-                            <div>
-                                <h4>Trần Văn B</h4>
-                                <div style="color: #fbbf24; margin: 0.25rem 0;">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <p style="color: var(--text-secondary); font-size: 0.875rem;">3 ngày trước</p>
-                            </div>
-                        </div>
+                <!-- Comments list -->
+                <div id="comments-list" class="comments-list">
+                    <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                        <p>Đang tải bình luận...</p>
                     </div>
-                    <p style="color: var(--text-secondary);">Phòng rất đẹp, chủ trọ thân thiện. Vị trí thuận tiện đi lại, gần trường. Rất hài lòng!</p>
                 </div>
 
+                <!-- Comment form -->
                 <div class="review-form">
-                    <h3 style="margin-bottom: 1rem;">Viết đánh giá</h3>
-                    <form>
+                    <?php if (isLoggedIn()): ?>
+                    <h3 style="margin-bottom: 1rem;">Viết bình luận</h3>
+                    <form id="commentForm">
                         <div class="form-group">
                             <label class="form-label">Đánh giá của bạn</label>
-                            <div class="star-rating">
-                                <i class="far fa-star" onclick="setRating(1, this.parentElement)"></i>
-                                <i class="far fa-star" onclick="setRating(2, this.parentElement)"></i>
-                                <i class="far fa-star" onclick="setRating(3, this.parentElement)"></i>
-                                <i class="far fa-star" onclick="setRating(4, this.parentElement)"></i>
-                                <i class="far fa-star" onclick="setRating(5, this.parentElement)"></i>
-                                <input type="hidden" name="rating" value="0">
+                            <div class="star-rating" id="commentRating">
+                                <i class="far fa-star" data-value="1"></i>
+                                <i class="far fa-star" data-value="2"></i>
+                                <i class="far fa-star" data-value="3"></i>
+                                <i class="far fa-star" data-value="4"></i>
+                                <i class="far fa-star" data-value="5"></i>
+                                <input type="hidden" id="ratingInput" value="0">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Nhận xét</label>
-                            <textarea class="form-control" rows="4" placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+                            <label class="form-label">Bình luận</label>
+                            <textarea class="form-control" id="commentContent" rows="4" placeholder="Chia sẻ trải nghiệm của bạn..." maxlength="5000"></textarea>
+                            <small style="color: var(--text-secondary);" id="charCount">0/5000</small>
                         </div>
-                        <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+                        <button type="submit" class="btn btn-primary" id="submitCommentBtn">Gửi bình luận</button>
                     </form>
+                    <?php else: ?>
+                    <div style="padding: 1.5rem; background: var(--light-color); border-radius: var(--radius-md); text-align: center;">
+                        <p style="margin: 0; color: var(--text-secondary);">
+                            <a href="../auth/login.php" style="color: var(--primary-color); text-decoration: none;">Đăng nhập</a> để viết bình luận
+                        </p>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -662,6 +659,286 @@ if (isLoggedIn()) {
 
     <script src="../../assets/js/main.js"></script>
     <script>
+        const POST_ID = <?php echo $post_id; ?>;
+
+        // Load comments on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadComments();
+            setupCommentForm();
+        });
+
+        // Load comments from API
+        function loadComments(limit = 10, offset = 0) {
+            fetch(`../../api/comments.php?action=getComments&post_id=${POST_ID}&limit=${limit}&offset=${offset}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        displayComments(data.data);
+                    } else {
+                        console.error('Error loading comments:', data.error);
+                        document.getElementById('comments-list').innerHTML = '<p style="color: red; text-align: center;">Lỗi tải bình luận</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    document.getElementById('comments-list').innerHTML = '<p style="color: red; text-align: center;">Lỗi kết nối</p>';
+                });
+        }
+
+        // Display comments on page
+        function displayComments(data) {
+            const commentsList = document.getElementById('comments-list');
+            const comments = data.comments || [];
+            const avgRating = parseFloat(data.avg_rating) || 0;
+            const commentCount = parseInt(data.comment_count) || 0;
+
+            // Update rating display
+            document.getElementById('avgRating').textContent = avgRating.toFixed(1);
+            document.getElementById('commentCount').textContent = commentCount;
+            updateRatingStars(Math.round(avgRating), 'ratingStars');
+
+            // Display comments
+            if (comments.length === 0) {
+                commentsList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>';
+                return;
+            }
+
+            commentsList.innerHTML = comments.map(comment => `
+                <div class="comment-item" style="border-bottom: 1px solid var(--border-color); padding: 1rem 0;">
+                    <div class="comment-header" style="display: flex; gap: 1rem; margin-bottom: 0.5rem;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
+                            ${comment.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <h5 style="margin: 0 0 0.25rem 0;">${escapeHtml(comment.username)}</h5>
+                                    ${comment.rating > 0 ? `<div style="color: #fbbf24; font-size: 0.9rem;">${'⭐'.repeat(comment.rating)}</div>` : ''}
+                                    <small style="color: var(--text-secondary);">${formatDate(comment.created_at)}</small>
+                                </div>
+                                ${isCurrentUserComment(comment.user_id_display) ? `
+                                    <button class="btn-delete-comment" onclick="deleteComment(${comment.id})" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); line-height: 1.6;">${escapeHtml(comment.content)}</p>
+                    
+                    <!-- Vote section -->
+                    <div class="comment-votes" style="display: flex; gap: 1rem; margin-top: 0.75rem; align-items: center;">
+                        <button class="vote-btn upvote ${comment.user_vote === 1 ? 'active' : ''}" onclick="voteComment(${comment.id}, 1)" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span>${comment.upvotes || 0}</span>
+                        </button>
+                        <button class="vote-btn downvote ${comment.user_vote === -1 ? 'active' : ''}" onclick="voteComment(${comment.id}, -1)" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                            <i class="fas fa-thumbs-down"></i>
+                            <span>${comment.downvotes || 0}</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Setup comment form
+        function setupCommentForm() {
+            const form = document.getElementById('commentForm');
+            if (!form) return;
+
+            // Star rating interaction
+            const ratingDiv = document.getElementById('commentRating');
+            const ratingInput = document.getElementById('ratingInput');
+            
+            if (ratingDiv) {
+                ratingDiv.querySelectorAll('i').forEach(star => {
+                    star.addEventListener('click', (e) => {
+                        const value = parseInt(e.target.dataset.value);
+                        ratingInput.value = value;
+                        updateRatingStars(value, 'commentRating');
+                    });
+
+                    star.addEventListener('mouseover', (e) => {
+                        const value = parseInt(e.target.dataset.value);
+                        highlightStars(value, 'commentRating');
+                    });
+                });
+
+                ratingDiv.addEventListener('mouseout', () => {
+                    const currentValue = parseInt(ratingInput.value);
+                    updateRatingStars(currentValue, 'commentRating');
+                });
+            }
+
+            // Character counter
+            const textarea = document.getElementById('commentContent');
+            if (textarea) {
+                textarea.addEventListener('input', (e) => {
+                    document.getElementById('charCount').textContent = `${e.target.value.length}/5000`;
+                });
+            }
+
+            // Form submission
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                submitComment();
+            });
+        }
+
+        // Submit comment
+        function submitComment() {
+            const content = document.getElementById('commentContent').value.trim();
+            const rating = parseInt(document.getElementById('ratingInput').value);
+
+            if (!content) {
+                alert('Vui lòng nhập bình luận');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitCommentBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Đang gửi...';
+
+            fetch('../../api/comments.php?action=addComment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    post_id: POST_ID,
+                    content: content,
+                    rating: rating > 0 ? rating : 0
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('commentForm').reset();
+                    document.getElementById('ratingInput').value = 0;
+                    document.getElementById('charCount').textContent = '0/5000';
+                    updateRatingStars(0, 'commentRating');
+                    loadComments();
+                    alert('Bình luận đã được gửi!');
+                } else {
+                    alert('Lỗi: ' + (data.error || 'Không thể gửi bình luận'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Lỗi kết nối');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Gửi bình luận';
+            });
+        }
+
+        // Vote on comment
+        function voteComment(commentId, voteValue) {
+            <?php if (!isLoggedIn()): ?>
+            alert('Vui lòng đăng nhập');
+            window.location.href = '../auth/login.php';
+            return;
+            <?php endif; ?>
+
+            fetch('../../api/comments.php?action=voteComment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    comment_id: commentId,
+                    vote: voteValue
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    loadComments();
+                } else {
+                    alert('Lỗi: ' + (data.error || 'Không thể bình chọn'));
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Delete comment
+        function deleteComment(commentId) {
+            if (!confirm('Bạn chắc chắn muốn xóa bình luận này?')) return;
+
+            fetch('../../api/comments.php?action=deleteComment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: commentId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    loadComments();
+                } else {
+                    alert('Lỗi: ' + (data.error || 'Không thể xóa bình luận'));
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Helper functions
+        function updateRatingStars(rating, elementId) {
+            const container = document.getElementById(elementId);
+            if (container) {
+                container.querySelectorAll('i').forEach((star, index) => {
+                    if (index < rating) {
+                        star.classList.remove('far');
+                        star.classList.add('fas');
+                    } else {
+                        star.classList.remove('fas');
+                        star.classList.add('far');
+                    }
+                });
+            }
+        }
+
+        function highlightStars(rating, elementId) {
+            const container = document.getElementById(elementId);
+            if (container) {
+                container.querySelectorAll('i').forEach((star, index) => {
+                    if (index < rating) {
+                        star.style.color = '#fbbf24';
+                    } else {
+                        star.style.color = 'inherit';
+                    }
+                });
+            }
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'vừa xong';
+            if (diff < 3600000) return Math.floor(diff / 60000) + ' phút trước';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + ' giờ trước';
+            if (diff < 2592000000) return Math.floor(diff / 86400000) + ' ngày trước';
+            
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function isCurrentUserComment(userId) {
+            <?php if (isLoggedIn()): ?>
+            return userId == <?php echo $_SESSION['user_id']; ?>;
+            <?php endif; ?>
+            return false;
+        }
+
+        // Original functions
         function changeMainImage(thumbnail) {
             document.getElementById('mainImage').src = thumbnail.src.replace('300x200', '1200x600');
             document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
