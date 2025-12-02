@@ -102,7 +102,19 @@ class AuthController {
         $result = $this->userModel->register($data);
 
         if ($result['success']) {
-            redirect('/fullstack/Views/auth/login.php?message=' . urlencode('✓ Đăng ký thành công. Vui lòng đăng nhập'));
+            // Tự động đăng nhập sau khi đăng ký thành công
+            $loginResult = $this->userModel->login($username, $password);
+            if ($loginResult['success']) {
+                // Redirect dựa vào role
+                if ($_SESSION['role'] === 'admin') {
+                    redirect('/fullstack/Views/admin/dashboard.php?success=' . urlencode('✓ Đăng ký và đăng nhập thành công'));
+                } else {
+                    redirect('/fullstack/index.php?success=' . urlencode('✓ Đăng ký và đăng nhập thành công'));
+                }
+            } else {
+                // Nếu auto-login thất bại, redirect đến login page
+                redirect('/fullstack/Views/auth/login.php?message=' . urlencode('✓ Đăng ký thành công. Vui lòng đăng nhập'));
+            }
         } else {
             redirect('/fullstack/Views/auth/register.php?error=' . urlencode('❌ ' . $result['message']));
         }
