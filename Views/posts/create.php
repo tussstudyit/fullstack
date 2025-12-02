@@ -913,10 +913,7 @@ if ($postId) {
             console.log('postId:', postId);
             console.log('imagesToUpload.length:', imagesToUpload ? imagesToUpload.length : 0);
             
-            // Use provided array or fall back to uploadedImages
-            const images = imagesToUpload || uploadedImages;
-            
-            if (!images || images.length === 0) {
+            if (!imagesToUpload || imagesToUpload.length === 0) {
                 console.log('%c✓ No images selected, skipping upload', 'color: orange; font-weight: bold;');
                 return Promise.resolve({ success: true, message: 'Không có ảnh để upload' });
             }
@@ -925,32 +922,56 @@ if ($postId) {
             formData.append('post_id', postId);
             
             console.log('%c📸 Appending images to FormData...', 'color: blue; font-weight: bold;');
-            console.log('Total images to append:', images.length);
+            console.log('Total images to append:', imagesToUpload.length);
             
-            for (let i = 0; i < images.length; i++) {
-                const img = images[i];
+            let appendedCount = 0;
+            for (let i = 0; i < imagesToUpload.length; i++) {
+                const img = imagesToUpload[i];
+                console.log(`[${i}] Image object:`, img);
+                console.log(`[${i}] Image type:`, typeof img);
+                console.log(`[${i}] Is File?:`, img instanceof File);
+                
                 if (!img) {
                     console.warn(`  [${i}] Image is null/undefined, skipping`);
                     continue;
                 }
-                console.log(`  [${i}] Appending: ${img.name} (${img.size} bytes, type: ${img.type})`);
-                formData.append('images', img);
+                
+                if (!(img instanceof File)) {
+                    console.warn(`  [${i}] Not a File object, skipping:`, img);
+                    continue;
+                }
+                
+                console.log(`  [${i}] ✓ Appending File: ${img.name} (${img.size} bytes, type: ${img.type})`);
+                formData.append('images', img, img.name);  // Add filename as 3rd param
+                appendedCount++;
             }
+            
+            console.log(`✓ Successfully appended ${appendedCount} images to FormData`);
             
             // Verify FormData has all images
             console.log('%c📋 Verifying FormData content:', 'color: green; font-weight: bold;');
             let imageCount = 0;
+            let formDataContent = [];
             for (let pair of formData.entries()) {
                 if (pair[0] === 'images') {
                     imageCount++;
-                    console.log(`  - images[${imageCount-1}]: ${pair[1].name} (${pair[1].size} bytes)`);
+                    console.log(`  - images[${imageCount-1}]: ${pair[1].name || 'unnamed'} (${pair[1].size} bytes)`);
+                    formDataContent.push(`images: ${pair[1].name || 'unnamed'}`);
                 } else {
                     console.log(`  - ${pair[0]}: ${pair[1]}`);
+                    formDataContent.push(`${pair[0]}: ${pair[1]}`);
                 }
             }
             console.log(`✓ FormData contains ${imageCount} images total`);
             
+            if (imageCount === 0) {
+                console.error('%c✗ ERROR: FormData has 0 images!', 'background: red; color: white;');
+                showNotification('Lỗi: Không thể thêm ảnh vào FormData', 'error');
+                return Promise.reject(new Error('No images in FormData'));
+            }
+            
             console.log('%c🚀 Sending to API: ../../api/upload-image.php?action=upload-multiple', 'background: green; color: white; padding: 5px; font-weight: bold;');
+            console.log('FormData content:', formDataContent);
 
             return fetch('../../api/upload-image.php?action=upload-multiple', {
                 method: 'POST',
