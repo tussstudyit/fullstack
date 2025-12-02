@@ -24,10 +24,17 @@ class PostImage {
 
     // Thêm ảnh
     public function addImage($post_id, $image_url, $is_primary = false) {
-        // Nếu là ảnh chính, bỏ chọn các ảnh chính trước đó
+        // Nếu là ảnh chính và đã có ảnh chính rồi, thì bỏ chọn các ảnh chính trước đó
         if ($is_primary) {
-            $stmt = $this->conn->prepare("UPDATE {$this->table} SET is_primary = FALSE WHERE post_id = ?");
+            $stmt = $this->conn->prepare("SELECT COUNT(*) as count FROM {$this->table} WHERE post_id = ? AND is_primary = TRUE");
             $stmt->execute([$post_id]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Chỉ update nếu đã có ảnh primary
+            if ($result['count'] > 0) {
+                $stmt = $this->conn->prepare("UPDATE {$this->table} SET is_primary = FALSE WHERE post_id = ? AND is_primary = TRUE");
+                $stmt->execute([$post_id]);
+            }
         }
 
         $stmt = $this->conn->prepare("INSERT INTO {$this->table} (post_id, image_url, is_primary) VALUES (?, ?, ?)");
