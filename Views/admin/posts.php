@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../Models/PostImage.php';
 
 // Kiểm tra quyền admin
 if (!isLoggedIn() || $_SESSION['role'] !== 'admin') {
@@ -58,8 +59,24 @@ try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
     $post_id = intval($_POST['post_id']);
     try {
+        // Delete images from filesystem first
+        $postImageModel = new PostImage();
+        $images = $postImageModel->getImages($post_id);
+        $uploadDir = __DIR__ . '/../../uploads/';
+        
+        foreach ($images as $image) {
+            $filePath = $uploadDir . $image['image_url'];
+            if (file_exists($filePath)) {
+                @unlink($filePath);
+                error_log("Admin deleted image file: " . $filePath);
+            }
+        }
+        
+        // Delete from database
         $stmt = $conn->prepare("DELETE FROM posts WHERE id = ?");
         $stmt->execute([$post_id]);
+        error_log("Admin deleted post: $post_id with " . count($images) . " images");
+        
         header("Location: posts.php");
         exit;
     } catch (PDOException $e) {
