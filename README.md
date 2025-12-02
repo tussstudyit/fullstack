@@ -284,6 +284,81 @@ Sau khi import database, có thể sử dụng các tài khoản mặc định:
 
 > Có thể tạo tài khoản mới thông qua trang đăng ký
 
+## 🔑 Hệ thống Phân quyền (RBAC)
+
+Hệ thống hỗ trợ 3 vai trò với quyền hạn khác nhau:
+
+### 1. **Admin** 👨‍💼
+- **Quyền**:
+  - Xem tất cả bài đăng
+  - Xóa bài đăng sai phạm
+  - Quản lý người dùng (view, delete)
+  - Xem báo cáo thống kê
+  - Truy cập dashboard admin
+  - Xóa bình luận spam
+- **Hạn chế**:
+  - Không thể tạo bài đăng cho thuê
+  - Không thể edit bài đăng của người khác
+
+### 2. **Landlord** (Chủ trọ) 🏠
+- **Quyền**:
+  - Tạo bài đăng cho thuê
+  - Quản lý bài đăng của mình (view, edit, delete)
+  - Upload ảnh cho bài đăng
+  - Xem bình luận trên bài đăng của mình
+  - Nhập vai trò Admin khi được gán
+  - Bình luận và phản hồi trên bài đăng khác
+  - Bình chọn (vote) bình luận
+  - Thêm bài đăng vào yêu thích
+- **Hạn chế**:
+  - Chỉ có thể edit/delete bài đăng của chính mình
+  - Không thể xóa bài đăng của người khác
+  - Không thể truy cập dashboard admin (trừ khi là Admin)
+
+### 3. **Tenant** (Người thuê) 👨‍🎓
+- **Quyền**:
+  - Xem tất cả bài đăng
+  - Bình luận trên bài đăng
+  - Phản hồi bình luận (nested replies)
+  - Bình chọn (vote) bình luận
+  - Thêm bài đăng vào yêu thích
+  - Xem danh sách yêu thích
+  - Xem hồ sơ cá nhân
+  - Cập nhật thông tin hồ sơ
+- **Hạn chế**:
+  - Không thể tạo bài đăng
+  - Không thể xóa bài đăng khác
+  - Không thể truy cập dashboard admin
+  - Chỉ có thể edit/delete bình luận của chính mình
+
+### Cách kiểm tra vai trò
+
+Vai trò của người dùng được lưu trong session:
+```php
+// Kiểm tra vai trò người dùng
+if ($_SESSION['role'] === 'admin') {
+    // Chỉ admin mới có thể...
+}
+
+if ($_SESSION['role'] === 'landlord') {
+    // Chỉ chủ trọ mới có thể...
+}
+
+if ($_SESSION['role'] === 'tenant') {
+    // Chỉ người thuê mới có thể...
+}
+```
+
+### Middleware kiểm tra quyền
+
+Các view và controller đều có kiểm tra quyền:
+- `Views/admin/` - Chỉ admin có thể truy cập
+- `Controllers/PostController.php` - Kiểm tra owner khi edit/delete
+- `Controllers/CommentController.php` - Kiểm tra quyền bình luận & phản hồi
+- `api/comments.php` - Kiểm tra quyền voting & xóa
+
+---
+
 ## 📝 Tích hợp PHP
 
 ✅ **Dự án hiện đã được tích hợp PHP hoàn toàn**
