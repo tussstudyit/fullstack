@@ -458,16 +458,6 @@ if ($postId) {
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label" for="room_type">Loại phòng (Chi tiết) *</label>
-                            <select class="form-control" id="room_type" name="room_type" required>
-                                <option value="single" <?php echo $editingPost && $editingPost['room_type'] == 'single' ? 'selected' : ''; ?>>Phòng đơn</option>
-                                <option value="shared" <?php echo $editingPost && $editingPost['room_type'] == 'shared' ? 'selected' : ''; ?>>Phòng ghép</option>
-                                <option value="apartment" <?php echo $editingPost && $editingPost['room_type'] == 'apartment' ? 'selected' : ''; ?>>Căn hộ</option>
-                                <option value="house" <?php echo $editingPost && $editingPost['room_type'] == 'house' ? 'selected' : ''; ?>>Nhà nguyên căn</option>
-                            </select>
-                        </div>
-
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label" for="max_people">Số người tối đa *</label>
@@ -482,16 +472,14 @@ if ($postId) {
                                 >
                             </div>
 
-                            <div class="form-group" style="visibility: hidden;"></div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Giới tính *</label>
-                            <select class="form-control" name="gender" required>
-                                <option value="any" <?php echo $editingPost && $editingPost['gender'] == 'any' ? 'selected' : ''; ?>>Nam/Nữ</option>
-                                <option value="male" <?php echo $editingPost && $editingPost['gender'] == 'male' ? 'selected' : ''; ?>>Nam</option>
-                                <option value="female" <?php echo $editingPost && $editingPost['gender'] == 'female' ? 'selected' : ''; ?>>Nữ</option>
-                            </select>
+                            <div class="form-group">
+                                <label class="form-label">Giới tính *</label>
+                                <select class="form-control" name="gender" required>
+                                    <option value="any" <?php echo $editingPost && $editingPost['gender'] == 'any' ? 'selected' : ''; ?>>Nam/Nữ</option>
+                                    <option value="male" <?php echo $editingPost && $editingPost['gender'] == 'male' ? 'selected' : ''; ?>>Nam</option>
+                                    <option value="female" <?php echo $editingPost && $editingPost['gender'] == 'female' ? 'selected' : ''; ?>>Nữ</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="form-group">
