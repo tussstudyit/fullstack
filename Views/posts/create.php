@@ -349,15 +349,25 @@ if ($postId) {
                             >
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label" for="category">Loại phòng *</label>
-                            <select class="form-control" id="category" name="category_id" required>
-                                <option value="">Chọn loại phòng</option>
-                                <option value="1" <?php echo $editingPost && $editingPost['category_id'] == 1 ? 'selected' : ''; ?>>Phòng trọ sinh viên</option>
-                                <option value="2" <?php echo $editingPost && $editingPost['category_id'] == 2 ? 'selected' : ''; ?>>Căn hộ mini</option>
-                                <option value="3" <?php echo $editingPost && $editingPost['category_id'] == 3 ? 'selected' : ''; ?>>Nhà nguyên căn</option>
-                                <option value="4" <?php echo $editingPost && $editingPost['category_id'] == 4 ? 'selected' : ''; ?>>Ở ghép</option>
-                            </select>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="category">Danh mục *</label>
+                                <select class="form-control" id="category" name="category_id" required>
+                                    <option value="">Chọn danh mục</option>
+                                    <option value="1" <?php echo $editingPost && $editingPost['category_id'] == 1 ? 'selected' : ''; ?>>Phòng trọ sinh viên</option>
+                                    <option value="2" <?php echo $editingPost && $editingPost['category_id'] == 2 ? 'selected' : ''; ?>>Căn hộ mini</option>
+                                    <option value="3" <?php echo $editingPost && $editingPost['category_id'] == 3 ? 'selected' : ''; ?>>Nhà nguyên căn</option>
+                                    <option value="4" <?php echo $editingPost && $editingPost['category_id'] == 4 ? 'selected' : ''; ?>>Ở ghép</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="room_status">Tình trạng phòng *</label>
+                                <select class="form-control" id="room_status" name="room_status" required>
+                                    <option value="available" <?php echo $editingPost && $editingPost['room_status'] == 'available' ? 'selected' : ''; ?>>Còn trống</option>
+                                    <option value="unavailable" <?php echo $editingPost && $editingPost['room_status'] == 'unavailable' ? 'selected' : ''; ?>>Đã hết</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -448,17 +458,17 @@ if ($postId) {
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label" for="room_type">Loại hình *</label>
-                                <select class="form-control" id="room_type" name="room_type" required>
-                                    <option value="single" <?php echo $editingPost && $editingPost['room_type'] == 'single' ? 'selected' : ''; ?>>Phòng đơn</option>
-                                    <option value="shared" <?php echo $editingPost && $editingPost['room_type'] == 'shared' ? 'selected' : ''; ?>>Phòng ghép</option>
-                                    <option value="apartment" <?php echo $editingPost && $editingPost['room_type'] == 'apartment' ? 'selected' : ''; ?>>Căn hộ</option>
-                                    <option value="house" <?php echo $editingPost && $editingPost['room_type'] == 'house' ? 'selected' : ''; ?>>Nhà nguyên căn</option>
-                                </select>
-                            </div>
+                        <div class="form-group">
+                            <label class="form-label" for="room_type">Loại phòng (Chi tiết) *</label>
+                            <select class="form-control" id="room_type" name="room_type" required>
+                                <option value="single" <?php echo $editingPost && $editingPost['room_type'] == 'single' ? 'selected' : ''; ?>>Phòng đơn</option>
+                                <option value="shared" <?php echo $editingPost && $editingPost['room_type'] == 'shared' ? 'selected' : ''; ?>>Phòng ghép</option>
+                                <option value="apartment" <?php echo $editingPost && $editingPost['room_type'] == 'apartment' ? 'selected' : ''; ?>>Căn hộ</option>
+                                <option value="house" <?php echo $editingPost && $editingPost['room_type'] == 'house' ? 'selected' : ''; ?>>Nhà nguyên căn</option>
+                            </select>
+                        </div>
 
+                        <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label" for="max_people">Số người tối đa *</label>
                                 <input 
@@ -471,6 +481,8 @@ if ($postId) {
                                     required
                                 >
                             </div>
+
+                            <div class="form-group" style="visibility: hidden;"></div>
                         </div>
 
                         <div class="form-group">
@@ -516,6 +528,10 @@ if ($postId) {
                                 <label class="amenity-checkbox">
                                     <input type="checkbox" name="amenities[]" value="flexible_hours" <?php echo in_array('flexible_hours', $amenitiesArray) ? 'checked' : ''; ?>>
                                     <span><i class="fas fa-clock"></i> Giờ giấc tự do</span>
+                                </label>
+                                <label class="amenity-checkbox">
+                                    <input type="checkbox" name="amenities[]" value="mezzanine" <?php echo in_array('mezzanine', $amenitiesArray) ? 'checked' : ''; ?>>
+                                    <span><i class="fas fa-layer-group"></i> Gác lửng</span>
                                 </label>
                             </div>
                         </div>

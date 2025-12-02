@@ -453,6 +453,15 @@ if (isLoggedIn()) {
                             <h2 class="section-title">Thông tin cơ bản</h2>
                             <div class="features-grid">
                                 <div class="feature-item">
+                                    <i class="fas fa-home feature-icon"></i>
+                                    <div>
+                                        <strong>Tình trạng phòng</strong>
+                                        <p><?php 
+                                            echo $post['room_status'] == 'available' ? '✓ Còn trống' : '✗ Đã hết';
+                                        ?></p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
                                     <i class="fas fa-expand feature-icon"></i>
                                     <div>
                                         <strong>Diện tích</strong>
@@ -464,16 +473,6 @@ if (isLoggedIn()) {
                                     <div>
                                         <strong>Số người tối đa</strong>
                                         <p><?php echo $post['max_people'] ?? 1; ?> người</p>
-                                    </div>
-                                </div>
-                                <div class="feature-item">
-                                    <i class="fas fa-home feature-icon"></i>
-                                    <div>
-                                        <strong>Loại phòng</strong>
-                                        <p><?php 
-                                            $roomTypes = ['single' => 'Phòng đơn', 'shared' => 'Phòng ghép', 'apartment' => 'Căn hộ', 'house' => 'Nhà nguyên căn'];
-                                            echo $roomTypes[$post['room_type']] ?? 'Phòng đơn';
-                                        ?></p>
                                     </div>
                                 </div>
                                 <div class="feature-item">
@@ -510,7 +509,8 @@ if (isLoggedIn()) {
                                     'parking' => 'fa-parking',
                                     'security' => 'fa-shield-alt',
                                     'water_heater' => 'fa-tint',
-                                    'flexible_hours' => 'fa-clock'
+                                    'flexible_hours' => 'fa-clock',
+                                    'mezzanine' => 'fa-layer-group'
                                 ];
                                 $amenityLabels = [
                                     'wifi' => 'WiFi',
@@ -520,7 +520,8 @@ if (isLoggedIn()) {
                                     'parking' => 'Chỗ để xe',
                                     'security' => 'An ninh 24/7',
                                     'water_heater' => 'Máy nóng lạnh',
-                                    'flexible_hours' => 'Giờ giấc tự do'
+                                    'flexible_hours' => 'Giờ giấc tự do',
+                                    'mezzanine' => 'Gác lửng'
                                 ];
                                 foreach ($amenities as $amenity): 
                                 ?>
@@ -616,7 +617,7 @@ if (isLoggedIn()) {
                 </div>
 
                 <!-- Comments list -->
-                <div id="comments-list" class="comments-list">
+                <div id="comments-list" class="comments-list" style="width: 100%; box-sizing: border-box;">
                     <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
                         <p>Đang tải bình luận...</p>
                     </div>
@@ -624,7 +625,7 @@ if (isLoggedIn()) {
 
                 <!-- Comment form -->
                 <div class="review-form">
-                    <?php if (isLoggedIn()): ?>
+                    <?php if (isLoggedIn() && ($_SESSION['role'] === 'tenant' || $_SESSION['role'] === 'admin')): ?>
                     <h3 style="margin-bottom: 1rem;">Viết bình luận</h3>
                     <form id="commentForm">
                         <div class="form-group">
@@ -645,6 +646,12 @@ if (isLoggedIn()) {
                         </div>
                         <button type="submit" class="btn btn-primary" id="submitCommentBtn">Gửi bình luận</button>
                     </form>
+                    <?php elseif (isLoggedIn() && $_SESSION['role'] === 'landlord'): ?>
+                    <div style="padding: 1.5rem; background: var(--light-color); border-radius: var(--radius-md); text-align: center;">
+                        <p style="margin: 0; color: var(--text-secondary);">
+                            <i class="fas fa-info-circle"></i> Chủ trọ chỉ có thể xem đánh giá và bình chọn bình luận
+                        </p>
+                    </div>
                     <?php else: ?>
                     <div style="padding: 1.5rem; background: var(--light-color); border-radius: var(--radius-md); text-align: center;">
                         <p style="margin: 0; color: var(--text-secondary);">
@@ -660,6 +667,7 @@ if (isLoggedIn()) {
     <script src="../../assets/js/main.js"></script>
     <script>
         const POST_ID = <?php echo $post_id; ?>;
+        const USER_ROLE = '<?php echo $_SESSION['role'] ?? 'guest'; ?>';
 
         // Load comments on page load
         document.addEventListener('DOMContentLoaded', () => {
@@ -703,42 +711,118 @@ if (isLoggedIn()) {
                 return;
             }
 
-            commentsList.innerHTML = comments.map(comment => `
-                <div class="comment-item" style="border-bottom: 1px solid var(--border-color); padding: 1rem 0;">
-                    <div class="comment-header" style="display: flex; gap: 1rem; margin-bottom: 0.5rem;">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
-                            ${comment.username.charAt(0).toUpperCase()}
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div>
-                                    <h5 style="margin: 0 0 0.25rem 0;">${escapeHtml(comment.username)}</h5>
-                                    ${comment.rating > 0 ? `<div style="color: #fbbf24; font-size: 0.9rem;">${'⭐'.repeat(comment.rating)}</div>` : ''}
-                                    <small style="color: var(--text-secondary);">${formatDate(comment.created_at)}</small>
+            commentsList.innerHTML = comments.map(comment => {
+                let repliesHtml = '';
+                if (comment.replies && comment.replies.length > 0) {
+                    repliesHtml = `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">` +
+                        comment.replies.map(reply => `
+                        <div style="margin-top: 0.75rem; padding-left: 1rem; border-left: 3px solid #10b981;">
+                            <div style="display: flex; gap: 0.75rem;">
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 0.75rem;">
+                                    ${reply.username.charAt(0).toUpperCase()}
                                 </div>
-                                ${isCurrentUserComment(comment.user_id_display) ? `
-                                    <button class="btn-delete-comment" onclick="deleteComment(${comment.id})" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0;">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                ` : ''}
+                                <div style="flex: 1;">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.25rem;">
+                                        <div>
+                                            <strong style="font-size: 0.85rem;">
+                                                ${escapeHtml(reply.username)}
+                                                ${(reply.role === 'landlord' || reply.role === 'admin') ? `<span style="background: #10b981; color: white; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; margin-left: 0.5rem;">Chủ trọ</span>` : ''}
+                                            </strong>
+                                            <br>
+                                            <small style="color: #6b7280; font-size: 0.75rem;">${formatDate(reply.created_at)}</small>
+                                        </div>
+                                        ${isCurrentUserComment(reply.user_id_display) ? `
+                                            <button onclick="deleteComment(${reply.id})" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0; font-size: 0.8rem;">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                    <p style="margin: 0 0 0.5rem 0; color: #374151; line-height: 1.5; font-size: 0.85rem;">${escapeHtml(reply.content)}</p>
+                                    <div style="display: flex; gap: 1rem; align-items: center; font-size: 0.8rem;">
+                                        <button class="vote-btn upvote ${reply.user_vote === 1 ? 'active' : ''}" onclick="voteComment(${reply.id}, 1)" style="background: none; border: none; color: #6b7280; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                                            <i class="fas fa-thumbs-up"></i>
+                                            <span>${reply.upvotes || 0}</span>
+                                        </button>
+                                        <button class="vote-btn downvote ${reply.user_vote === -1 ? 'active' : ''}" onclick="voteComment(${reply.id}, -1)" style="background: none; border: none; color: #6b7280; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                                            <i class="fas fa-thumbs-down"></i>
+                                            <span>${reply.downvotes || 0}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('') + `</div>`;
+                }
+
+                return `
+                    <div class="comment-item" style="border: 1px solid #e5e7eb; padding: 1.25rem; margin-bottom: 1rem; border-radius: 0.5rem; background: white; box-sizing: border-box;">
+                        <div class="comment-header" style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
+                                ${comment.username.charAt(0).toUpperCase()}
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; align-items: start;">
+                                    <div>
+                                        <h5 style="margin: 0 0 0.25rem 0; font-weight: 600;">${escapeHtml(comment.username)}</h5>
+                                        ${comment.rating > 0 ? `<div style="color: #fbbf24; font-size: 0.9rem; margin: 0.25rem 0;">${'⭐'.repeat(comment.rating)}</div>` : ''}
+                                        <small style="color: #6b7280;">${formatDate(comment.created_at)}</small>
+                                    </div>
+                                    ${isCurrentUserComment(comment.user_id_display) ? `
+                                        <button class="btn-delete-comment" onclick="deleteComment(${comment.id})" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <p style="margin: 0 0 0.75rem 0; color: #374151; line-height: 1.6;">${escapeHtml(comment.content)}</p>
+                        
+                        <div class="comment-votes" style="display: flex; gap: 1rem; align-items: center; margin-bottom: ${repliesHtml ? '1rem' : '0'};">
+                            <button class="vote-btn upvote ${comment.user_vote === 1 ? 'active' : ''}" onclick="voteComment(${comment.id}, 1)" style="background: none; border: none; color: #6b7280; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                                <i class="fas fa-thumbs-up"></i>
+                                <span>${comment.upvotes || 0}</span>
+                            </button>
+                            <button class="vote-btn downvote ${comment.user_vote === -1 ? 'active' : ''}" onclick="voteComment(${comment.id}, -1)" style="background: none; border: none; color: #6b7280; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                                <i class="fas fa-thumbs-down"></i>
+                                <span>${comment.downvotes || 0}</span>
+                            </button>
+                            ${(USER_ROLE === 'landlord' || USER_ROLE === 'admin') ? `
+                                <button onclick="toggleReplyForm(${comment.id})" style="background: none; border: none; color: var(--primary-color); cursor: pointer; display: flex; align-items: center; gap: 0.25rem; margin-left: auto;">
+                                    <i class="fas fa-reply"></i>
+                                    <span>Phản hồi</span>
+                                </button>
+                            ` : ''}
+                        </div>
+
+                        ${repliesHtml}
+
+                        <div id="reply-form-${comment.id}" style="margin-top: 1rem; display: none; padding: 1rem; background: #f9fafb; border-radius: 0.5rem; width: 100%; box-sizing: border-box;">
+                            <textarea id="reply-content-${comment.id}" placeholder="Nhập phản hồi của bạn..." style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-family: inherit; resize: vertical; min-height: 80px; box-sizing: border-box;" maxlength="5000"></textarea>
+                            <div style="margin-top: 0.5rem; font-size: 0.85rem; color: #6b7280;">
+                                <span id="reply-char-count-${comment.id}">0</span>/5000
+                            </div>
+                            <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
+                                <button onclick="submitReply(${comment.id})" style="flex: 1; padding: 0.5rem 1rem; background: var(--primary-color); color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+                                    Gửi phản hồi
+                                </button>
+                                <button onclick="toggleReplyForm(${comment.id})" style="flex: 1; padding: 0.5rem 1rem; background: white; color: #6b7280; border: 1px solid #d1d5db; border-radius: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+                                    Hủy
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); line-height: 1.6;">${escapeHtml(comment.content)}</p>
-                    
-                    <!-- Vote section -->
-                    <div class="comment-votes" style="display: flex; gap: 1rem; margin-top: 0.75rem; align-items: center;">
-                        <button class="vote-btn upvote ${comment.user_vote === 1 ? 'active' : ''}" onclick="voteComment(${comment.id}, 1)" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
-                            <i class="fas fa-thumbs-up"></i>
-                            <span>${comment.upvotes || 0}</span>
-                        </button>
-                        <button class="vote-btn downvote ${comment.user_vote === -1 ? 'active' : ''}" onclick="voteComment(${comment.id}, -1)" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
-                            <i class="fas fa-thumbs-down"></i>
-                            <span>${comment.downvotes || 0}</span>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
+
+            // Setup character counters for reply forms
+            comments.forEach(comment => {
+                const textarea = document.getElementById(`reply-content-${comment.id}`);
+                if (textarea) {
+                    textarea.addEventListener('input', (e) => {
+                        document.getElementById(`reply-char-count-${comment.id}`).textContent = e.target.value.length;
+                    });
+                }
+            });
         }
 
         // Setup comment form
@@ -876,6 +960,68 @@ if (isLoggedIn()) {
                 }
             })
             .catch(error => console.error('Error:', error));
+        }
+
+        // Toggle reply form visibility
+        function toggleReplyForm(commentId) {
+            const form = document.getElementById(`reply-form-${commentId}`);
+            if (form) {
+                form.style.display = form.style.display === 'none' ? 'block' : 'none';
+                if (form.style.display === 'block') {
+                    document.getElementById(`reply-content-${commentId}`).focus();
+                }
+            }
+        }
+
+        // Submit reply
+        function submitReply(parentId) {
+            const content = document.getElementById(`reply-content-${parentId}`).value.trim();
+
+            if (!content) {
+                alert('Vui lòng nhập phản hồi');
+                return;
+            }
+
+            <?php if (!isLoggedIn()): ?>
+            alert('Vui lòng đăng nhập');
+            window.location.href = '../auth/login.php';
+            return;
+            <?php endif; ?>
+
+            const submitBtn = event.target;
+            submitBtn.disabled = true;
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Đang gửi...';
+
+            fetch('../../api/comments.php?action=addReply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    post_id: POST_ID,
+                    parent_id: parentId,
+                    content: content
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`reply-content-${parentId}`).value = '';
+                    document.getElementById(`reply-char-count-${parentId}`).textContent = '0';
+                    toggleReplyForm(parentId);
+                    loadComments();
+                    alert('Phản hồi đã được gửi!');
+                } else {
+                    alert('Lỗi: ' + (data.error || 'Không thể gửi phản hồi'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Lỗi kết nối');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            });
         }
 
         // Helper functions

@@ -16,6 +16,9 @@ try {
         case 'addComment':
             echo $controller->addComment();
             break;
+        case 'addReply':
+            echo $controller->addReply();
+            break;
         case 'deleteComment':
             echo $controller->deleteComment();
             break;

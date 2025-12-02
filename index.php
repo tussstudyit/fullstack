@@ -24,7 +24,7 @@ try {
     $postImageModel = new PostImage();
     
     // Fetch featured posts
-    $featured_stmt = $conn->prepare("SELECT id, title, address, district, city, price, area, room_type, max_people FROM posts WHERE status = 'approved' LIMIT 3");
+    $featured_stmt = $conn->prepare("SELECT id, title, address, district, city, price, area, room_type, room_status, max_people FROM posts WHERE status = 'approved' LIMIT 3");
     $featured_stmt->execute();
     $featured_posts = $featured_stmt->fetchAll(PDO::FETCH_ASSOC);
     
@@ -572,16 +572,16 @@ if (isLoggedIn()) {
                             </div>
                             <div class="post-features">
                                 <div class="feature-item">
+                                    <i class="fas fa-door-open"></i>
+                                    <span><?php echo $post['room_status'] == 'available' ? '✓ Còn trống' : '✗ Đã hết'; ?></span>
+                                </div>
+                                <div class="feature-item">
                                     <i class="fas fa-expand"></i>
                                     <span><?php echo htmlspecialchars($post['area']); ?>m²</span>
                                 </div>
                                 <div class="feature-item">
                                     <i class="fas fa-users"></i>
                                     <span><?php echo htmlspecialchars($post['max_people']); ?> người</span>
-                                </div>
-                                <div class="feature-item">
-                                    <i class="fas fa-door-open"></i>
-                                    <span><?php echo ucfirst(str_replace('_', ' ', $post['room_type'])); ?></span>
                                 </div>
                             </div>
                             <div class="post-footer">

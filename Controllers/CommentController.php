@@ -56,6 +56,11 @@ class CommentController {
                 return $this->error('You must be logged in to comment', 401);
             }
 
+            // Check role - only tenant and admin can comment
+            if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['tenant', 'admin'])) {
+                return $this->error('Chủ trọ không có quyền bình luận', 403);
+            }
+
             $data = json_decode(file_get_contents("php://input"), true);
 
             if (!isset($data['post_id']) || !isset($data['content'])) {
@@ -96,7 +101,65 @@ class CommentController {
     }
 
     /**
-     * Delete a comment
+     * Add a reply to a comment
+     * POST /api/comments.php?action=addReply
+     * Body: {parent_id, post_id, content}
+     */
+    public function addReply() {
+        try {
+            // Check if user is logged in
+            if (!isset($_SESSION['user_id'])) {
+                return $this->error('You must be logged in to reply', 401);
+            }
+
+            // Check role - only landlord and admin can reply
+            if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['landlord', 'admin'])) {
+                return $this->error('Chỉ chủ trọ mới có thể phản hồi bình luận', 403);
+            }
+
+            $data = json_decode(file_get_contents("php://input"), true);
+
+            if (!isset($data['parent_id']) || !isset($data['post_id']) || !isset($data['content'])) {
+                return $this->error('Parent ID, Post ID and content are required', 400);
+            }
+
+            $data['parent_id'] = (int)$data['parent_id'];
+            $data['post_id'] = (int)$data['post_id'];
+            $data['user_id'] = $_SESSION['user_id'];
+            $data['content'] = trim($data['content']);
+            $data['rating'] = 0; // Reply không có rating
+
+            if (empty($data['content'])) {
+                return $this->error('Reply content cannot be empty', 400);
+            }
+
+            if (strlen($data['content']) > 5000) {
+                return $this->error('Reply cannot exceed 5000 characters', 400);
+            }
+
+            // Verify parent comment exists
+            $parent = $this->commentModel->findById($data['parent_id']);
+            if (!$parent) {
+                return $this->error('Parent comment not found', 404);
+            }
+
+            // Verify post exists
+            $post = $this->postModel->findById($data['post_id']);
+            if (!$post) {
+                return $this->error('Post not found', 404);
+            }
+
+            $this->commentModel->create($data);
+            
+            return $this->success([
+                'message' => 'Reply added successfully'
+            ], 201);
+        } catch (Exception $e) {
+            return $this->error('Error adding reply: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
      * POST /api/comments.php?action=deleteComment
      * Body: {id}
      */

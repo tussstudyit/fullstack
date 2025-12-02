@@ -47,6 +47,7 @@ CREATE TABLE posts (
     price DECIMAL(10, 2) NOT NULL,
     area DECIMAL(10, 2),
     room_type ENUM('single', 'shared', 'apartment', 'house') DEFAULT 'single',
+    room_status ENUM('available', 'unavailable') DEFAULT 'available',
     max_people INT DEFAULT 1,
     gender ENUM('male', 'female', 'any') DEFAULT 'any',
     amenities TEXT,
@@ -64,6 +65,7 @@ CREATE TABLE posts (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
     INDEX idx_status (status),
+    INDEX idx_room_status (room_status),
     INDEX idx_user_id (user_id),
     INDEX idx_category_id (category_id),
     INDEX idx_city_district (city, district),
@@ -188,14 +190,17 @@ CREATE TABLE comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     post_id INT NOT NULL,
     user_id INT NOT NULL,
+    parent_id INT,
     content TEXT NOT NULL,
     rating INT DEFAULT 0 CHECK (rating BETWEEN 0 AND 5),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE,
     INDEX idx_post_id (post_id),
     INDEX idx_user_id (user_id),
+    INDEX idx_parent_id (parent_id),
     INDEX idx_rating (rating),
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -240,10 +245,10 @@ INSERT INTO users (username, email, password, full_name, phone, role) VALUES
 ('tenant2', 'tenant2@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Phạm Thị D', '0945678901', 'tenant');
 
 -- Insert sample posts
-INSERT INTO posts (user_id, category_id, title, description, address, district, city, price, area, room_type, max_people, gender, amenities, utilities, deposit_amount, electric_price, water_price, status) VALUES
-(2, 1, 'Phòng trọ gần ĐH Bách Khoa', 'Phòng trọ sạch sẽ, thoáng mát, an ninh tốt', '123 Nguyễn Chí Thanh', 'Quận Hải Châu', 'Đà Nẵng', 2500000, 20, 'single', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh', 'Điện, nước, internet', 2500000, 3500, 20000, 'approved'),
-(2, 2, 'Căn hộ mini cao cấp Quận 1', 'Căn hộ đầy đủ nội thất, view đẹp', '456 Tran Phu', 'Quận Thanh Khê', 'Đà Nẵng', 8000000, 35, 'apartment', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh, Máy giặt, Bếp', 'Điện, nước, internet, dọn dẹp', 8000000, 3500, 25000, 'approved'),
-(3, 1, 'Phòng trọ sinh viên giá rẻ', 'Phòng mới xây, gần chợ, trường học', '789 Lê Văn Việt', 'Quận Cẩm Lệ', 'Đà Nẵng', 1800000, 18, 'single', 1, 'female', 'WiFi, Điều hòa', 'Điện, nước', 1800000, 3500, 15000, 'approved');
+INSERT INTO posts (user_id, category_id, title, description, address, district, city, price, area, room_type, room_status, max_people, gender, amenities, utilities, deposit_amount, electric_price, water_price, status) VALUES
+(2, 1, 'Phòng trọ gần ĐH Bách Khoa', 'Phòng trọ sạch sẽ, thoáng mát, an ninh tốt', '123 Nguyễn Chí Thanh', 'Quận Hải Châu', 'Đà Nẵng', 2500000, 20, 'single', 'available', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh', 'Điện, nước, internet', 2500000, 3500, 20000, 'approved'),
+(2, 2, 'Căn hộ mini cao cấp Quận 1', 'Căn hộ đầy đủ nội thất, view đẹp', '456 Tran Phu', 'Quận Thanh Khê', 'Đà Nẵng', 8000000, 35, 'apartment', 'available', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh, Máy giặt, Bếp', 'Điện, nước, internet, dọn dẹp', 8000000, 3500, 25000, 'approved'),
+(3, 1, 'Phòng trọ sinh viên giá rẻ', 'Phòng mới xây, gần chợ, trường học', '789 Lê Văn Việt', 'Quận Cẩm Lệ', 'Đà Nẵng', 1800000, 18, 'single', 'available', 1, 'female', 'WiFi, Điều hòa', 'Điện, nước', 1800000, 3500, 15000, 'approved');
 
 -- Insert sample images
 INSERT INTO post_images (post_id, image_url, is_primary, display_order) VALUES

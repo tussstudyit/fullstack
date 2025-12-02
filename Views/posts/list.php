@@ -18,7 +18,7 @@ $postImageModel = new PostImage();
 
 try {
     $db = getDB();
-    $query = "SELECT id, title, address, district, city, price, area, room_type, max_people, created_at FROM posts WHERE status = 'approved'";
+    $query = "SELECT id, title, address, district, city, price, area, room_type, room_status, max_people, created_at FROM posts WHERE status = 'approved'";
     $params = [];
     
     if (!empty($search)) {
@@ -42,7 +42,7 @@ try {
     }
     
     // Count total
-    $count_query = str_replace("SELECT id, title, address, district, city, price, area, room_type, max_people, created_at", "SELECT COUNT(*) as cnt", $query);
+    $count_query = str_replace("SELECT id, title, address, district, city, price, area, room_type, room_status, max_people, created_at", "SELECT COUNT(*) as cnt", $query);
     $count_stmt = $db->prepare($count_query);
     $count_stmt->execute($params);
     $count_result = $count_stmt->fetch(PDO::FETCH_ASSOC);
@@ -563,16 +563,16 @@ if (isLoggedIn()) {
                                 </div>
                                 <div class="post-features">
                                     <div class="feature-item">
+                                        <i class="fas fa-door-open"></i>
+                                        <span><?php echo $post['room_status'] == 'available' ? '✓ Còn trống' : '✗ Đã hết'; ?></span>
+                                    </div>
+                                    <div class="feature-item">
                                         <i class="fas fa-expand"></i>
                                         <span><?php echo number_format($post['area'], 1); ?>m²</span>
                                     </div>
                                     <div class="feature-item">
                                         <i class="fas fa-<?php echo $post['max_people'] > 1 ? 'users' : 'user'; ?>"></i>
                                         <span><?php echo $post['max_people']; ?> người</span>
-                                    </div>
-                                    <div class="feature-item">
-                                        <i class="fas fa-door-open"></i>
-                                        <span><?php echo ucfirst($post['room_type']); ?></span>
                                     </div>
                                 </div>
                                 <div class="post-footer">

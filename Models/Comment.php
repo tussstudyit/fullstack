@@ -11,44 +11,92 @@ class Comment {
      * Create a new comment
      */
     public function create($data) {
-        $stmt = $this->conn->prepare(
-            "INSERT INTO {$this->table} (post_id, user_id, content, rating, created_at) " .
-            "VALUES (?, ?, ?, ?, NOW())"
-        );
-        
-        return $stmt->execute([
-            $data['post_id'],
-            $data['user_id'],
-            $data['content'] ?? null,
-            $data['rating'] ?? 0
-        ]);
+        // Check if this is a reply (has parent_id)
+        if (isset($data['parent_id']) && $data['parent_id'] > 0) {
+            $stmt = $this->conn->prepare(
+                "INSERT INTO {$this->table} (post_id, user_id, parent_id, content, rating, created_at) " .
+                "VALUES (?, ?, ?, ?, ?, NOW())"
+            );
+            
+            return $stmt->execute([
+                $data['post_id'],
+                $data['user_id'],
+                $data['parent_id'],
+                $data['content'] ?? null,
+                $data['rating'] ?? 0
+            ]);
+        } else {
+            // Regular comment
+            $stmt = $this->conn->prepare(
+                "INSERT INTO {$this->table} (post_id, user_id, content, rating, created_at) " .
+                "VALUES (?, ?, ?, ?, NOW())"
+            );
+            
+            return $stmt->execute([
+                $data['post_id'],
+                $data['user_id'],
+                $data['content'] ?? null,
+                $data['rating'] ?? 0
+            ]);
+        }
     }
 
     /**
      * Get all comments for a post
      */
     public function getByPost($post_id, $limit = 10, $offset = 0) {
+        $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
+        
         $stmt = $this->conn->prepare(
-            "SELECT c.*, u.username, u.id as user_id_display, " .
+            "SELECT c.*, u.username, u.id as user_id_display, u.role, " .
             "(SELECT COUNT(*) FROM comment_votes WHERE comment_id = c.id AND vote = 1) as upvotes, " .
-            "(SELECT COUNT(*) FROM comment_votes WHERE comment_id = c.id AND vote = -1) as downvotes " .
+            "(SELECT COUNT(*) FROM comment_votes WHERE comment_id = c.id AND vote = -1) as downvotes, " .
+            "(SELECT vote FROM comment_votes WHERE comment_id = c.id AND user_id = ? LIMIT 1) as user_vote " .
             "FROM {$this->table} c " .
             "JOIN users u ON c.user_id = u.id " .
-            "WHERE c.post_id = ? " .
+            "WHERE c.post_id = ? AND c.parent_id IS NULL " .
             "ORDER BY c.created_at DESC " .
             "LIMIT ? OFFSET ?"
         );
         
-        $stmt->execute([$post_id, $limit, $offset]);
+        $stmt->execute([$user_id, $post_id, $limit, $offset]);
+        $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Load replies for each comment
+        foreach ($comments as &$comment) {
+            $comment['replies'] = $this->getReplies($comment['id']);
+        }
+        
+        return $comments;
+    }
+
+    /**
+     * Get replies for a comment
+     */
+    public function getReplies($parent_id) {
+        $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
+        
+        $stmt = $this->conn->prepare(
+            "SELECT c.*, u.username, u.id as user_id_display, u.role, " .
+            "(SELECT COUNT(*) FROM comment_votes WHERE comment_id = c.id AND vote = 1) as upvotes, " .
+            "(SELECT COUNT(*) FROM comment_votes WHERE comment_id = c.id AND vote = -1) as downvotes, " .
+            "(SELECT vote FROM comment_votes WHERE comment_id = c.id AND user_id = ? LIMIT 1) as user_vote " .
+            "FROM {$this->table} c " .
+            "JOIN users u ON c.user_id = u.id " .
+            "WHERE c.parent_id = ? " .
+            "ORDER BY c.created_at ASC"
+        );
+        
+        $stmt->execute([$user_id, $parent_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
-     * Get comment count for a post
+     * Get comment count for a post (only parent comments, not replies)
      */
     public function getCountByPost($post_id) {
         $stmt = $this->conn->prepare(
-            "SELECT COUNT(*) as count FROM {$this->table} WHERE post_id = ?"
+            "SELECT COUNT(*) as count FROM {$this->table} WHERE post_id = ? AND parent_id IS NULL"
         );
         $stmt->execute([$post_id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -60,7 +108,7 @@ class Comment {
      */
     public function findById($id) {
         $stmt = $this->conn->prepare(
-            "SELECT c.*, u.username " .
+            "SELECT c.*, u.username, u.role " .
             "FROM {$this->table} c " .
             "JOIN users u ON c.user_id = u.id " .
             "WHERE c.id = ?"
