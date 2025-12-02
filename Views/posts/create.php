@@ -753,30 +753,38 @@ if ($postId) {
 
         // Upload images after post creation
         function uploadPostImages(postId) {
-            console.log('=== uploadPostImages called ===');
+            console.log('%c=== uploadPostImages START ===', 'background: #667eea; color: white; padding: 10px; font-weight: bold;');
             console.log('postId:', postId);
-            console.log('uploadedImages.length:', uploadedImages.length);
+            console.log('uploadedImages count:', uploadedImages.length);
+            console.log('uploadedImages array:', uploadedImages);
             
             if (uploadedImages.length === 0) {
+                console.log('No images to upload, returning success');
                 return Promise.resolve({ success: true, message: 'Không có ảnh để upload' });
             }
 
             const formData = new FormData();
             formData.append('post_id', postId);
             
-            console.log('Appending images to FormData...');
+            console.log('%cAppending images to FormData...', 'color: blue; font-weight: bold;');
             for (let i = 0; i < uploadedImages.length; i++) {
-                console.log('Appending image', i, ':', uploadedImages[i].name);
-                formData.append('images', uploadedImages[i]);
+                const img = uploadedImages[i];
+                console.log(`  [${i}] Ảnh ${i+1}/${uploadedImages.length}:`);
+                console.log(`      - Tên: ${img.name}`);
+                console.log(`      - Kích thước: ${(img.size / 1024 / 1024).toFixed(2)} MB`);
+                console.log(`      - Loại: ${img.type}`);
+                console.log(`      - Sẽ là ảnh bìa: ${i === 0 ? 'CÓ (ảnh đầu tiên)' : 'KHÔNG'}`);
+                formData.append('images', img);
             }
             
-            console.log('Sending to API...');
+            console.log('%cSending to API: ../../api/upload-image.php?action=upload-multiple', 'color: green; font-weight: bold;');
 
             return fetch('../../api/upload-image.php?action=upload-multiple', {
                 method: 'POST',
                 body: formData
             })
             .then(response => {
+                console.log('API response status:', response.status);
                 const contentType = response.headers.get('content-type');
                 if (contentType && contentType.includes('application/json')) {
                     return response.json();
@@ -788,17 +796,28 @@ if ($postId) {
                 }
             })
             .then(data => {
-                console.log('Upload response:', data);
+                console.log('%cUpload response received:', 'background: #28a745; color: white; padding: 5px; font-weight: bold;');
+                console.log('Success:', data.success);
+                console.log('Message:', data.message);
+                console.log('Uploaded images count:', data.uploaded ? data.uploaded.length : 0);
+                console.log('Full response:', data);
+                
                 if (data.success) {
+                    console.log('%c✓ Upload thành công!', 'color: green; font-weight: bold; font-size: 14px;');
                     showNotification(data.message || 'Upload thành công', 'success');
                 } else {
+                    console.log('%c✗ Upload thất bại!', 'color: red; font-weight: bold; font-size: 14px;');
                     showNotification('Lỗi upload ảnh: ' + (data.message || 'Unknown error'), 'error');
                 }
                 return data;
             })
             .catch(error => {
-                console.error('Error uploading images:', error);
+                console.error('%cError uploading images:', 'background: #dc3545; color: white; padding: 5px; font-weight: bold;');
+                console.error(error);
                 showNotification('Lỗi khi upload ảnh: ' + error.message, 'error');
+            })
+            .finally(() => {
+                console.log('%c=== uploadPostImages END ===', 'background: #667eea; color: white; padding: 10px; font-weight: bold;');
             });
         }
 
@@ -806,21 +825,27 @@ if ($postId) {
         document.getElementById('createPostForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // DEBUG: Check uploadedImages before submit
-            console.log('=== FORM SUBMIT ===');
+            console.log('%c=== FORM SUBMIT START ===', 'background: #667eea; color: white; padding: 10px; font-weight: bold;');
+            console.log('Thời gian submit:', new Date().toLocaleString('vi-VN'));
             console.log('uploadedImages count:', uploadedImages.length);
-            console.log('uploadedImages:', uploadedImages);
+            console.log('Các ảnh đã chọn:');
+            for (let i = 0; i < uploadedImages.length; i++) {
+                console.log(`  ${i+1}. ${uploadedImages[i].name} (${(uploadedImages[i].size / 1024).toFixed(1)}KB)`);
+            }
             
             if (validateForm('createPostForm')) {
                 showNotification('Đang xử lý...', 'info');
                 
                 const formData = new FormData(this);
+                const isEditing = document.querySelector('input[name="post_id"]') !== null;
+                console.log('Chế độ:', isEditing ? 'CHỈNH SỬA' : 'ĐĂNG TIN MỚI');
                 
                 fetch('../../Controllers/PostController.php', {
                     method: 'POST',
                     body: formData
                 })
                 .then(response => {
+                    console.log('PostController response status:', response.status);
                     return response.text().then(text => {
                         console.log('Raw response:', text);
                         try {
@@ -833,39 +858,45 @@ if ($postId) {
                     });
                 })
                 .then(data => {
+                    console.log('%cPostController response:', 'color: blue; font-weight: bold;');
+                    console.log('Success:', data.success);
+                    console.log('Message:', data.message);
+                    console.log('Post ID:', data.post_id);
+                    
                     if (data.success) {
                         showNotification('Bài đăng được tạo, đang upload ảnh...', 'info');
                         console.log('Post created with ID:', data.post_id);
-                        console.log('Uploaded images count:', uploadedImages.length);
+                        console.log('Chuẩn bị upload', uploadedImages.length, 'ảnh');
+                        
                         // Upload images if there are any
                         if (uploadedImages.length > 0) {
-                            console.log('Uploading images...');
+                            console.log('%cBắt đầu upload ảnh...', 'color: green; font-weight: bold;');
                             return uploadPostImages(data.post_id).then(() => data);
+                        } else {
+                            console.log('Không có ảnh để upload');
+                            return data;
                         }
-                        return data;
                     } else {
                         showNotification(data.message || 'Có lỗi xảy ra', 'error');
                         throw new Error(data.message);
                     }
                 })
                 .then(data => {
-                    if (data && data.success) {
-                        showNotification('Đăng tin thành công!', 'success');
-                        // Reset uploadedImages array
-                        uploadedImages = [];
-                        // Clear preview
-                        const preview = document.getElementById('imagePreview');
-                        if (preview) preview.innerHTML = '';
+                    if (data.success) {
+                        console.log('%c✓ Quá trình hoàn tất thành công!', 'background: #28a745; color: white; padding: 10px; font-weight: bold; font-size: 14px;');
+                        showNotification('Bài đăng thành công!', 'success');
                         setTimeout(() => {
                             window.location.href = '../user/my-posts.php';
-                        }, 2000);
+                        }, 1500);
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    if (error.message !== 'Có lỗi xảy ra') {
-                        showNotification('Lỗi khi gửi dữ liệu: ' + error.message, 'error');
-                    }
+                    console.error('%c✗ LỖI TRONG QUÁ TRÌNH:', 'background: #dc3545; color: white; padding: 10px; font-weight: bold;');
+                    console.error(error);
+                    showNotification('Có lỗi xảy ra: ' + error.message, 'error');
+                })
+                .finally(() => {
+                    console.log('%c=== FORM SUBMIT END ===', 'background: #667eea; color: white; padding: 10px; font-weight: bold;');
                 });
             }
         });
