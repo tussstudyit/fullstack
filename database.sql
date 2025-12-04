@@ -167,9 +167,9 @@ CREATE TABLE messages (
 CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    type ENUM('message', 'review', 'post_approved', 'post_rejected', 'system', 'comment', 'reply', 'rating') NOT NULL,
+    type ENUM('message', 'review', 'post_approved', 'post_rejected', 'system', 'comment', 'reply', 'rating', 'post_like') NOT NULL,
     title VARCHAR(255) NOT NULL,
-    content TEXT,
+    message TEXT,
     link VARCHAR(255),
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

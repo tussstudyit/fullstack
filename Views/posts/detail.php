@@ -703,6 +703,8 @@ try {
                 .then(data => {
                     if (data.success) {
                         displayComments(data.data);
+                        // Scroll to anchor after comments are rendered
+                        scrollToAnchor();
                     } else {
                         console.error('Error loading comments:', data.error);
                         document.getElementById('comments-list').innerHTML = '<p style="color: red; text-align: center;">Lỗi tải bình luận</p>';
@@ -801,7 +803,7 @@ try {
                 let repliesHtml = renderNestedReplies(comment.replies);
 
                 return `
-                    <div class="comment-item" style="border: 1px solid #e5e7eb; padding: 1.25rem; margin-bottom: 1rem; border-radius: 0.5rem; background: white; box-sizing: border-box;">
+                    <div id="comment-${comment.id}" class="comment-item" style="border: 1px solid #e5e7eb; padding: 1.25rem; margin-bottom: 1rem; border-radius: 0.5rem; background: white; box-sizing: border-box;">
                         <div class="comment-header" style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
                             <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
                                 ${comment.username.charAt(0).toUpperCase()}
@@ -1247,6 +1249,26 @@ try {
                 }
             })
             .catch(error => console.error('Error:', error));
+        }
+
+        // Handle anchor navigation to comments
+        function scrollToAnchor() {
+            const hash = window.location.hash;
+            if (hash) {
+                const elementId = hash.substring(1); // Remove # from hash
+                const element = document.getElementById(elementId);
+                if (element) {
+                    // Small delay to ensure DOM is fully rendered
+                    setTimeout(() => {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Highlight the comment temporarily
+                        element.style.backgroundColor = '#fef3c7';
+                        setTimeout(() => {
+                            element.style.backgroundColor = 'white';
+                        }, 2000);
+                    }, 100);
+                }
+            }
         }
     </script>
 </body>

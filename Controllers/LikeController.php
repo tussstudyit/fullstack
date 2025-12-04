@@ -54,13 +54,7 @@ class LikeController {
                 // Send notification to post author
                 require_once __DIR__ . '/../Models/Notification.php';
                 $notificationModel = new Notification();
-                $notificationModel->create([
-                    'user_id' => $post['user_id'],
-                    'type' => 'like',
-                    'title' => $_SESSION['username'] . " đã thích bài viết của bạn",
-                    'content' => "Bài viết: " . $post['title'],
-                    'link' => "/fullstack/Views/posts/detail.php?id={$post_id}"
-                ]);
+                $notificationModel->notifyLike($post_id, $user_id, $_SESSION['username'], $post['title']);
             }
 
             // Get updated likes count

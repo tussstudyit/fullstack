@@ -178,6 +178,35 @@ class Notification {
     }
 
     /**
+     * Tạo thông báo cho like/lượt thích
+     */
+    public function notifyLike($post_id, $liker_id, $liker_name, $post_title) {
+        try {
+            // Get post owner
+            $stmt = $this->db->prepare("SELECT user_id FROM posts WHERE id = ?");
+            $stmt->execute([$post_id]);
+            $post = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$post || $post['user_id'] == $liker_id) {
+                return false; // Don't notify if liker is the post author
+            }
+            
+            $link = "../../Views/posts/detail.php?id={$post_id}";
+            
+            return $this->create([
+                'user_id' => $post['user_id'],
+                'type' => 'post_like',
+                'title' => "{$liker_name} đã thích bài viết của bạn",
+                'message' => "Bài viết: {$post_title}",
+                'link' => $link
+            ]);
+        } catch (PDOException $e) {
+            error_log("Error in Notification::notifyLike: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Đánh dấu thông báo đã đọc
      */
     public function markAsRead($notification_id) {
