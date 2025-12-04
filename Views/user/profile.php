@@ -80,6 +80,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_bio']) && !iss
         $error = 'Lỗi cập nhật database';
     }
 }
+
+// Handle basic info update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_info']) && !isset($_FILES['avatar'])) {
+    $full_name = trim($_POST['full_name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    
+    // Validate email
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Email không hợp lệ';
+    } else {
+        // Check if email already exists for other users
+        $checkEmail = "SELECT id FROM users WHERE email = ? AND id != ?";
+        $checkStmt = getDB()->prepare($checkEmail);
+        $checkStmt->execute([$email, $_SESSION['user_id']]);
+        
+        if ($checkStmt->rowCount() > 0) {
+            $error = 'Email này đã được sử dụng';
+        } else {
+            $updateQuery = "UPDATE users SET full_name = ?, email = ?, phone = ? WHERE id = ?";
+            $updateStmt = getDB()->prepare($updateQuery);
+            if ($updateStmt->execute([$full_name, $email, $phone, $_SESSION['user_id']])) {
+                $user['full_name'] = $full_name;
+                $user['email'] = $email;
+                $user['phone'] = $phone;
+                $_SESSION['email'] = $email;
+                $message = 'Cập nhật thông tin thành công!';
+            } else {
+                $error = 'Lỗi cập nhật database';
+            }
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -582,21 +615,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_bio']) && !iss
                                 </p>
                             </div>
                             <div style="flex: 1; min-width: 250px;">
-                                <form method="POST" style="margin: 0;" id="bioForm">
+                                <form method="POST" style="margin: 0; display: flex; flex-direction: column;" id="bioForm">
                                     <input type="hidden" name="update_bio" value="1">
                                     <label style="display: block; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; font-size: 0.9rem;">Tiểu sử</label>
                                     <textarea name="bio" id="bioInput" placeholder="Viết một chút về bản thân bạn..." 
-                                              style="width: 100%; height: 80px; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; resize: vertical; font-size: 0.9rem;"><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
-                                    <button type="button" id="bioBtn" class="btn btn-outline" style="margin-top: 0.5rem; padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="focusBioInput()">
-                                        <i class="fas fa-pencil-alt"></i> Cập nhật tiểu sử
-                                    </button>
+                                              style="width: 100%; height: 80px; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; resize: vertical; font-size: 0.9rem; flex: 1;"><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
+                                    <div style="display: flex; justify-content: center; margin-top: 0.75rem;">
+                                        <button type="button" id="bioBtn" class="btn btn-outline" style="padding: 0.5rem 1.5rem; font-size: 0.9rem;" onclick="focusBioInput()">
+                                            <i class="fas fa-pencil-alt"></i> Cập nhật tiểu sử
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
                     </div>
                     <!-- User Info Section -->
                     <div class="profile-section">
-                        <h2>Thông tin cơ bản</h2>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2 style="margin: 0;">Thông tin cơ bản</h2>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="openInfoModal()">
+                                <i class="fas fa-edit"></i> Chỉnh sửa
+                            </button>
+                        </div>
                         
                         <div class="profile-item">
                             <span class="profile-label">Tên đầy đủ:</span>
@@ -674,6 +714,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_bio']) && !iss
                     <p><a href="../../index.php" class="btn btn-primary">Quay lại trang chủ</a></p>
                 </div>
             <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Info Edit Modal -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Chỉnh sửa thông tin cơ bản</h2>
+                <button type="button" class="modal-close" onclick="closeInfoModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="infoForm" method="POST">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="fullNameInput">Tên đầy đủ</label>
+                        <input type="text" id="fullNameInput" name="full_name" value="<?php echo htmlspecialchars($user['full_name'] ?? ''); ?>" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem;">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="emailInput">Email</label>
+                        <input type="email" id="emailInput" name="email" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem;">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phoneInput">Số điện thoại</label>
+                        <input type="tel" id="phoneInput" name="phone" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" placeholder="Ví dụ: 0912345678" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem;">
+                    </div>
+                </div>
+
+                <input type="hidden" name="update_info" value="1">
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeInfoModal()">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Lưu
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -760,6 +842,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_bio']) && !iss
 
     <script src="../../assets/js/main.js"></script>
     <script>
+        const infoModal = document.getElementById('infoModal');
+        const infoForm = document.getElementById('infoForm');
         const avatarModal = document.getElementById('avatarModal');
         const avatarInput = document.getElementById('avatarInput');
         const previewContainer = document.getElementById('previewContainer');
@@ -769,6 +853,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_bio']) && !iss
 
         // Store original bio value
         let originalBio = bioInput.value;
+
+        // Info Modal Functions
+        function openInfoModal() {
+            infoModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeInfoModal() {
+            infoModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Handle info form submit
+        infoForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                // Reload page to show updated info
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Lỗi: ' + error.message);
+            });
+        });
+
+        // Close info modal when clicking outside
+        infoModal.addEventListener('click', function(e) {
+            if (e.target === infoModal) {
+                closeInfoModal();
+            }
+        });
+
+        // Close info modal on ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (infoModal.classList.contains('active')) {
+                    closeInfoModal();
+                }
+                if (avatarModal.classList.contains('active')) {
+                    closeAvatarModal();
+                }
+            }
+        });
 
         // Open modal
         function openAvatarModal() {
