@@ -132,6 +132,38 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
             margin-bottom: 0.5rem;
         }
 
+        .notification-preview {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: var(--light-color);
+            border-left: 3px solid var(--primary-color);
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            max-height: 100px;
+            overflow: hidden;
+        }
+
+        .notification-preview.message {
+            border-left-color: var(--success-color);
+            font-style: italic;
+        }
+
+        .notification-preview-user {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .notification-preview-user strong {
+            color: var(--text-primary);
+        }
+
+        .notification-preview-rating {
+            margin-left: 0.5rem;
+            color: #fbbf24;
+            font-size: 0.85rem;
+        }
+
         .notification-time {
             color: #999;
             font-size: 0.75rem;
@@ -242,8 +274,11 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
 
                 <?php if (count($notifications) > 0): ?>
                     <div class="notifications-list">
-                        <?php foreach ($notifications as $notification): ?>
-                        <a href="<?php echo htmlspecialchars($notification['link'] ?? '#'); ?>" style="text-decoration: none; color: inherit;">
+                        <?php foreach ($notifications as $notification): 
+                            // Build correct URL - link already has relative path
+                            $notif_url = htmlspecialchars($notification['link'] ?? '#');
+                        ?>
+                        <a href="<?php echo $notif_url; ?>" style="text-decoration: none; color: inherit;">
                         <div class="notification-item <?php echo !$notification['is_read'] ? 'unread' : ''; ?>" data-id="<?php echo $notification['id']; ?>">
                             <div class="notification-icon <?php 
                                 $icon_class = 'info';
@@ -296,6 +331,59 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
                                     }
                                     ?>
                                 </div>
+                                
+                                <!-- Preview box for comment/rating/reply -->
+                                <?php 
+                                if (in_array($notification['type'], ['comment', 'rating', 'reply'])) {
+                                    // Extract comment ID from link
+                                    preg_match('/comment-(\d+)/', $notification['link'] ?? '', $matches);
+                                    if (!empty($matches[1])) {
+                                        $comment_id = (int)$matches[1];
+                                        try {
+                                            $conn = getDB();
+                                            $stmt = $conn->prepare("
+                                                SELECT c.content, c.rating, u.username 
+                                                FROM comments c 
+                                                JOIN users u ON c.user_id = u.id 
+                                                WHERE c.id = ? 
+                                                LIMIT 1
+                                            ");
+                                            $stmt->execute([$comment_id]);
+                                            $comment = $stmt->fetch(PDO::FETCH_ASSOC);
+                                            
+                                            if ($comment) {
+                                                $preview = substr($comment['content'], 0, 150);
+                                                if (strlen($comment['content']) > 150) {
+                                                    $preview .= '...';
+                                                }
+                                                ?>
+                                                <div class="notification-preview">
+                                                    <div class="notification-preview-user">
+                                                        <strong><?php echo htmlspecialchars($comment['username']); ?></strong>
+                                                        <?php if ($comment['rating'] > 0): ?>
+                                                            <span class="notification-preview-rating">
+                                                                <?php for ($i = 0; $i < $comment['rating']; $i++) echo '★'; ?>
+                                                            </span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <div style="color: var(--text-primary);">
+                                                        <?php echo htmlspecialchars($preview); ?>
+                                                    </div>
+                                                </div>
+                                                <?php
+                                            }
+                                        } catch (Exception $e) {
+                                            error_log("Error fetching comment preview: " . $e->getMessage());
+                                        }
+                                    }
+                                } elseif ($notification['type'] === 'message') {
+                                    ?>
+                                    <div class="notification-preview message">
+                                        <?php echo htmlspecialchars(substr($notification['message'] ?? '', 0, 100)); ?>
+                                    </div>
+                                    <?php
+                                }
+                                ?>
                             </div>
 
                             <div class="notification-actions">

@@ -84,7 +84,7 @@ class Notification {
                 return false; // Don't notify if commenter is the post author
             }
             
-            $link = "/fullstack/Views/posts/detail.php?id={$post_id}#comment-{$comment_id}";
+            $link = "../../Views/posts/detail.php?id={$post_id}#comment-{$comment_id}";
             
             return $this->create([
                 'user_id' => $post['user_id'],
@@ -113,7 +113,7 @@ class Notification {
                 return false;
             }
             
-            $link = "/fullstack/Views/posts/detail.php?id={$post_id}#comment-{$comment_id}";
+            $link = "../../Views/posts/detail.php?id={$post_id}#comment-{$comment_id}";
             
             return $this->create([
                 'user_id' => $post['user_id'],
@@ -142,7 +142,7 @@ class Notification {
                 return false;
             }
             
-            $link = "/fullstack/Views/posts/detail.php?id={$post_id}#comment-{$comment_id}";
+            $link = "../../Views/posts/detail.php?id={$post_id}#comment-{$comment_id}";
             
             return $this->create([
                 'user_id' => $comment['user_id'],
@@ -162,7 +162,7 @@ class Notification {
      */
     public function notifyMessage($receiver_id, $sender_name, $message_preview, $conversation_id) {
         try {
-            $link = "/fullstack/Views/chat/chat.php?conversation_id={$conversation_id}";
+            $link = "../../Views/chat/chat.php?conversation_id={$conversation_id}";
             
             return $this->create([
                 'user_id' => $receiver_id,
