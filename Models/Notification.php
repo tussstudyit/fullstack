@@ -53,19 +53,126 @@ class Notification {
         try {
             $stmt = $this->db->prepare("
                 INSERT INTO {$this->table} 
-                (user_id, type, title, content, link, is_read, created_at)
+                (user_id, type, title, message, link, is_read, created_at)
                 VALUES (?, ?, ?, ?, ?, 0, NOW())
             ");
             
             return $stmt->execute([
                 $data['user_id'],
-                $data['type'], // 'message', 'review', 'post_approved', 'post_rejected', 'system'
+                $data['type'], // 'message', 'review', 'post_approved', 'post_rejected', 'system', 'comment', 'reply', 'rating'
                 $data['title'],
-                $data['content'] ?? null,
+                $data['message'] ?? null,
                 $data['link'] ?? null
             ]);
         } catch (PDOException $e) {
             error_log("Error in Notification::create: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Tạo thông báo cho comment
+     */
+    public function notifyComment($post_id, $comment_id, $commenter_id, $commenter_name, $post_title) {
+        try {
+            // Get landlord of the post
+            $stmt = $this->db->prepare("SELECT user_id FROM posts WHERE id = ?");
+            $stmt->execute([$post_id]);
+            $post = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$post || $post['user_id'] == $commenter_id) {
+                return false; // Don't notify if commenter is the post author
+            }
+            
+            $link = "/fullstack/Views/posts/detail.php?id={$post_id}#comment-{$comment_id}";
+            
+            return $this->create([
+                'user_id' => $post['user_id'],
+                'type' => 'comment',
+                'title' => "{$commenter_name} đã bình luận về bài viết của bạn",
+                'message' => "Bài viết: {$post_title}",
+                'link' => $link
+            ]);
+        } catch (PDOException $e) {
+            error_log("Error in Notification::notifyComment: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Tạo thông báo cho rating/đánh giá
+     */
+    public function notifyRating($post_id, $comment_id, $rater_id, $rater_name, $rating, $post_title) {
+        try {
+            // Get landlord of the post
+            $stmt = $this->db->prepare("SELECT user_id FROM posts WHERE id = ?");
+            $stmt->execute([$post_id]);
+            $post = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$post || $post['user_id'] == $rater_id) {
+                return false;
+            }
+            
+            $link = "/fullstack/Views/posts/detail.php?id={$post_id}#comment-{$comment_id}";
+            
+            return $this->create([
+                'user_id' => $post['user_id'],
+                'type' => 'rating',
+                'title' => "{$rater_name} đã đánh giá {$rating}/5 sao cho bài viết của bạn",
+                'message' => "Bài viết: {$post_title}",
+                'link' => $link
+            ]);
+        } catch (PDOException $e) {
+            error_log("Error in Notification::notifyRating: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Tạo thông báo cho reply/phản hồi
+     */
+    public function notifyReply($comment_id, $reply_id, $replier_id, $replier_name, $post_id, $post_title) {
+        try {
+            // Get original comment author
+            $stmt = $this->db->prepare("SELECT user_id FROM comments WHERE id = ?");
+            $stmt->execute([$comment_id]);
+            $comment = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$comment || $comment['user_id'] == $replier_id) {
+                return false;
+            }
+            
+            $link = "/fullstack/Views/posts/detail.php?id={$post_id}#comment-{$comment_id}";
+            
+            return $this->create([
+                'user_id' => $comment['user_id'],
+                'type' => 'reply',
+                'title' => "{$replier_name} đã phản hồi bình luận của bạn",
+                'message' => "Bài viết: {$post_title}",
+                'link' => $link
+            ]);
+        } catch (PDOException $e) {
+            error_log("Error in Notification::notifyReply: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Tạo thông báo tin nhắn
+     */
+    public function notifyMessage($receiver_id, $sender_name, $message_preview, $conversation_id) {
+        try {
+            $link = "/fullstack/Views/chat/chat.php?conversation_id={$conversation_id}";
+            
+            return $this->create([
+                'user_id' => $receiver_id,
+                'type' => 'message',
+                'title' => "{$sender_name} đã gửi tin nhắn",
+                'message' => substr($message_preview, 0, 100),
+                'link' => $link
+            ]);
+        } catch (PDOException $e) {
+            error_log("Error in Notification::notifyMessage: " . $e->getMessage());
             return false;
         }
     }
@@ -95,7 +202,7 @@ class Notification {
             $stmt = $this->db->prepare("
                 UPDATE {$this->table} 
                 SET is_read = 1 
-                WHERE recipient_id = ? AND is_read = 0
+                WHERE user_id = ? AND is_read = 0
             ");
             return $stmt->execute([$user_id]);
         } catch (PDOException $e) {
@@ -127,7 +234,7 @@ class Notification {
         try {
             $stmt = $this->db->prepare("
                 DELETE FROM {$this->table} 
-                WHERE recipient_id = ?
+                WHERE user_id = ?
             ");
             return $stmt->execute([$user_id]);
         } catch (PDOException $e) {

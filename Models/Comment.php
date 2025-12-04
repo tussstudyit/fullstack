@@ -18,13 +18,15 @@ class Comment {
                 "VALUES (?, ?, ?, ?, ?, NOW())"
             );
             
-            return $stmt->execute([
+            $stmt->execute([
                 $data['post_id'],
                 $data['user_id'],
                 $data['parent_id'],
                 $data['content'] ?? null,
                 $data['rating'] ?? 0
             ]);
+            
+            return $this->conn->lastInsertId();
         } else {
             // Regular comment
             $stmt = $this->conn->prepare(
@@ -32,12 +34,14 @@ class Comment {
                 "VALUES (?, ?, ?, ?, NOW())"
             );
             
-            return $stmt->execute([
+            $stmt->execute([
                 $data['post_id'],
                 $data['user_id'],
                 $data['content'] ?? null,
                 $data['rating'] ?? 0
             ]);
+            
+            return $this->conn->lastInsertId();
         }
     }
 

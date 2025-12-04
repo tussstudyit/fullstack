@@ -41,6 +41,18 @@ if (isLoggedIn()) {
         error_log("Error checking favorite: " . $e->getMessage());
     }
 }
+
+// Get post likes count
+$likes_count = 0;
+try {
+    $conn = getDB();
+    $likes_check = $conn->prepare("SELECT COUNT(*) as count FROM post_likes WHERE post_id = ?");
+    $likes_check->execute([$post_id]);
+    $likes_result = $likes_check->fetch(PDO::FETCH_ASSOC);
+    $likes_count = $likes_result['count'] ?? 0;
+} catch (PDOException $e) {
+    error_log("Error checking likes: " . $e->getMessage());
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -555,7 +567,13 @@ if (isLoggedIn()) {
                     <div class="contact-card">
                         <h3 style="margin-bottom: 1.5rem;">Liên hệ</h3>
                         <div class="landlord-info">
-                            <img src="<?php echo getPlaceholderImage(60, 60, '667eea', substr($landlord['username'], 0, 1)); ?>" alt="Chủ trọ" class="landlord-avatar">
+                            <img src="<?php 
+                                if (!empty($landlord['avatar']) && file_exists(__DIR__ . '/../../' . $landlord['avatar'])) {
+                                    echo htmlspecialchars($landlord['avatar']);
+                                } else {
+                                    echo getPlaceholderImage(60, 60, '667eea', substr($landlord['username'], 0, 1));
+                                }
+                            ?>" alt="Chủ trọ" class="landlord-avatar">
                             <div class="landlord-details">
                                 <h4><?php echo htmlspecialchars($landlord['username'] ?? 'Chủ trọ'); ?></h4>
                                 <p>Chủ trọ</p>
@@ -574,6 +592,9 @@ if (isLoggedIn()) {
                             ?>
                             <button class="btn <?php echo $fav_btn_class; ?> <?php echo $is_favorited ? 'active' : ''; ?>" onclick="toggleFavorite(<?php echo $post_id; ?>, this)" id="favBtn">
                                 <i class="<?php echo $fav_icon_class; ?> fa-heart"></i> Yêu thích
+                            </button>
+                            <button class="btn btn-secondary" onclick="toggleLike(<?php echo $post_id; ?>)" style="width: 100%; margin-top: 0.5rem;">
+                                <i class="fas fa-thumbs-up"></i> Thích (<span id="likesCount"><?php echo $likes_count; ?></span>)
                             </button>
                         </div>
                     </div>
@@ -1199,6 +1220,30 @@ if (isLoggedIn()) {
                     }
                 } else {
                     alert(data.message || 'Lỗi khi thay đổi yêu thích');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Toggle like
+        function toggleLike(postId) {
+            <?php if (!isLoggedIn()): ?>
+            alert('Vui lòng đăng nhập để thích bài viết');
+            window.location.href = '../auth/login.php';
+            return;
+            <?php endif; ?>
+
+            fetch('../../Controllers/LikeController.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=toggleLike&post_id=' + postId
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('likesCount').textContent = data.likes_count;
+                } else {
+                    alert(data.message || 'Lỗi khi cập nhật lượt thích');
                 }
             })
             .catch(error => console.error('Error:', error));

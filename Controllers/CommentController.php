@@ -90,7 +90,32 @@ class CommentController {
                 return $this->error('Post not found', 404);
             }
 
-            $this->commentModel->create($data);
+            $comment_id = $this->commentModel->create($data);
+            
+            // Send notification to post author
+            require_once __DIR__ . '/../Models/Notification.php';
+            $notificationModel = new Notification();
+            
+            // Notify if rating > 0
+            if ($data['rating'] > 0) {
+                $notificationModel->notifyRating(
+                    $data['post_id'],
+                    $comment_id,
+                    $data['user_id'],
+                    $_SESSION['username'],
+                    $data['rating'],
+                    $post['title']
+                );
+            } else {
+                // Notify for comment
+                $notificationModel->notifyComment(
+                    $data['post_id'],
+                    $comment_id,
+                    $data['user_id'],
+                    $_SESSION['username'],
+                    $post['title']
+                );
+            }
             
             return $this->success([
                 'message' => 'Comment added successfully'
@@ -144,7 +169,19 @@ class CommentController {
                 return $this->error('Post not found', 404);
             }
 
-            $this->commentModel->create($data);
+            $reply_id = $this->commentModel->create($data);
+            
+            // Send notification to original comment author
+            require_once __DIR__ . '/../Models/Notification.php';
+            $notificationModel = new Notification();
+            $notificationModel->notifyReply(
+                $data['parent_id'],
+                $reply_id,
+                $data['user_id'],
+                $_SESSION['username'],
+                $data['post_id'],
+                $post['title']
+            );
             
             return $this->success([
                 'message' => 'Reply added successfully'

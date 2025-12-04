@@ -80,6 +80,10 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
             border-left: 4px solid var(--primary-color);
         }
 
+        a:has(.notification-item) {
+            text-decoration: none;
+        }
+
         .notification-icon {
             width: 50px;
             height: 50px;
@@ -239,36 +243,42 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
                 <?php if (count($notifications) > 0): ?>
                     <div class="notifications-list">
                         <?php foreach ($notifications as $notification): ?>
+                        <a href="<?php echo htmlspecialchars($notification['link'] ?? '#'); ?>" style="text-decoration: none; color: inherit;">
                         <div class="notification-item <?php echo !$notification['is_read'] ? 'unread' : ''; ?>" data-id="<?php echo $notification['id']; ?>">
                             <div class="notification-icon <?php 
                                 $icon_class = 'info';
-                                if (strpos($notification['type'], 'success') !== false) {
+                                $icon = 'fa-bell';
+                                
+                                if ($notification['type'] === 'comment') {
+                                    $icon_class = 'info';
+                                    $icon = 'fa-comment';
+                                } elseif ($notification['type'] === 'rating') {
                                     $icon_class = 'success';
-                                } elseif (strpos($notification['type'], 'warning') !== false) {
-                                    $icon_class = 'warning';
-                                } elseif (strpos($notification['type'], 'danger') !== false) {
+                                    $icon = 'fa-star';
+                                } elseif ($notification['type'] === 'reply') {
+                                    $icon_class = 'info';
+                                    $icon = 'fa-reply';
+                                } elseif ($notification['type'] === 'message') {
+                                    $icon_class = 'success';
+                                    $icon = 'fa-envelope';
+                                } elseif ($notification['type'] === 'post_like') {
                                     $icon_class = 'danger';
+                                    $icon = 'fa-heart';
+                                } elseif ($notification['type'] === 'post_approved') {
+                                    $icon_class = 'success';
+                                    $icon = 'fa-check';
+                                } elseif ($notification['type'] === 'post_rejected') {
+                                    $icon_class = 'danger';
+                                    $icon = 'fa-times';
                                 }
                                 echo $icon_class;
                             ?>">
-                                <?php if ($notification['type'] === 'post_comment'): ?>
-                                    <i class="fas fa-comment"></i>
-                                <?php elseif ($notification['type'] === 'post_like'): ?>
-                                    <i class="fas fa-heart"></i>
-                                <?php elseif ($notification['type'] === 'post_approved'): ?>
-                                    <i class="fas fa-check"></i>
-                                <?php elseif ($notification['type'] === 'post_rejected'): ?>
-                                    <i class="fas fa-times"></i>
-                                <?php elseif ($notification['type'] === 'message'): ?>
-                                    <i class="fas fa-envelope"></i>
-                                <?php else: ?>
-                                    <i class="fas fa-bell"></i>
-                                <?php endif; ?>
+                                <i class="fas <?php echo $icon; ?>"></i>
                             </div>
 
                             <div class="notification-content">
                                 <div class="notification-title"><?php echo htmlspecialchars($notification['title']); ?></div>
-                                <div class="notification-message"><?php echo htmlspecialchars($notification['message']); ?></div>
+                                <div class="notification-message"><?php echo htmlspecialchars($notification['message'] ?? ''); ?></div>
                                 <div class="notification-time">
                                     <?php 
                                     $time = strtotime($notification['created_at']);
@@ -290,15 +300,16 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
 
                             <div class="notification-actions">
                                 <?php if (!$notification['is_read']): ?>
-                                <button onclick="markAsRead(<?php echo $notification['id']; ?>)" title="Đánh dấu đã đọc">
+                                <button onclick="event.preventDefault(); markAsRead(<?php echo $notification['id']; ?>)" title="Đánh dấu đã đọc">
                                     <i class="fas fa-check"></i>
                                 </button>
                                 <?php endif; ?>
-                                <button onclick="deleteNotification(<?php echo $notification['id']; ?>)" title="Xóa">
+                                <button onclick="event.preventDefault(); deleteNotification(<?php echo $notification['id']; ?>)" title="Xóa">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </div>
+                        </a>
                         <?php endforeach; ?>
                     </div>
                 <?php else: ?>
