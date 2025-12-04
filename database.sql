@@ -14,6 +14,8 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     full_name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
+    avatar VARCHAR(255),
+    bio TEXT,
     role ENUM('admin', 'landlord', 'tenant') NOT NULL DEFAULT 'tenant',
     status ENUM('active', 'inactive', 'banned') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -115,7 +115,6 @@ $avg_price = number_format($price_stats['avg_price'] ?? 0, 0, ',', '.');
 $min_price = number_format($price_stats['min_price'] ?? 0, 0, ',', '.');
 $max_price = number_format($price_stats['max_price'] ?? 0, 0, ',', '.');
 ?>
-?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>

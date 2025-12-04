@@ -10,13 +10,75 @@ require_once __DIR__ . '/../../Models/User.php';
 require_once __DIR__ . '/../../Models/Notification.php';
 
 $user = null;
+$message = '';
+$error = '';
+
 try {
-    $query = "SELECT id, username, email, phone, full_name, role, created_at FROM users WHERE id = ?";
+    $query = "SELECT id, username, email, phone, full_name, avatar, bio, role, created_at FROM users WHERE id = ?";
     $stmt = getDB()->prepare($query);
     $stmt->execute([$_SESSION['user_id']]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     error_log("Query error: " . $e->getMessage());
+}
+
+// Handle avatar upload
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatar'])) {
+    $file = $_FILES['avatar'];
+    
+    if ($file['error'] === UPLOAD_ERR_OK) {
+        $fileSize = $file['size'];
+        $fileExt = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        
+        if ($fileSize > AVATAR_MAX_SIZE) {
+            $error = 'File quá lớn, tối đa ' . (AVATAR_MAX_SIZE / 1024 / 1024) . 'MB';
+        } elseif (!in_array($fileExt, ALLOWED_EXTENSIONS)) {
+            $error = 'Định dạng file không được hỗ trợ';
+        } else {
+            $uploadDir = AVATAR_UPLOAD_DIR;
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            
+            $fileName = 'avatar_' . $_SESSION['user_id'] . '_' . time() . '.' . $fileExt;
+            $uploadPath = $uploadDir . $fileName;
+            
+            if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
+                // Delete old avatar if exists
+                if (!empty($user['avatar']) && file_exists(AVATAR_UPLOAD_DIR . $user['avatar'])) {
+                    @unlink(AVATAR_UPLOAD_DIR . $user['avatar']);
+                }
+                
+                // Update database
+                $updateQuery = "UPDATE users SET avatar = ? WHERE id = ?";
+                $updateStmt = getDB()->prepare($updateQuery);
+                if ($updateStmt->execute([$fileName, $_SESSION['user_id']])) {
+                    $user['avatar'] = $fileName;
+                    $message = 'Cập nhật ảnh đại diện thành công!';
+                } else {
+                    $error = 'Lỗi cập nhật database';
+                    @unlink($uploadPath);
+                }
+            } else {
+                $error = 'Lỗi tải file lên';
+            }
+        }
+    } elseif ($file['error'] !== UPLOAD_ERR_NO_FILE) {
+        $error = 'Lỗi upload: ' . $file['error'];
+    }
+}
+
+// Handle bio update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bio'])) {
+    $bio = trim($_POST['bio'] ?? '');
+    $updateQuery = "UPDATE users SET bio = ? WHERE id = ?";
+    $updateStmt = getDB()->prepare($updateQuery);
+    if ($updateStmt->execute([$bio, $_SESSION['user_id']])) {
+        $user['bio'] = $bio;
+        $message = 'Cập nhật tiểu sử thành công!';
+    } else {
+        $error = 'Lỗi cập nhật database';
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -141,6 +203,20 @@ try {
             background: #fee2e2;
             color: #991b1b;
             border: 1px solid #fecaca;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border-color: #bbf7d0;
+            text-align: left;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+            text-align: left;
         }
 
         .alert h2 {
@@ -284,6 +360,51 @@ try {
         <div class="container">
             <?php if ($user): ?>
                 <div class="profile-container">
+                    <?php if ($message): ?>
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($message); ?>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php if ($error): ?>
+                        <div class="alert alert-error">
+                            <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Avatar Section -->
+                    <div class="profile-section">
+                        <h2>Ảnh đại diện</h2>
+                        <div style="display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+                            <div style="flex: 0 0 120px;">
+                                <img src="<?php echo !empty($user['avatar']) ? '../../uploads/avatars/' . htmlspecialchars($user['avatar']) : 'https://via.placeholder.com/120?text=' . substr($user['username'], 0, 1); ?>" 
+                                     alt="Avatar" 
+                                     style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;">
+                            </div>
+                            <form method="POST" enctype="multipart/form-data" style="flex: 1; min-width: 200px;">
+                                <div style="margin-bottom: 1rem;">
+                                    <input type="file" name="avatar" accept="image/*" required 
+                                           style="display: block; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                                    <small style="color: #6b7280;">Tối đa 2MB, định dạng: JPG, PNG, GIF</small>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                    <i class="fas fa-upload"></i> Cập nhật ảnh đại diện
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Bio Section -->
+                    <div class="profile-section">
+                        <h2>Tiểu sử</h2>
+                        <form method="POST">
+                            <textarea name="bio" placeholder="Viết một chút về bản thân bạn..." 
+                                      style="width: 100%; height: 100px; padding: 1rem; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; resize: vertical;"><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
+                            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">
+                                <i class="fas fa-save"></i> Lưu tiểu sử
+                            </button>
+                        </form>
+                    </div>
                     <!-- User Info Section -->
                     <div class="profile-section">
                         <h2>Thông tin cơ bản</h2>

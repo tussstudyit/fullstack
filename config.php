@@ -8,7 +8,9 @@ define('SITE_URL', 'http://localhost:3000');
 define('SITE_NAME', 'Tìm Trọ Sinh Viên');
 
 define('UPLOAD_DIR', __DIR__ . '/uploads/');
+define('AVATAR_UPLOAD_DIR', __DIR__ . '/uploads/avatars/');
 define('MAX_FILE_SIZE', 5 * 1024 * 1024);
+define('AVATAR_MAX_SIZE', 2 * 1024 * 1024);
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif']);
 
 date_default_timezone_set('Asia/Ho_Chi_Minh');
