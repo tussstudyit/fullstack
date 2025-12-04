@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['avatar'])) {
 }
 
 // Handle bio update
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bio'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_bio']) && !isset($_FILES['avatar'])) {
     $bio = trim($_POST['bio'] ?? '');
     $updateQuery = "UPDATE users SET bio = ? WHERE id = ?";
     $updateStmt = getDB()->prepare($updateQuery);
@@ -360,7 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bio'])) {
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             width: 90%;
-            max-width: 400px;
+            max-width: 550px;
             animation: slideIn 0.3s ease;
         }
 
@@ -448,11 +448,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bio'])) {
             border-radius: 6px;
             background: #f9fafb;
             margin: 1rem 0;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .modal-preview img {
-            max-width: 100px;
-            max-height: 100px;
+            max-width: 120px;
+            max-height: 120px;
             border-radius: 50%;
             object-fit: cover;
             display: inline-block;
@@ -561,38 +565,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bio'])) {
 
                     <!-- Avatar Section -->
                     <div class="profile-section">
-                        <h2>Ảnh đại diện</h2>
-                        <div style="display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
-                            <div class="avatar-wrapper">
-                                <img id="avatarImage" 
-                                     src="<?php echo !empty($user['avatar']) ? '../../uploads/avatars/' . htmlspecialchars($user['avatar']) : 'https://via.placeholder.com/120?text=' . substr($user['username'], 0, 1); ?>" 
-                                     alt="Avatar" 
-                                     class="avatar-image">
-                                <button type="button" class="avatar-edit-btn" onclick="openAvatarModal()">
-                                    <i class="fas fa-camera"></i>
-                                </button>
-                            </div>
+                        <h2>Hồ sơ cá nhân</h2>
+                        <div style="display: flex; align-items: flex-start; gap: 2rem; flex-wrap: wrap;">
                             <div>
-                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">
+                                <div class="avatar-wrapper">
+                                    <img id="avatarImage" 
+                                         src="<?php echo !empty($user['avatar']) ? '../../uploads/avatars/' . htmlspecialchars($user['avatar']) : 'https://via.placeholder.com/120?text=' . substr($user['username'], 0, 1); ?>" 
+                                         alt="Avatar" 
+                                         class="avatar-image">
+                                    <button type="button" class="avatar-edit-btn" onclick="openAvatarModal()">
+                                        <i class="fas fa-camera"></i>
+                                    </button>
+                                </div>
+                                <p style="color: #6b7280; margin: 0.75rem 0 0 0; font-size: 0.9rem; text-align: center;">
                                     <strong>@<?php echo htmlspecialchars($user['username']); ?></strong>
                                 </p>
-                                <p style="color: #9ca3af; margin: 0.5rem 0 0; font-size: 0.85rem;">
-                                    Nhấn vào biểu tượng camera để thay đổi ảnh đại diện
-                                </p>
+                            </div>
+                            <div style="flex: 1; min-width: 250px;">
+                                <form method="POST" style="margin: 0;" id="bioForm">
+                                    <input type="hidden" name="update_bio" value="1">
+                                    <label style="display: block; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; font-size: 0.9rem;">Tiểu sử</label>
+                                    <textarea name="bio" id="bioInput" placeholder="Viết một chút về bản thân bạn..." 
+                                              style="width: 100%; height: 80px; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; resize: vertical; font-size: 0.9rem;"><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
+                                    <button type="button" id="bioBtn" class="btn btn-outline" style="margin-top: 0.5rem; padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="focusBioInput()">
+                                        <i class="fas fa-pencil-alt"></i> Cập nhật tiểu sử
+                                    </button>
+                                </form>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Bio Section -->
-                    <div class="profile-section">
-                        <h2>Tiểu sử</h2>
-                        <form method="POST">
-                            <textarea name="bio" placeholder="Viết một chút về bản thân bạn..." 
-                                      style="width: 100%; height: 100px; padding: 1rem; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; resize: vertical;"><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
-                            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">
-                                <i class="fas fa-save"></i> Lưu tiểu sử
-                            </button>
-                        </form>
                     </div>
                     <!-- User Info Section -->
                     <div class="profile-section">
@@ -764,6 +764,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bio'])) {
         const avatarInput = document.getElementById('avatarInput');
         const previewContainer = document.getElementById('previewContainer');
         const avatarForm = document.getElementById('avatarForm');
+        const bioInput = document.getElementById('bioInput');
+        const bioBtn = document.getElementById('bioBtn');
+
+        // Store original bio value
+        let originalBio = bioInput.value;
 
         // Open modal
         function openAvatarModal() {
@@ -840,6 +845,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bio'])) {
             if (e.key === 'Escape' && avatarModal.classList.contains('active')) {
                 closeAvatarModal();
             }
+        });
+
+        // Track bio changes
+        function focusBioInput() {
+            bioInput.focus();
+            // Đặt con trỏ ở cuối
+            bioInput.setSelectionRange(bioInput.value.length, bioInput.value.length);
+        }
+
+        // When user types in bio input, change button to save mode
+        bioInput.addEventListener('input', function() {
+            if (this.value !== originalBio) {
+                bioBtn.classList.remove('btn-outline');
+                bioBtn.classList.add('btn-primary');
+                bioBtn.innerHTML = '<i class="fas fa-save"></i> Lưu tiểu sử';
+                bioBtn.type = 'submit';
+            }
+        });
+
+        // When user leaves the input without changes, revert button
+        bioInput.addEventListener('blur', function() {
+            if (this.value === originalBio) {
+                bioBtn.classList.add('btn-outline');
+                bioBtn.classList.remove('btn-primary');
+                bioBtn.innerHTML = '<i class="fas fa-pencil-alt"></i> Cập nhật tiểu sử';
+                bioBtn.type = 'button';
+                bioBtn.onclick = focusBioInput;
+            }
+        });
+
+        // Handle bio form submit
+        bioForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                // Update original bio and reset button
+                originalBio = bioInput.value;
+                bioBtn.classList.add('btn-outline');
+                bioBtn.classList.remove('btn-primary');
+                bioBtn.innerHTML = '<i class="fas fa-pencil-alt"></i> Cập nhật tiểu sử';
+                bioBtn.type = 'button';
+                bioBtn.onclick = focusBioInput;
+                
+                // Show success message
+                alert('Cập nhật tiểu sử thành công!');
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Lỗi: ' + error.message);
+            });
         });
     </script>
 </body>
