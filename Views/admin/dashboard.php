@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../config.php';
 
 // Kiểm tra quyền admin
 if (!isLoggedIn() || $_SESSION['role'] !== 'admin') {
-    redirect('/fullstack/index.php');
+    redirect(BASE_PATH . 'index.php');
     exit;
 }
 
@@ -124,6 +124,18 @@ $max_price = number_format($price_stats['max_price'] ?? 0, 0, ',', '.');
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f3f4f6;
+            min-height: 100vh;
+        }
+
         .admin-layout {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -160,6 +172,7 @@ $max_price = number_format($price_stats['max_price'] ?? 0, 0, ',', '.');
             padding: 1rem 1.5rem;
             color: rgba(255, 255, 255, 0.8);
             transition: all 0.3s ease;
+            text-decoration: none;
         }
 
         .admin-menu li a:hover,
@@ -167,6 +180,7 @@ $max_price = number_format($price_stats['max_price'] ?? 0, 0, ',', '.');
             background: rgba(59, 130, 246, 0.1);
             color: #60a5fa;
             border-left: 3px solid #3b82f6;
+            padding-left: calc(1.5rem - 3px);
         }
 
         .admin-main {
@@ -176,19 +190,50 @@ $max_price = number_format($price_stats['max_price'] ?? 0, 0, ',', '.');
         .admin-header {
             background: white;
             padding: 1.5rem 2rem;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .admin-header h1 {
+            color: #1f2937;
+            font-size: 1.875rem;
+            margin: 0;
+        }
+
+        .admin-header span {
+            color: #6b7280;
         }
 
         .admin-content {
             padding: 2rem;
+            overflow-y: auto;
+            max-height: calc(100vh - 130px);
+        }
+
+        /* Custom scrollbar */
+        .admin-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .admin-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .admin-content::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+
+        .admin-content::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -196,14 +241,47 @@ $max_price = number_format($price_stats['max_price'] ?? 0, 0, ',', '.');
         .stat-card {
             background: white;
             padding: 1.5rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        }
+
+        .stat-card:nth-child(2)::before {
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+
+        .stat-card:nth-child(3)::before {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+
+        .stat-card:nth-child(4)::before {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -212,89 +290,107 @@ $max_price = number_format($price_stats['max_price'] ?? 0, 0, ',', '.');
         }
 
         .stat-icon.blue {
-            background: rgba(59, 130, 246, 0.1);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(96, 165, 250, 0.1));
             color: #3b82f6;
         }
 
         .stat-icon.green {
-            background: rgba(16, 185, 129, 0.1);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.1));
             color: #10b981;
         }
 
         .stat-icon.yellow {
-            background: rgba(245, 158, 11, 0.1);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(251, 191, 36, 0.1));
             color: #f59e0b;
         }
 
         .stat-icon.red {
-            background: rgba(239, 68, 68, 0.1);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(248, 113, 113, 0.1));
             color: #ef4444;
         }
 
         .stat-value {
-            font-size: 2rem;
+            font-size: 1.75rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            color: #111827;
+            margin-bottom: 0.25rem;
         }
 
         .stat-label {
-            color: var(--text-secondary);
-        }
-
-        .data-table {
-            background: white;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            overflow: hidden;
-        }
-
-        .table-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .table-header h3 {
-            margin-bottom: 0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: var(--light-color);
-        }
-
-        th, td {
-            padding: 1rem 1.5rem;
-            text-align: left;
-        }
-
-        tbody tr {
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.3s ease;
-        }
-
-        tbody tr:hover {
-            background: var(--light-color);
-        }
-
-        .badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
+            color: #6b7280;
             font-size: 0.875rem;
-            font-weight: 600;
+            font-weight: 500;
         }
 
-        .badge-warning {
-            background: rgba(245, 158, 11, 0.1);
+        .price-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .price-stat {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .price-stat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        }
+
+        .price-stat:nth-child(2)::before {
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+
+        .price-stat:nth-child(3)::before {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+
+        .price-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .price-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-stat:nth-child(2) .price-stat-value {
+            color: #10b981;
+        }
+
+        .price-stat:nth-child(3) .price-stat-value {
             color: #f59e0b;
+        }
+
+        .price-stat-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
 
         .charts-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -302,14 +398,23 @@ $max_price = number_format($price_stats['max_price'] ?? 0, 0, ',', '.');
         .chart-card {
             background: white;
             padding: 1.5rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
         }
 
         .chart-card h3 {
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-            color: var(--text-dark);
+            margin: 0 0 1rem 0;
+            color: #111827;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-card h3 i {
+            color: #3b82f6;
         }
 
         .chart-container {
@@ -317,39 +422,48 @@ $max_price = number_format($price_stats['max_price'] ?? 0, 0, ',', '.');
             height: 300px;
         }
 
-        .price-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
+        .chart-card:nth-child(3) .chart-container {
+            height: 350px;
         }
 
-        .price-stat {
-            background: white;
-            padding: 1.5rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            text-align: center;
-        }
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
 
-        .price-stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .price-stat-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 1024px) {
             .charts-grid {
                 grid-template-columns: 1fr;
             }
 
+            .chart-card:nth-child(3) {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .admin-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-sidebar {
+                display: none;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
             .price-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
                 grid-template-columns: 1fr;
             }
         }

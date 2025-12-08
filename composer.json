@@ -1,0 +1,12 @@
+{
+    "name": "admin/fullstack",
+    "authors": [
+        {
+            "name": "tussstudyit",
+            "email": "nguyendt.24it@vku.udn.vn"
+        }
+    ],
+    "require": {
+        "cboden/ratchet": "0.4.4"
+    }
+}

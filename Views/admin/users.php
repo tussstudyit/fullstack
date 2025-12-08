@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../config.php';
 
 // Kiểm tra quyền admin
 if (!isLoggedIn() || $_SESSION['role'] !== 'admin') {
-    redirect('/fullstack/index.php');
+    redirect('/index.php');
     exit;
 }
 
@@ -191,9 +191,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             font-weight: 600;
         }
 
-        .badge-student {
-            background: rgba(59, 130, 246, 0.1);
-            color: #3b82f6;
+        .badge-tenant {
+            background: rgba(34, 197, 226, 0.1);
+            color: #22c5e6;
         }
 
         .badge-landlord {
@@ -283,7 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <label>Vai trò</label>
                             <select name="role" class="form-control">
                                 <option value="">Tất cả</option>
-                                <option value="student" <?php echo $role_filter === 'student' ? 'selected' : ''; ?>>Sinh viên</option>
+                                <option value="tenant" <?php echo $role_filter === 'tenant' ? 'selected' : ''; ?>>Người thuê</option>
                                 <option value="landlord" <?php echo $role_filter === 'landlord' ? 'selected' : ''; ?>>Chủ trọ</option>
                                 <option value="admin" <?php echo $role_filter === 'admin' ? 'selected' : ''; ?>>Admin</option>
                             </select>
@@ -326,7 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                         <span class="badge badge-<?php echo $user['role']; ?>">
                                             <?php 
                                             $role_labels = [
-                                                'student' => 'Sinh viên',
+                                                'tenant' => 'Người thuê',
                                                 'landlord' => 'Chủ trọ',
                                                 'admin' => 'Admin'
                                             ];

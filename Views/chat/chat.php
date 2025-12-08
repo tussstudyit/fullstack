@@ -7,7 +7,7 @@ require_once __DIR__ . '/../../helpers.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tin nhắn - Tìm Trọ Sinh Viên</title>
+    <title>Tin nhắn - NhaTot</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -289,8 +289,13 @@ require_once __DIR__ . '/../../helpers.php';
     <header class="header">
         <nav class="navbar">
             <a href="../../index.php" class="logo">
-                <i class="fas fa-home"></i>
-                <span>Tìm Trọ SV</span>
+                <div class="logo-icon-box">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>NhaTot</h1>
+                    <p>Nơi bạn thuộc về</p>
+                </div>
             </a>
 
             <ul class="nav-menu">
@@ -307,26 +312,48 @@ require_once __DIR__ . '/../../helpers.php';
 
             <div class="nav-actions">
                 <?php if (isLoggedIn()): ?>
-                    <div style="position: relative; display: inline-block;">
-                        <a href="../user/notifications.php" class="btn btn-outline btn-sm" title="Thông báo">
-                            <i class="fas fa-bell"></i> Thông báo
-                        </a>
+                    <a href="../user/notifications.php" style="position: relative; display: inline-flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.5rem; margin-right: 1rem;" title="Thông báo">
+                        <i class="fas fa-bell"></i>
                         <?php 
                         require_once '../../Models/Notification.php';
                         $notifModel = new Notification();
                         $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
                         if ($unread > 0): 
                         ?>
-                        <span style="position: absolute; top: -5px; right: -5px; background: var(--danger-color); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">
+                        <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; padding: 2px;">
                             <?php echo $unread > 99 ? '99+' : $unread; ?>
                         </span>
                         <?php endif; ?>
+                    </a>
+                    <div class="user-menu-wrapper" style="position: relative;">
+                        <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
+                            <?php
+                            try {
+                                $db = getDB();
+                                $user_stmt = $db->prepare("SELECT avatar FROM users WHERE id = ?");
+                                $user_stmt->execute([$_SESSION['user_id']]);
+                                $user_data = $user_stmt->fetch(PDO::FETCH_ASSOC);
+                                $avatar_src = (!empty($user_data['avatar'])) 
+                                    ? '../../uploads/avatars/' . htmlspecialchars($user_data['avatar']) 
+                                    : 'https://via.placeholder.com/40/3b82f6/ffffff?text=' . strtoupper(substr($_SESSION['username'], 0, 1));
+                            } catch (Exception $e) {
+                                $avatar_src = 'https://via.placeholder.com/40/3b82f6/ffffff?text=' . strtoupper(substr($_SESSION['username'], 0, 1));
+                            }
+                            ?>
+                            <img src="<?php echo $avatar_src; ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6; cursor: pointer;">
+                        </button>
+                        <div class="user-dropdown-menu" id="userDropdownMenu" style="display: none;">
+                            <a href="../user/profile.php" class="dropdown-item">
+                                <i class="fas fa-user-circle"></i> Hồ sơ
+                            </a>
+                            <a href="../../Controllers/AuthController.php?action=logout" class="dropdown-item logout">
+                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            </a>
+                        </div>
                     </div>
-                    <a href="../user/profile.php" class="btn btn-outline btn-sm"><i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($_SESSION['username']); ?></a>
-                    <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
                 <?php else: ?>
                     <a href="../auth/login.php" class="btn btn-outline btn-sm">Đăng nhập</a>
-                    <a href="../auth/register.php" class="btn btn-primary btn-sm">Đăng ký</a>
+                    <a href="../auth/register.php" class="btn btn-register btn-sm">Đăng ký</a>
                 <?php endif; ?>
             </div>
 
@@ -469,6 +496,20 @@ require_once __DIR__ . '/../../helpers.php';
 
     <script src="../../assets/js/main.js"></script>
     <script>
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('userDropdownMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('userDropdownMenu');
+            const userWrapper = document.querySelector('.user-menu-wrapper');
+            if (menu && !userWrapper.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
         function sendMessage(event) {
             event.preventDefault();
             

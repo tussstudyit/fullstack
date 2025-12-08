@@ -7,6 +7,9 @@ define('DB_PASS', '');
 define('SITE_URL', 'http://localhost:3000');
 define('SITE_NAME', 'Tìm Trọ Sinh Viên');
 
+// Base path for includes and navigation
+define('BASE_PATH', '/');
+
 define('UPLOAD_DIR', __DIR__ . '/uploads/');
 define('AVATAR_UPLOAD_DIR', __DIR__ . '/uploads/avatars/');
 define('MAX_FILE_SIZE', 5 * 1024 * 1024);
@@ -69,12 +72,7 @@ function isLandlord() {
 
 function getBasePath() {
     // Determine base path dynamically
-    // If script is at /index.php, base path is /
-    // If script is at /fullstack/index.php, base path is /fullstack
-    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
-    if (strpos($scriptName, '/fullstack/') !== false) {
-        return '/fullstack';
-    }
+    // Project is now at root, so base path is always /
     return '';
 }
 

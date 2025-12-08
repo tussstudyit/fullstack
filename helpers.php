@@ -12,7 +12,7 @@ function getPlaceholderImage($width = 300, $height = 200, $bg = '667eea', $text 
     // Get base path dynamically
     $basePath = getBasePath();
     if (!$basePath) {
-        $basePath = '/fullstack'; // Fallback
+        $basePath = ''; // Fallback - project is at root
     }
     
     $params = http_build_query([

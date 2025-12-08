@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../Models/Notification.php';
 
 // Redirect if not logged in
 if (!isLoggedIn()) {
-    redirect('/fullstack/Views/auth/login.php');
+    redirect(BASE_PATH . 'Views/auth/login.php');
 }
 
 $notificationModel = new Notification();
@@ -16,7 +16,7 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thông báo - Tìm Trọ Sinh Viên</title>
+    <title>Thông báo - NhaTot</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -221,8 +221,13 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
     <header class="header">
         <nav class="navbar">
             <a href="../../index.php" class="logo">
-                <i class="fas fa-home"></i>
-                <span>Tìm Trọ SV</span>
+                <div class="logo-icon-box">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>NhaTot</h1>
+                    <p>Nơi bạn thuộc về</p>
+                </div>
             </a>
 
             <ul class="nav-menu">
@@ -238,8 +243,32 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
             </ul>
 
             <div class="nav-actions">
-                    <a href="profile.php" class="btn btn-outline btn-sm"><i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($_SESSION['username']); ?></a>
-                    <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                    <div class="user-menu-wrapper" style="position: relative;">
+                        <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
+                            <?php
+                            try {
+                                $db = getDB();
+                                $user_stmt = $db->prepare("SELECT avatar FROM users WHERE id = ?");
+                                $user_stmt->execute([$_SESSION['user_id']]);
+                                $user_data = $user_stmt->fetch(PDO::FETCH_ASSOC);
+                                $avatar_src = (!empty($user_data['avatar'])) 
+                                    ? '../../uploads/avatars/' . htmlspecialchars($user_data['avatar']) 
+                                    : 'https://via.placeholder.com/40/3b82f6/ffffff?text=' . strtoupper(substr($_SESSION['username'], 0, 1));
+                            } catch (Exception $e) {
+                                $avatar_src = 'https://via.placeholder.com/40/3b82f6/ffffff?text=' . strtoupper(substr($_SESSION['username'], 0, 1));
+                            }
+                            ?>
+                            <img src="<?php echo $avatar_src; ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6; cursor: pointer;">
+                        </button>
+                        <div class="user-dropdown-menu" id="userDropdownMenu" style="display: none;">
+                            <a href="profile.php" class="dropdown-item">
+                                <i class="fas fa-user-circle"></i> Hồ sơ
+                            </a>
+                            <a href="../../Controllers/AuthController.php?action=logout" class="dropdown-item logout">
+                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            </a>
+                        </div>
+                    </div>
             </div>
 
             <button class="mobile-menu-toggle">

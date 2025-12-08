@@ -21,20 +21,29 @@ class AuthController {
         $password = $_POST['password'] ?? '';
 
         if (empty($credential) || empty($password)) {
-            redirect('/fullstack/Views/auth/login.php?error=' . urlencode('❌ Vui lòng nhập email/username/số điện thoại và mật khẩu'));
+            $_SESSION['login_error'] = '❌ Vui lòng nhập email/username/số điện thoại và mật khẩu';
+            $_SESSION['login_error_type'] = '';
+            redirect('/Views/auth/login.php');
         }
 
         $result = $this->userModel->login($credential, $password);
 
         if ($result['success']) {
+            // Clear login errors khi đăng nhập thành công
+            unset($_SESSION['login_error']);
+            unset($_SESSION['login_error_type']);
+            
             // Redirect dựa vào role
             if ($_SESSION['role'] === 'admin') {
-                redirect('/fullstack/Views/admin/dashboard.php');
+                redirect('/Views/admin/dashboard.php');
             } else {
-                redirect('/fullstack/index.php');
+                redirect('/index.php');
             }
         } else {
-            redirect('/fullstack/Views/auth/login.php?error=' . urlencode('❌ ' . $result['message']));
+            // Lưu error message và error type vào session
+            $_SESSION['login_error'] = '❌ ' . $result['message'];
+            $_SESSION['login_error_type'] = isset($result['errorType']) ? $result['errorType'] : '';
+            redirect('/Views/auth/login.php');
         }
 
         return $result;
@@ -59,35 +68,35 @@ class AuthController {
 
         // Validation
         if (empty($username) || empty($email) || empty($password) || empty($full_name)) {
-            redirect('/fullstack/Views/auth/register.php?error=' . urlencode('❌ Vui lòng điền đầy đủ thông tin bắt buộc'));
+            redirect('/Views/auth/register.php?error=' . urlencode('❌ Vui lòng điền đầy đủ thông tin bắt buộc'));
         }
 
         if (strlen($username) < 4 || strlen($username) > 20) {
-            redirect('/fullstack/Views/auth/register.php?error=' . urlencode('❌ Tên đăng nhập phải từ 4-20 ký tự'));
+            redirect('/Views/auth/register.php?error=' . urlencode('❌ Tên đăng nhập phải từ 4-20 ký tự'));
         }
 
         if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
-            redirect('/fullstack/Views/auth/register.php?error=' . urlencode('❌ Tên đăng nhập chỉ chứa chữ cái, số và dấu gạch dưới'));
+            redirect('/Views/auth/register.php?error=' . urlencode('❌ Tên đăng nhập chỉ chứa chữ cái, số và dấu gạch dưới'));
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            redirect('/fullstack/Views/auth/register.php?error=' . urlencode('❌ Email không hợp lệ'));
+            redirect('/Views/auth/register.php?error=' . urlencode('❌ Email không hợp lệ'));
         }
 
         if (strlen($password) < 6) {
-            redirect('/fullstack/Views/auth/register.php?error=' . urlencode('❌ Mật khẩu phải có ít nhất 6 ký tự'));
+            redirect('/Views/auth/register.php?error=' . urlencode('❌ Mật khẩu phải có ít nhất 6 ký tự'));
         }
 
         if ($password !== $confirm_password) {
-            redirect('/fullstack/Views/auth/register.php?error=' . urlencode('❌ Mật khẩu xác nhận không khớp'));
+            redirect('/Views/auth/register.php?error=' . urlencode('❌ Mật khẩu xác nhận không khớp'));
         }
 
         if (!in_array($role, ['tenant', 'landlord'])) {
-            redirect('/fullstack/Views/auth/register.php?error=' . urlencode('❌ Vai trò không hợp lệ'));
+            redirect('/Views/auth/register.php?error=' . urlencode('❌ Vai trò không hợp lệ'));
         }
 
         if (!empty($phone) && !preg_match('/^[0-9]{10,11}$/', $phone)) {
-            redirect('/fullstack/Views/auth/register.php?error=' . urlencode('❌ Số điện thoại phải từ 10-11 chữ số'));
+            redirect('/Views/auth/register.php?error=' . urlencode('❌ Số điện thoại phải từ 10-11 chữ số'));
         }
 
         $data = [
@@ -107,16 +116,16 @@ class AuthController {
             if ($loginResult['success']) {
                 // Redirect dựa vào role
                 if ($_SESSION['role'] === 'admin') {
-                    redirect('/fullstack/Views/admin/dashboard.php?success=' . urlencode('✓ Đăng ký và đăng nhập thành công'));
+                    redirect('/Views/admin/dashboard.php?success=' . urlencode('✓ Đăng ký và đăng nhập thành công'));
                 } else {
-                    redirect('/fullstack/index.php?success=' . urlencode('✓ Đăng ký và đăng nhập thành công'));
+                    redirect('/index.php?success=' . urlencode('✓ Đăng ký và đăng nhập thành công'));
                 }
             } else {
                 // Nếu auto-login thất bại, redirect đến login page
-                redirect('/fullstack/Views/auth/login.php?message=' . urlencode('✓ Đăng ký thành công. Vui lòng đăng nhập'));
+                redirect('/Views/auth/login.php?message=' . urlencode('✓ Đăng ký thành công. Vui lòng đăng nhập'));
             }
         } else {
-            redirect('/fullstack/Views/auth/register.php?error=' . urlencode('❌ ' . $result['message']));
+            redirect('/Views/auth/register.php?error=' . urlencode('❌ ' . $result['message']));
         }
 
         return $result;
@@ -128,7 +137,7 @@ class AuthController {
     public function logout() {
         $_SESSION = [];
         session_destroy();
-        redirect('/fullstack/index.php');
+        redirect('/index.php');
     }
 
     /**

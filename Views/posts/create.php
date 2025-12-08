@@ -259,8 +259,13 @@ if ($postId) {
     <header class="header">
         <nav class="navbar">
             <a href="../../index.php" class="logo">
-                <i class="fas fa-home"></i>
-                <span>Tìm Trọ SV</span>
+                <div class="logo-icon-box">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>NhaTot</h1>
+                    <p>Nơi bạn thuộc về</p>
+                </div>
             </a>
 
             <ul class="nav-menu">
@@ -286,8 +291,32 @@ if ($postId) {
                     </span>
                     <?php endif; ?>
                 </div>
-                <a href="../user/profile.php" class="btn btn-outline btn-sm"><i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($_SESSION['username']); ?></a>
-                <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                    <div class="user-menu-wrapper" style="position: relative;">
+                        <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
+                            <?php
+                            try {
+                                $db = getDB();
+                                $user_stmt = $db->prepare("SELECT avatar FROM users WHERE id = ?");
+                                $user_stmt->execute([$_SESSION['user_id']]);
+                                $user_data = $user_stmt->fetch(PDO::FETCH_ASSOC);
+                                $avatar_src = (!empty($user_data['avatar'])) 
+                                    ? '../../uploads/avatars/' . htmlspecialchars($user_data['avatar']) 
+                                    : 'https://via.placeholder.com/40/3b82f6/ffffff?text=' . strtoupper(substr($_SESSION['username'], 0, 1));
+                            } catch (Exception $e) {
+                                $avatar_src = 'https://via.placeholder.com/40/3b82f6/ffffff?text=' . strtoupper(substr($_SESSION['username'], 0, 1));
+                            }
+                            ?>
+                            <img src="<?php echo $avatar_src; ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6; cursor: pointer;">
+                        </button>
+                        <div class="user-dropdown-menu" id="userDropdownMenu" style="display: none;">
+                            <a href="../user/profile.php" class="dropdown-item">
+                                <i class="fas fa-user-circle"></i> Hồ sơ
+                            </a>
+                            <a href="../../Controllers/AuthController.php?action=logout" class="dropdown-item logout">
+                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            </a>
+                        </div>
+                    </div>
             </div>
 
             <button class="mobile-menu-toggle">
@@ -703,6 +732,20 @@ if ($postId) {
 
     <script src="../../assets/js/main.js"></script>
     <script>
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('userDropdownMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('userDropdownMenu');
+            const userWrapper = document.querySelector('.user-menu-wrapper');
+            if (menu && !userWrapper.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
         let currentStep = 1;
         const totalSteps = 5;
 

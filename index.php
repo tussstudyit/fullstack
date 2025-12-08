@@ -88,12 +88,131 @@ if (isLoggedIn()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang chủ - Tìm Trọ Sinh Viên</title>
+    <title>Trang chủ - NhaTot</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        .carousel-section {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+        }
+
+        .carousel-container {
+            position: relative;
+            width: 90%;
+            height: 90%;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        .carousel-slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .carousel-slide.active {
+            opacity: 1;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .carousel-slide-content {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            text-align: center;
+            width: 90%;
+            z-index: 2;
+        }
+
+        .carousel-slide-content h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .carousel-slide-content p {
+            font-size: 1.125rem;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .carousel-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .carousel-btn {
+            background: rgba(255, 255, 255, 0.5);
+            border: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-btn.active {
+            background: white;
+            width: 30px;
+            border-radius: 6px;
+        }
+
+        .carousel-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 5;
+            border-radius: 0.5rem;
+        }
+
+        .carousel-nav:hover {
+            background: rgba(0,0,0,0.6);
+        }
+
+        .carousel-prev {
+            left: 1rem;
+        }
+
+        .carousel-next {
+            right: 1rem;
+        }
+        
         .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
             color: white;
             padding: 4rem 0;
             text-align: center;
@@ -113,21 +232,26 @@ if (isLoggedIn()) {
 
         .search-box {
             background: white;
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             padding: 2rem;
-            box-shadow: var(--shadow-lg);
-            max-width: 900px;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+            max-width: 700px;
             margin: 0 auto;
+            width: 90%;
         }
 
         .search-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr auto;
-            gap: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .search-input-group {
             position: relative;
+            flex: 1;
+            min-width: 180px;
         }
 
         .search-input-group i {
@@ -135,12 +259,59 @@ if (isLoggedIn()) {
             left: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-secondary);
+            color: #9ca3af;
+            font-size: 0.95rem;
         }
 
         .search-input-group input,
         .search-input-group select {
-            padding-left: 3rem;
+            width: 100%;
+            padding: 0.875rem 0.875rem 0.875rem 2.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: white;
+            color: #1f2937;
+        }
+
+        .search-input-group input:focus,
+        .search-input-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: #f0f9ff;
+        }
+
+        .search-input-group input::placeholder {
+            color: #9ca3af;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            padding: 0.875rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            height: 42px;
+        }
+
+        .search-btn:hover {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .search-btn:active {
+            transform: translateY(0);
         }
 
         .categories-section {
@@ -317,31 +488,207 @@ if (isLoggedIn()) {
         }
 
         .stats-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
             padding: 4rem 0;
+            background: var(--light-color);
+        }
+
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .stats-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 3rem;
+            color: var(--text-primary);
+        }
+
+        .amenities-box {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .amenity-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .amenity-item:hover {
+            background: #f0f9ff;
+            transform: translateY(-5px);
+        }
+
+        .amenity-icon {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            color: white;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .amenity-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
+            white-space: nowrap;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 3rem;
-            text-align: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
         }
 
         .stat-item {
+            background: white;
             padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
 
-        .stat-number {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
+        .stat-item:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-5px);
+            border-color: #e0f2fe;
+        }
+
+        .stat-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 1.75rem;
+            color: white;
+        }
+
+        .stat-item:nth-child(1) .stat-icon {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .stat-item:nth-child(2) .stat-icon {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        }
+
+        .stat-item:nth-child(3) .stat-icon {
+            background: linear-gradient(135deg, #93c5fd, #60a5fa);
+        }
+
+        .stat-item:nth-child(4) .stat-icon {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
         }
 
         .stat-label {
             font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stats-cta {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(96, 165, 250, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 3rem;
+        }
+
+        .cta-left {
+            flex: 1;
+            max-width: 50%;
+        }
+
+        .cta-brand {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+            background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cta-slogan {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            opacity: 0.95;
+            margin: 0;
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        .cta-right {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            min-width: 300px;
+        }
+
+        .cta-right h4 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .cta-right p {
+            font-size: 0.95rem;
             opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-explore-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            color: var(--primary-color);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .cta-explore-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
 
         .footer {
@@ -400,6 +747,50 @@ if (isLoggedIn()) {
                 grid-template-columns: 1fr;
             }
 
+            .amenities-box {
+                flex-wrap: wrap;
+                padding: 2rem 1rem;
+                gap: 1rem;
+            }
+
+            .amenity-item {
+                flex: 1 1 calc(25% - 1rem);
+                min-width: 80px;
+            }
+
+            .amenity-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 1.25rem;
+            }
+
+            .amenity-name {
+                font-size: 0.85rem;
+            }
+
+            .stats-cta {
+                flex-direction: column;
+                gap: 2rem;
+                padding: 2rem;
+            }
+
+            .cta-left {
+                max-width: 100%;
+                text-align: center;
+            }
+
+            .cta-brand {
+                font-size: 2.5rem;
+            }
+
+            .cta-slogan {
+                font-size: 1.05rem;
+            }
+
+            .cta-right {
+                min-width: 100%;
+            }
+
             .hero-content h1 {
                 font-size: 2rem;
             }
@@ -410,8 +801,13 @@ if (isLoggedIn()) {
     <header class="header">
         <nav class="navbar">
             <a href="index.php" class="logo">
-                <i class="fas fa-home"></i>
-                <span>Tìm Trọ SV</span>
+                <div class="logo-icon-box">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>NhaTot</h1>
+                    <p>Nơi bạn thuộc về</p>
+                </div>
             </a>
 
             <ul class="nav-menu">
@@ -430,26 +826,48 @@ if (isLoggedIn()) {
 
             <div class="nav-actions">
                 <?php if (isLoggedIn()): ?>
-                    <div style="position: relative; display: inline-block;">
-                        <a href="Views/user/notifications.php" class="btn btn-outline btn-sm" title="Thông báo">
-                            <i class="fas fa-bell"></i> Thông báo
-                        </a>
+                    <a href="Views/user/notifications.php" style="position: relative; display: inline-flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.5rem; margin-right: 1rem;" title="Thông báo">
+                        <i class="fas fa-bell"></i>
                         <?php 
-                        require_once 'Models/Notification.php';
+                        require_once __DIR__ . '/Models/Notification.php';
                         $notifModel = new Notification();
                         $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
                         if ($unread > 0): 
                         ?>
-                        <span style="position: absolute; top: -5px; right: -5px; background: var(--danger-color); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">
+                        <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; padding: 2px;">
                             <?php echo $unread > 99 ? '99+' : $unread; ?>
                         </span>
                         <?php endif; ?>
+                    </a>
+                    <div class="user-menu-wrapper" style="position: relative;">
+                        <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
+                            <?php
+                            try {
+                                $db = getDB();
+                                $user_stmt = $db->prepare("SELECT avatar FROM users WHERE id = ?");
+                                $user_stmt->execute([$_SESSION['user_id']]);
+                                $user_data = $user_stmt->fetch(PDO::FETCH_ASSOC);
+                                $avatar_src = (!empty($user_data['avatar'])) 
+                                    ? 'uploads/avatars/' . htmlspecialchars($user_data['avatar']) 
+                                    : 'https://via.placeholder.com/40/3b82f6/ffffff?text=' . strtoupper(substr($_SESSION['username'], 0, 1));
+                            } catch (Exception $e) {
+                                $avatar_src = 'https://via.placeholder.com/40/3b82f6/ffffff?text=' . strtoupper(substr($_SESSION['username'], 0, 1));
+                            }
+                            ?>
+                            <img src="<?php echo $avatar_src; ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6; cursor: pointer;">
+                        </button>
+                        <div class="user-dropdown-menu" id="userDropdownMenu" style="display: none;">
+                            <a href="Views/user/profile.php" class="dropdown-item">
+                                <i class="fas fa-user-circle"></i> Hồ sơ
+                            </a>
+                            <a href="Controllers/AuthController.php?action=logout" class="dropdown-item logout">
+                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            </a>
+                        </div>
                     </div>
-                    <a href="Views/user/profile.php" class="btn btn-outline btn-sm"><i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($_SESSION['username']); ?></a>
-                    <a href="Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
                 <?php else: ?>
                     <a href="Views/auth/login.php" class="btn btn-outline btn-sm">Đăng nhập</a>
-                    <a href="Views/auth/register.php" class="btn btn-primary btn-sm">Đăng ký</a>
+                    <a href="Views/auth/register.php" class="btn btn-register btn-sm">Đăng ký</a>
                 <?php endif; ?>
             </div>
 
@@ -458,6 +876,45 @@ if (isLoggedIn()) {
             </button>
         </nav>
     </header>
+
+    <section class="carousel-section">
+        <div class="carousel-container">
+            <div class="carousel-slide active">
+                <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&h=800&fit=crop" alt="Phòng trọ hiện đại">
+                <div class="carousel-slide-content">
+                    <h2>Tìm Phòng Trọ Dễ Dàng</h2>
+                    <p>Hàng nghìn phòng trọ chất lượng cao, giá cả phải chăng</p>
+                </div>
+            </div>
+            <div class="carousel-slide">
+                <img src="https://images.unsplash.com/photo-1505933404293-c86ba281e75d?w=1200&h=800&fit=crop" alt="Môi trường sống tốt">
+                <div class="carousel-slide-content">
+                    <h2>Môi Trường Sống Tốt</h2>
+                    <p>An toàn, yên tĩnh, gần các cơ sở giáo dục</p>
+                </div>
+            </div>
+            <div class="carousel-slide">
+                <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&h=800&fit=crop" alt="Cộng đồng sinh viên">
+                <div class="carousel-slide-content">
+                    <h2>Cộng Đồng Sinh Viên</h2>
+                    <p>Giao tiếp, chia sẻ kinh nghiệm với đồng trang lứa</p>
+                </div>
+            </div>
+            
+            <button class="carousel-nav carousel-prev" onclick="changeSlide(-1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="carousel-nav carousel-next" onclick="changeSlide(1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+
+            <div class="carousel-controls">
+                <button class="carousel-btn active" onclick="currentSlide(0)"></button>
+                <button class="carousel-btn" onclick="currentSlide(1)"></button>
+                <button class="carousel-btn" onclick="currentSlide(2)"></button>
+            </div>
+        </div>
+    </section>
 
     <section class="hero-section">
         <div class="container">
@@ -604,22 +1061,77 @@ if (isLoggedIn()) {
 
     <section class="stats-section">
         <div class="container">
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number"><?php echo number_format($total_posts); ?>+</div>
-                    <div class="stat-label">Phòng trọ</div>
+            <h2 class="stats-title">Không Gian Sống Tiện Nghi</h2>
+            
+            <div class="amenities-box">
+                <div class="amenity-item">
+                    <div class="amenity-icon">
+                        <i class="fas fa-wifi"></i>
+                    </div>
+                    <div class="amenity-name">WiFi</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-number"><?php echo number_format($total_users); ?>+</div>
-                    <div class="stat-label">Sinh viên</div>
+
+                <div class="amenity-item">
+                    <div class="amenity-icon">
+                        <i class="fas fa-snowflake"></i>
+                    </div>
+                    <div class="amenity-name">Điều hòa</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-number"><?php echo number_format($total_landlords); ?>+</div>
-                    <div class="stat-label">Chủ trọ</div>
+
+                <div class="amenity-item">
+                    <div class="amenity-icon">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <div class="amenity-name">Nước nóng</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-number"><?php echo $satisfied_rate; ?>%</div>
-                    <div class="stat-label">Hài lòng</div>
+
+                <div class="amenity-item">
+                    <div class="amenity-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="amenity-name">An ninh 24/7</div>
+                </div>
+
+                <div class="amenity-item">
+                    <div class="amenity-icon">
+                        <i class="fas fa-parking"></i>
+                    </div>
+                    <div class="amenity-name">Chỗ để xe</div>
+                </div>
+
+                <div class="amenity-item">
+                    <div class="amenity-icon">
+                        <i class="fas fa-wind"></i>
+                    </div>
+                    <div class="amenity-name">Máy giặt</div>
+                </div>
+
+                <div class="amenity-item">
+                    <div class="amenity-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="amenity-name">Giờ tự do</div>
+                </div>
+
+                <div class="amenity-item">
+                    <div class="amenity-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div class="amenity-name">Gác lửng</div>
+                </div>
+            </div>
+
+            <div class="stats-cta" style="margin-top: 3rem;">
+                <div class="cta-left">
+                    <h3 class="cta-brand">NhaTot</h3>
+                    <p class="cta-slogan">"Nơi khởi đầu mọi hành trình, tìm nhà - trọn niềm tin"</p>
+                </div>
+                <div class="cta-right">
+                    <h4>Tìm phòng trọ lý tưởng</h4>
+                    <p>Hàng nghìn phòng trọ chất lượng đang chờ bạn</p>
+                    <a href="Views/auth/register.php" class="cta-explore-btn">
+                        <i class="fas fa-search"></i> Khám phá ngay
+                    </a>
                 </div>
             </div>
         </div>
@@ -629,7 +1141,7 @@ if (isLoggedIn()) {
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-about">
-                    <h3><i class="fas fa-home"></i> Tìm Trọ SV</h3>
+                    <h3><i class="fas fa-home"></i> NhaTot</h3>
                     <p>Nền tảng tìm kiếm phòng trọ uy tín dành cho sinh viên. Giúp sinh viên tìm được phòng trọ phù hợp, giá rẻ, gần trường.</p>
                 </div>
 
@@ -665,13 +1177,61 @@ if (isLoggedIn()) {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; 2025 Tìm Trọ Sinh Viên. All rights reserved.</p>
+                <p>&copy; 2025 NhaTot. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <script src="assets/js/main.js"></script>
     <script>
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('userDropdownMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('userDropdownMenu');
+            const userWrapper = document.querySelector('.user-menu-wrapper');
+            if (menu && !userWrapper.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+        // Carousel functionality
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.carousel-slide');
+        const buttons = document.querySelectorAll('.carousel-btn');
+
+        function showSlide(index) {
+            if (index >= slides.length) {
+                currentSlideIndex = 0;
+            } else if (index < 0) {
+                currentSlideIndex = slides.length - 1;
+            } else {
+                currentSlideIndex = index;
+            }
+
+            slides.forEach(slide => slide.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            slides[currentSlideIndex].classList.add('active');
+            buttons[currentSlideIndex].classList.add('active');
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlideIndex + direction);
+        }
+
+        function currentSlide(index) {
+            showSlide(index);
+        }
+
+        // Auto-rotate carousel every 5 seconds
+        setInterval(() => {
+            changeSlide(1);
+        }, 5000);
+
         function toggleFavorite(postId, button) {
             <?php if (!isLoggedIn()): ?>
             alert('Vui lòng đăng nhập để yêu thích');

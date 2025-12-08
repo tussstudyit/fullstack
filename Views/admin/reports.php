@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../config.php';
 
 // Kiểm tra quyền admin
 if (!isLoggedIn() || $_SESSION['role'] !== 'admin') {
-    redirect('/fullstack/index.php');
+    redirect('/index.php');
     exit;
 }
 

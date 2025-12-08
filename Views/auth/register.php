@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../config.php';
 
 if (isLoggedIn()) {
-    redirect('/fullstack/index.php');
+    redirect(BASE_PATH . 'index.php');
 }
 
 $error_message = '';
@@ -20,14 +20,25 @@ if (isset($_GET['success'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng ký - Tìm Trọ Sinh Viên</title>
+    <title>Đăng ký - NhaTot</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: whitesmoke;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
+            padding: 0;
+            align-items: center;
+            justify-content: center;
+            overflow-y: scroll;
+        }
+
+        .auth-wrapper {
+            width: 100%;
+            display: flex;
+            flex: 1;
             align-items: center;
             justify-content: center;
             padding: 2rem 0;
@@ -46,7 +57,7 @@ if (isset($_GET['success'])) {
         .auth-header {
             text-align: center;
             padding: 2rem 2rem 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
             color: white;
         }
 
@@ -80,8 +91,8 @@ if (isset($_GET['success'])) {
         }
 
         .role-option:hover {
-            border-color: var(--primary-color);
-            background: var(--light-color);
+            border-color: #3b82f6;
+            background: #f0f9ff;
         }
 
         .role-option input[type="radio"] {
@@ -89,15 +100,15 @@ if (isset($_GET['success'])) {
         }
 
         .role-option input[type="radio"]:checked + .role-content {
-            color: var(--primary-color);
+            color: #3b82f6;
         }
 
         .role-option input[type="radio"]:checked ~ .role-icon {
-            color: var(--primary-color);
+            color: #3b82f6;
         }
 
         .role-option.active {
-            border-color: var(--primary-color);
+            border-color: #3b82f6;
             background: rgba(59, 130, 246, 0.05);
         }
 
@@ -158,9 +169,9 @@ if (isset($_GET['success'])) {
             transition: all 0.3s ease;
         }
 
-        .strength-weak { width: 33%; background: var(--danger-color); }
-        .strength-medium { width: 66%; background: var(--warning-color); }
-        .strength-strong { width: 100%; background: var(--success-color); }
+        .strength-weak { width: 33%; background: #ef4444; }
+        .strength-medium { width: 66%; background: #f59e0b; }
+        .strength-strong { width: 100%; background: #10b981; }
 
         .alert {
             padding: 1rem;
@@ -200,9 +211,36 @@ if (isset($_GET['success'])) {
     </style>
 </head>
 <body>
+    <header class="header">
+        <nav class="navbar">
+            <a href="../../index.php" class="logo">
+                <div class="logo-icon-box">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>NhaTot</h1>
+                    <p>Nơi bạn thuộc về</p>
+                </div>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="../../index.php" class="nav-link">Trang chủ</a></li>
+                <li><a href="../../Views/posts/list.php" class="nav-link">Danh sách trọ</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a href="login.php" class="btn btn-outline btn-sm">Đăng nhập</a>
+                <a href="register.php" class="btn btn-register btn-sm">Đăng ký</a>
+            </div>
+            <button class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+
+    <div class="auth-wrapper">
     <div class="auth-container">
         <div class="auth-header">
-            <h1><i class="fas fa-home"></i> Tìm Trọ</h1>
+            <h1><i class="fas fa-home"></i> NhaTot</h1>
             <p>Tạo tài khoản mới</p>
         </div>
 
@@ -334,7 +372,7 @@ if (isset($_GET['success'])) {
                     </label>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                <button type="submit" class="btn btn-register btn-lg" style="width: 100%;">
                     <i class="fas fa-user-plus"></i> Đăng ký
                 </button>
             </form>
@@ -343,6 +381,7 @@ if (isset($_GET['success'])) {
                 <p>Đã có tài khoản? <a href="login.php" class="text-primary" style="font-weight: 600;">Đăng nhập ngay</a></p>
             </div>
         </div>
+    </div>
     </div>
 
     <script src="../../assets/js/main.js"></script>

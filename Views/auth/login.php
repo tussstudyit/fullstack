@@ -3,18 +3,30 @@ require_once __DIR__ . '/../../config.php';
 
 // Redirect if already logged in
 if (isLoggedIn()) {
-    redirect('/fullstack/index.php');
+    redirect(BASE_PATH . 'index.php');
 }
 
 $login_error = '';
 $success_message = '';
+$error_type = '';
 
-// Lấy thông báo từ GET
+// Lấy thông báo từ GET (backward compatibility)
 if (isset($_GET['message'])) {
     $success_message = htmlspecialchars($_GET['message']);
 }
 if (isset($_GET['error'])) {
     $login_error = htmlspecialchars($_GET['error']);
+}
+
+// Lấy thông báo từ SESSION (mới)
+if (isset($_SESSION['login_error'])) {
+    $login_error = htmlspecialchars($_SESSION['login_error']);
+    $error_type = isset($_SESSION['login_error_type']) ? htmlspecialchars($_SESSION['login_error_type']) : '';
+    
+    // Xóa session sau khi lấy để không hiển thị lại lần sau
+    // Nhưng delay 1 chút để JavaScript có thể access
+    // unset($_SESSION['login_error']);
+    // unset($_SESSION['login_error_type']);
 }
 ?>
 <!DOCTYPE html>
@@ -22,14 +34,26 @@ if (isset($_GET['error'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - Tìm Trọ Sinh Viên</title>
+    <title>Đăng nhập - NhaTot</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: whitesmoke;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
+            padding: 0;
+            margin: 0;
+            align-items: center;
+            justify-content: center;
+            overflow-y: scroll;
+        }
+
+        .auth-wrapper {
+            width: 100%;
+            display: flex;
+            flex: 1;
             align-items: center;
             justify-content: center;
         }
@@ -47,7 +71,7 @@ if (isset($_GET['error'])) {
         .auth-header {
             text-align: center;
             padding: 2rem 2rem 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
             color: white;
         }
 
@@ -110,7 +134,7 @@ if (isset($_GET['error'])) {
         }
 
         .form-footer a {
-            color: var(--primary-color);
+            color: #3b82f6;
             text-decoration: none;
             font-weight: 600;
         }
@@ -125,7 +149,7 @@ if (isset($_GET['error'])) {
         }
 
         .forgot-password a {
-            color: var(--primary-color);
+            color: #3b82f6;
             font-size: 0.875rem;
             text-decoration: none;
         }
@@ -136,9 +160,35 @@ if (isset($_GET['error'])) {
     </style>
 </head>
 <body>
+    <header class="header">
+        <nav class="navbar">
+            <a href="../../index.php" class="logo">
+                <div class="logo-icon-box">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>NhaTot</h1>
+                    <p>Nơi bạn thuộc về</p>
+                </div>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="../../index.php" class="nav-link">Trang chủ</a></li>
+                <li><a href="../../Views/posts/list.php" class="nav-link">Danh sách trọ</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a href="login.php" class="btn btn-outline btn-sm">Đăng nhập</a>
+                <a href="register.php" class="btn btn-register btn-sm">Đăng ký</a>
+            </div>
+            <button class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <div class="auth-wrapper">
     <div class="auth-container">
         <div class="auth-header">
-            <h1><i class="fas fa-home"></i> Tìm Trọ</h1>
+            <h1><i class="fas fa-home"></i> NhaTot</h1>
             <p>Đăng nhập tài khoản</p>
         </div>
 
@@ -157,6 +207,8 @@ if (isset($_GET['error'])) {
 
             <form action="../../Controllers/AuthController.php" method="POST" id="loginForm">
                 <input type="hidden" name="action" value="login">
+                <!-- Data attribute để JavaScript access error type -->
+                <input type="hidden" id="errorTypeData" value="<?php echo $error_type; ?>">
 
                 <div class="form-group">
                     <label class="form-label" for="credential">Email / Username / Số điện thoại</label>
@@ -169,6 +221,10 @@ if (isset($_GET['error'])) {
                         required
                     >
                 </div>
+                
+                <!-- Hidden field to track login error type -->
+                <input type="hidden" id="errorType" name="errorType" value="">
+                
 
                 <div class="form-group form-group-with-icon">
                     <label class="form-label" for="password">Mật khẩu</label>
@@ -187,7 +243,7 @@ if (isset($_GET['error'])) {
                     <a href="forgot-password.php">Quên mật khẩu?</a>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                <button type="submit" class="btn btn-outline btn-lg" style="width: 100%;">
                     <i class="fas fa-sign-in-alt"></i> Đăng nhập
                 </button>
             </form>
@@ -197,9 +253,98 @@ if (isset($_GET['error'])) {
             </div>
         </div>
     </div>
+    </div>
 
     <script src="../../assets/js/main.js"></script>
     <script>
+        // Lưu trạng thái login vào localStorage
+        const LOGIN_STORAGE_KEY = 'login_credentials';
+        const LOGIN_ERROR_TYPE_KEY = 'login_error_type';
+
+        // Function to save username (khi password sai)
+        function saveUsername(username) {
+            const data = {
+                credential: username,
+                timestamp: new Date().getTime()
+            };
+            localStorage.setItem(LOGIN_STORAGE_KEY, JSON.stringify(data));
+        }
+
+        // Function to clear all login data (khi username sai)
+        function clearLoginData() {
+            localStorage.removeItem(LOGIN_STORAGE_KEY);
+            localStorage.removeItem(LOGIN_ERROR_TYPE_KEY);
+        }
+
+        // Restore username
+        function restoreUsername() {
+            const stored = localStorage.getItem(LOGIN_STORAGE_KEY);
+            console.log('Stored data:', stored);
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    document.getElementById('credential').value = data.credential;
+                    console.log('Restored username:', data.credential);
+                    // Tự động focus vào field password
+                    document.getElementById('password').focus();
+                } catch (e) {
+                    console.error('Error parsing stored login data:', e);
+                }
+            }
+        }
+
+        // Xử lý error response từ server khi page load
+        function handleLoginError() {
+            const errorElement = document.querySelector('.alert.error');
+            const errorTypeParam = document.getElementById('errorTypeData').value;
+            
+            console.log('Error type:', errorTypeParam);
+            console.log('Error element:', errorElement);
+            
+            if (errorElement) {
+                const errorText = errorElement.textContent;
+                console.log('Error text:', errorText);
+                
+                // Xử lý dựa trên errorType từ SESSION
+                if (errorTypeParam === 'password_wrong') {
+                    // Nếu là lỗi password (password không đúng) -> GIỮ LẠI USERNAME
+                    // Username đã được save từ form submission
+                    console.log('Password wrong - keeping username');
+                }
+                else if (errorTypeParam === 'user_not_found') {
+                    // Nếu là lỗi username (user không tồn tại) -> XÓA TOÀN BỘ
+                    clearLoginData();
+                    console.log('User not found - clearing all data');
+                }
+                else if (errorTypeParam === 'account_banned') {
+                    // Nếu là lỗi account bị khóa -> XÓA TOÀN BỘ
+                    clearLoginData();
+                    console.log('Account banned - clearing all data');
+                }
+            } else {
+                // KHÔNG CÓ LỖI -> XÓA TOÀN BỘ (trang load bình thường)
+                clearLoginData();
+                console.log('No error - cleared all login data');
+            }
+        }
+
+        // Restore username khi page load
+        document.addEventListener('DOMContentLoaded', function() {
+            handleLoginError();
+            
+            // Chỉ restore username nếu còn lỗi (tức là user quay lại ngay)
+            const errorElement = document.querySelector('.alert.error');
+            if (errorElement) {
+                restoreUsername();
+            }
+            
+            // Clear session errors sau khi JavaScript đã xử lý xong
+            // (send beacon để server clear session)
+            if (errorElement) {
+                navigator.sendBeacon('../../api/clear-login-errors.php');
+            }
+        });
+
         // Password toggle
         function togglePassword(inputId) {
             const passwordInput = document.getElementById(inputId);
@@ -216,7 +361,7 @@ if (isset($_GET['error'])) {
             }
         }
 
-        // Form validation
+        // Form validation and credential save
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             const credential = document.getElementById('credential').value.trim();
             const password = document.getElementById('password').value;
@@ -226,10 +371,14 @@ if (isset($_GET['error'])) {
             // Kiểm tra không để trống
             if (!credential || !password) {
                 errorMsg = '❌ Vui lòng nhập email/username/số điện thoại và mật khẩu';
+                // Clear data nếu có lỗi validation
+                clearLoginData();
             }
             // Kiểm tra password độ dài
             else if (password.length < 6) {
                 errorMsg = '❌ Mật khẩu phải có ít nhất 6 ký tự';
+                // Clear data nếu có lỗi validation
+                clearLoginData();
             }
             
             if (errorMsg) {
@@ -237,6 +386,12 @@ if (isset($_GET['error'])) {
                 alert(errorMsg);
                 return false;
             }
+            
+            // Lưu credential trước khi submit form
+            // Nếu server trả về password_wrong, nó sẽ được giữ lại
+            // Nếu server trả về user_not_found, handleLoginError sẽ xóa nó
+            saveUsername(credential);
+            console.log('Saved username before submit:', credential);
             
             // Allow form to submit
             return true;

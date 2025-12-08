@@ -119,10 +119,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_info']) && !is
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hồ sơ người dùng - Tìm Trọ Sinh Viên</title>
+    <title>Hồ sơ người dùng - NhaTot</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Page Header - không dùng trong footer */
         .page-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -254,78 +255,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_info']) && !is
 
         .alert h2 {
             margin-bottom: 1rem;
-        }
-
-        .footer {
-            background: var(--dark-color);
-            color: white;
-            padding: 3rem 0 1rem;
-            margin-top: 3rem;
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 3rem;
-            margin-bottom: 2rem;
-        }
-
-        .footer-about h3 {
-            margin-bottom: 1rem;
-        }
-
-        .footer-links h4 {
-            margin-bottom: 1rem;
-        }
-
-        .footer-links ul {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 0.5rem;
-        }
-
-        .footer-links a {
-            color: rgba(255, 255, 255, 0.7);
-            transition: color 0.3s ease;
-        }
-
-        .footer-links a:hover {
-            color: white;
-        }
-
-        .footer-bottom {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 1rem;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        @media (max-width: 768px) {
-            .footer-grid {
-                grid-template-columns: 1fr;
-            }
-            .page-header h1 {
-                font-size: 1.75rem;
-            }
-
-            .profile-container {
-                padding: 1.5rem;
-            }
-
-            .profile-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .btn-group {
-                flex-direction: column;
-            }
-
-            .btn-group .btn {
-                width: 100%;
-            }
         }
 
         /* Avatar Upload Modal */
@@ -518,6 +447,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_info']) && !is
         .modal-footer .btn-secondary:hover {
             background: #d1d5db;
         }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .profile-container {
+                padding: 1.5rem;
+            }
+
+            .profile-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn-group .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -525,8 +477,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_info']) && !is
     <header class="header">
         <nav class="navbar">
             <a href="../../index.php" class="logo">
-                <i class="fas fa-home"></i>
-                <span>Tìm Trọ SV</span>
+                <div class="logo-icon-box">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>NhaTot</h1>
+                    <p>Nơi bạn thuộc về</p>
+                </div>
             </a>
 
             <ul class="nav-menu">
@@ -545,25 +502,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_info']) && !is
 
             <div class="nav-actions">
                 <?php if (isLoggedIn()): ?>
-                    <div style="position: relative; display: inline-block;">
-                        <a href="notifications.php" class="btn btn-outline btn-sm" title="Thông báo">
-                            <i class="fas fa-bell"></i> Thông báo
-                        </a>
+                    <a href="notifications.php" style="position: relative; display: inline-flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.5rem; margin-right: 1rem;" title="Thông báo">
+                        <i class="fas fa-bell"></i>
                         <?php 
                         $notifModel = new Notification();
                         $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
                         if ($unread > 0): 
                         ?>
-                        <span style="position: absolute; top: -5px; right: -5px; background: var(--danger-color); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">
+                        <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; padding: 2px;">
                             <?php echo $unread > 99 ? '99+' : $unread; ?>
                         </span>
                         <?php endif; ?>
+                    </a>
+                    <div class="user-menu-wrapper" style="position: relative;">
+                        <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
+                            <img src="<?php echo !empty($user['avatar']) ? '../../uploads/avatars/' . htmlspecialchars($user['avatar']) : 'https://via.placeholder.com/40/3b82f6/ffffff?text=' . strtoupper(substr($_SESSION['username'], 0, 1)); ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6; cursor: pointer;">
+                        </button>
+                        <div class="user-dropdown-menu" id="userDropdownMenu" style="display: none;">
+                            <a href="profile.php" class="dropdown-item">
+                                <i class="fas fa-user-circle"></i> Hồ sơ
+                            </a>
+                            <a href="../../Controllers/AuthController.php?action=logout" class="dropdown-item logout">
+                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            </a>
+                        </div>
                     </div>
-                    <a href="profile.php" class="btn btn-outline btn-sm"><i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($_SESSION['username']); ?></a>
-                    <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
                 <?php else: ?>
                     <a href="../auth/login.php" class="btn btn-outline btn-sm">Đăng nhập</a>
-                    <a href="../auth/register.php" class="btn btn-primary btn-sm">Đăng ký</a>
+                    <a href="../auth/register.php" class="btn btn-register btn-sm">Đăng ký</a>
                 <?php endif; ?>
             </div>
 
@@ -799,7 +765,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_info']) && !is
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-about">
-                    <h3><i class="fas fa-home"></i> Tìm Trọ SV</h3>
+                    <h3><i class="fas fa-home"></i> NhaTot</h3>
                     <p>Nền tảng tìm kiếm phòng trọ uy tín dành cho sinh viên. Giúp sinh viên tìm được phòng trọ phù hợp, giá rẻ, gần trường.</p>
                 </div>
 
@@ -835,7 +801,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_info']) && !is
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; 2025 Tìm Trọ Sinh Viên. Tất cả quyền được bảo lưu.</p>
+                <p>&copy; 2025 NhaTot. Tất cả quyền được bảo lưu.</p>
             </div>
         </div>
     </footer>
@@ -1010,6 +976,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_info']) && !is
         });
 
         // Handle bio form submit
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('userDropdownMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('userDropdownMenu');
+            const userWrapper = document.querySelector('.user-menu-wrapper');
+            if (menu && !userWrapper.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
         bioForm.addEventListener('submit', function(e) {
             e.preventDefault();
             

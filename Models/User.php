@@ -138,11 +138,19 @@ class User {
             $user = $this->findByEmailOrUsernameOrPhone($credential);
 
             if (!$user) {
-                return ['success' => false, 'message' => 'Email, username hoặc số điện thoại không tồn tại'];
+                return [
+                    'success' => false, 
+                    'message' => 'Email, username hoặc số điện thoại không tồn tại',
+                    'errorType' => 'user_not_found'
+                ];
             }
 
             if ($user['status'] === 'banned') {
-                return ['success' => false, 'message' => 'Tài khoản của bạn đã bị khóa'];
+                return [
+                    'success' => false, 
+                    'message' => 'Tài khoản của bạn đã bị khóa',
+                    'errorType' => 'account_banned'
+                ];
             }
 
             if (password_verify($password, $user['password'])) {
@@ -160,7 +168,11 @@ class User {
                 ];
             }
 
-            return ['success' => false, 'message' => 'Mật khẩu không đúng'];
+            return [
+                'success' => false, 
+                'message' => 'Mật khẩu không đúng',
+                'errorType' => 'password_wrong'
+            ];
         } catch (PDOException $e) {
             error_log("Error in User::login: " . $e->getMessage());
             return ['success' => false, 'message' => 'Lỗi database: ' . $e->getMessage()];
