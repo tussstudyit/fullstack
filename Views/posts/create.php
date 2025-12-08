@@ -48,7 +48,7 @@ if ($postId) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #3470f3ff;
             color: white;
             padding: 3rem 0;
             text-align: center;
@@ -276,20 +276,35 @@ if ($postId) {
             </ul>
 
             <div class="nav-actions">
-                <div style="position: relative; display: inline-block;">
-                    <a href="../user/notifications.php" class="btn btn-outline btn-sm" title="Thông báo">
-                        <i class="fas fa-bell"></i> Thông báo
-                    </a>
-                    <?php 
-                    require_once '../../Models/Notification.php';
-                    $notifModel = new Notification();
-                    $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
-                    if ($unread > 0): 
-                    ?>
-                    <span style="position: absolute; top: -5px; right: -5px; background: var(--danger-color); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">
-                        <?php echo $unread > 99 ? '99+' : $unread; ?>
-                    </span>
-                    <?php endif; ?>
+                <div class="notification-wrapper">
+                    <button class="notification-bell-btn" onclick="toggleNotificationDropdown(event)" title="Thông báo">
+                        <i class="fas fa-bell"></i>
+                        <?php 
+                        require_once '../../Models/Notification.php';
+                        $notifModel = new Notification();
+                        $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
+                        if ($unread > 0): 
+                        ?>
+                        <span class="notification-badge">
+                            <?php echo $unread > 99 ? '99+' : $unread; ?>
+                        </span>
+                        <?php endif; ?>
+                    </button>
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notification-dropdown-header">
+                            <h3>Thông báo</h3>
+                            <button class="mark-all-read-btn" onclick="markAllNotificationsAsRead()">Đánh dấu tất cả đã đọc</button>
+                        </div>
+                        <div class="notification-dropdown-list" id="notificationList">
+                            <div class="notification-empty">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Đang tải...</p>
+                            </div>
+                        </div>
+                        <div class="notification-dropdown-footer">
+                            <a href="../user/notifications.php">Xem tất cả thông báo</a>
+                        </div>
+                    </div>
                 </div>
                     <div class="user-menu-wrapper" style="position: relative;">
                         <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
@@ -1181,5 +1196,6 @@ if ($postId) {
             }
         });
     </script>
+    <script src="../../assets/js/notifications.js"></script>
 </body>
 </html>

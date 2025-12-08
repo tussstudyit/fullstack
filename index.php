@@ -136,6 +136,17 @@ if (isLoggedIn()) {
             object-fit: cover;
         }
 
+        .carousel-slide::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 50%, transparent 100%);
+            z-index: 1;
+        }
+
         .carousel-slide-content {
             position: absolute;
             bottom: 2rem;
@@ -145,6 +156,10 @@ if (isLoggedIn()) {
             text-align: center;
             width: 90%;
             z-index: 2;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
         }
 
         .carousel-slide-content h2 {
@@ -211,29 +226,10 @@ if (isLoggedIn()) {
             right: 1rem;
         }
         
-        .hero-section {
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
-            color: white;
-            padding: 4rem 0;
-            text-align: center;
-        }
-
-        .hero-content h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-
-        .hero-content p {
-            font-size: 1.25rem;
-            opacity: 0.95;
-            margin-bottom: 2rem;
-        }
-
         .search-box {
             background: white;
             border-radius: 12px;
-            padding: 2rem;
+            padding: 2.5rem;
             box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
             max-width: 700px;
             margin: 0 auto;
@@ -618,7 +614,7 @@ if (isLoggedIn()) {
         .stats-cta {
             background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
             color: white;
-            padding: 3rem;
+            padding: 5rem;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(96, 165, 250, 0.2);
             display: flex;
@@ -826,19 +822,36 @@ if (isLoggedIn()) {
 
             <div class="nav-actions">
                 <?php if (isLoggedIn()): ?>
-                    <a href="Views/user/notifications.php" style="position: relative; display: inline-flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.5rem; margin-right: 1rem;" title="Thông báo">
-                        <i class="fas fa-bell"></i>
-                        <?php 
-                        require_once __DIR__ . '/Models/Notification.php';
-                        $notifModel = new Notification();
-                        $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
-                        if ($unread > 0): 
-                        ?>
-                        <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; padding: 2px;">
-                            <?php echo $unread > 99 ? '99+' : $unread; ?>
-                        </span>
-                        <?php endif; ?>
-                    </a>
+                    <div class="notification-wrapper">
+                        <button class="notification-bell-btn" onclick="toggleNotificationDropdown(event)" title="Thông báo">
+                            <i class="fas fa-bell"></i>
+                            <?php 
+                            require_once __DIR__ . '/Models/Notification.php';
+                            $notifModel = new Notification();
+                            $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
+                            if ($unread > 0): 
+                            ?>
+                            <span class="notification-badge">
+                                <?php echo $unread > 99 ? '99+' : $unread; ?>
+                            </span>
+                            <?php endif; ?>
+                        </button>
+                        <div class="notification-dropdown" id="notificationDropdown">
+                            <div class="notification-dropdown-header">
+                                <h3>Thông báo</h3>
+                                <button class="mark-all-read-btn" onclick="markAllNotificationsAsRead()">Đánh dấu tất cả đã đọc</button>
+                            </div>
+                            <div class="notification-dropdown-list" id="notificationList">
+                                <div class="notification-empty">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Đang tải...</p>
+                                </div>
+                            </div>
+                            <div class="notification-dropdown-footer">
+                                <a href="Views/user/notifications.php">Xem tất cả thông báo</a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="user-menu-wrapper" style="position: relative;">
                         <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
                             <?php
@@ -880,21 +893,35 @@ if (isLoggedIn()) {
     <section class="carousel-section">
         <div class="carousel-container">
             <div class="carousel-slide active">
-                <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&h=800&fit=crop" alt="Phòng trọ hiện đại">
+                <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&h=800&fit=crop" alt="Phòng trọ hiện đại">
                 <div class="carousel-slide-content">
                     <h2>Tìm Phòng Trọ Dễ Dàng</h2>
                     <p>Hàng nghìn phòng trọ chất lượng cao, giá cả phải chăng</p>
                 </div>
             </div>
             <div class="carousel-slide">
-                <img src="https://images.unsplash.com/photo-1505933404293-c86ba281e75d?w=1200&h=800&fit=crop" alt="Môi trường sống tốt">
+                <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&h=800&fit=crop" alt="Căn hộ mini tiện nghi">
+                <div class="carousel-slide-content">
+                    <h2>Căn Hộ Mini Tiện Nghi</h2>
+                    <p>Đầy đủ nội thất, sẵn sàng ở ngay</p>
+                </div>
+            </div>
+            <div class="carousel-slide">
+                <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&h=800&fit=crop" alt="Môi trường sống tốt">
                 <div class="carousel-slide-content">
                     <h2>Môi Trường Sống Tốt</h2>
                     <p>An toàn, yên tĩnh, gần các cơ sở giáo dục</p>
                 </div>
             </div>
             <div class="carousel-slide">
-                <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&h=800&fit=crop" alt="Cộng đồng sinh viên">
+                <img src="https://images.unsplash.com/photo-1484154218962-a197022b5858?w=1200&h=800&fit=crop" alt="Nội thất đẹp">
+                <div class="carousel-slide-content">
+                    <h2>Nội Thất Hiện Đại</h2>
+                    <p>Phòng trọ được trang bị đầy đủ tiện nghi</p>
+                </div>
+            </div>
+            <div class="carousel-slide">
+                <img src="https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=1200&h=800&fit=crop" alt="Cộng đồng sinh viên">
                 <div class="carousel-slide-content">
                     <h2>Cộng Đồng Sinh Viên</h2>
                     <p>Giao tiếp, chia sẻ kinh nghiệm với đồng trang lứa</p>
@@ -912,6 +939,8 @@ if (isLoggedIn()) {
                 <button class="carousel-btn active" onclick="currentSlide(0)"></button>
                 <button class="carousel-btn" onclick="currentSlide(1)"></button>
                 <button class="carousel-btn" onclick="currentSlide(2)"></button>
+                <button class="carousel-btn" onclick="currentSlide(3)"></button>
+                <button class="carousel-btn" onclick="currentSlide(4)"></button>
             </div>
         </div>
     </section>
@@ -1261,5 +1290,6 @@ if (isLoggedIn()) {
             .catch(error => console.error('Error:', error));
         }
     </script>
+    <script src="assets/js/notifications.js"></script>
 </body>
 </html>

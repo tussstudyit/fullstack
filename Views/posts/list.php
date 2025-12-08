@@ -246,7 +246,7 @@ if (isLoggedIn()) {
             top: 1rem;
             right: 1rem;
             background: white;
-            color: #3b82f6;
+            color: var(--danger-color);
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -261,6 +261,10 @@ if (isLoggedIn()) {
 
         .favorite-btn:hover {
             transform: scale(1.1);
+        }
+
+        .favorite-btn.active i {
+            color: var(--danger-color);
         }
 
         .post-content {
@@ -406,19 +410,36 @@ if (isLoggedIn()) {
 
             <div class="nav-actions">
                 <?php if (isLoggedIn()): ?>
-                    <a href="../user/notifications.php" style="position: relative; display: inline-flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.5rem; margin-right: 1rem;" title="Thông báo">
-                        <i class="fas fa-bell"></i>
-                        <?php 
-                        require_once '../../Models/Notification.php';
-                        $notifModel = new Notification();
-                        $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
-                        if ($unread > 0): 
-                        ?>
-                        <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; padding: 2px;">
-                            <?php echo $unread > 99 ? '99+' : $unread; ?>
-                        </span>
-                        <?php endif; ?>
-                    </a>
+                    <div class="notification-wrapper">
+                        <button class="notification-bell-btn" onclick="toggleNotificationDropdown(event)" title="Thông báo">
+                            <i class="fas fa-bell"></i>
+                            <?php 
+                            require_once '../../Models/Notification.php';
+                            $notifModel = new Notification();
+                            $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
+                            if ($unread > 0): 
+                            ?>
+                            <span class="notification-badge">
+                                <?php echo $unread > 99 ? '99+' : $unread; ?>
+                            </span>
+                            <?php endif; ?>
+                        </button>
+                        <div class="notification-dropdown" id="notificationDropdown">
+                            <div class="notification-dropdown-header">
+                                <h3>Thông báo</h3>
+                                <button class="mark-all-read-btn" onclick="markAllNotificationsAsRead()">Đánh dấu tất cả đã đọc</button>
+                            </div>
+                            <div class="notification-dropdown-list" id="notificationList">
+                                <div class="notification-empty">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Đang tải...</p>
+                                </div>
+                            </div>
+                            <div class="notification-dropdown-footer">
+                                <a href="../user/notifications.php">Xem tất cả thông báo</a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="user-menu-wrapper" style="position: relative;">
                         <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
                             <?php
@@ -693,14 +714,18 @@ if (isLoggedIn()) {
             return;
             <?php endif; ?>
             
+            const isFavorited = btn.classList.contains('active');
+            const action = isFavorited ? 'remove' : 'add';
+            
             fetch('../../Controllers/FavoriteController.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'action=add&post_id=' + postId
+                body: 'action=' + action + '&post_id=' + postId
             })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
+                    btn.classList.toggle('active');
                     btn.querySelector('i').classList.toggle('far');
                     btn.querySelector('i').classList.toggle('fas');
                 }
@@ -732,5 +757,6 @@ if (isLoggedIn()) {
             }
         });
     </script>
+    <script src="../../assets/js/notifications.js"></script>
 </body>
 </html>

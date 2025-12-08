@@ -52,7 +52,7 @@ class Comment {
         $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
         
         $stmt = $this->conn->prepare(
-            "SELECT c.*, u.username, u.id as user_id_display, u.role, " .
+            "SELECT c.*, u.username, u.id as user_id_display, u.role, u.avatar, " .
             "(SELECT COUNT(*) FROM comment_votes WHERE comment_id = c.id AND vote = 1) as upvotes, " .
             "(SELECT COUNT(*) FROM comment_votes WHERE comment_id = c.id AND vote = -1) as downvotes, " .
             "(SELECT vote FROM comment_votes WHERE comment_id = c.id AND user_id = ? LIMIT 1) as user_vote " .
@@ -81,7 +81,7 @@ class Comment {
         $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
         
         $stmt = $this->conn->prepare(
-            "SELECT c.*, u.username, u.id as user_id_display, u.role, " .
+            "SELECT c.*, u.username, u.id as user_id_display, u.role, u.avatar, " .
             "(SELECT COUNT(*) FROM comment_votes WHERE comment_id = c.id AND vote = 1) as upvotes, " .
             "(SELECT COUNT(*) FROM comment_votes WHERE comment_id = c.id AND vote = -1) as downvotes, " .
             "(SELECT vote FROM comment_votes WHERE comment_id = c.id AND user_id = ? LIMIT 1) as user_vote " .
@@ -119,7 +119,7 @@ class Comment {
      */
     public function findById($id) {
         $stmt = $this->conn->prepare(
-            "SELECT c.*, u.username, u.role " .
+            "SELECT c.*, u.username, u.role, u.avatar " .
             "FROM {$this->table} c " .
             "JOIN users u ON c.user_id = u.id " .
             "WHERE c.id = ?"

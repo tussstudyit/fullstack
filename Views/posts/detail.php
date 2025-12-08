@@ -398,20 +398,35 @@ try {
 
             <div class="nav-actions">
                 <?php if (isLoggedIn()): ?>
-                    <div style="position: relative; display: inline-block;">
-                        <a href="../user/notifications.php" class="btn btn-outline btn-sm" title="Thông báo">
-                            <i class="fas fa-bell"></i> Thông báo
-                        </a>
-                        <?php 
-                        require_once '../../Models/Notification.php';
-                        $notifModel = new Notification();
-                        $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
-                        if ($unread > 0): 
-                        ?>
-                        <span style="position: absolute; top: -5px; right: -5px; background: var(--danger-color); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">
-                            <?php echo $unread > 99 ? '99+' : $unread; ?>
-                        </span>
-                        <?php endif; ?>
+                    <div class="notification-wrapper">
+                        <button class="notification-bell-btn" onclick="toggleNotificationDropdown(event)" title="Thông báo">
+                            <i class="fas fa-bell"></i>
+                            <?php 
+                            require_once '../../Models/Notification.php';
+                            $notifModel = new Notification();
+                            $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
+                            if ($unread > 0): 
+                            ?>
+                            <span class="notification-badge">
+                                <?php echo $unread > 99 ? '99+' : $unread; ?>
+                            </span>
+                            <?php endif; ?>
+                        </button>
+                        <div class="notification-dropdown" id="notificationDropdown">
+                            <div class="notification-dropdown-header">
+                                <h3>Thông báo</h3>
+                                <button class="mark-all-read-btn" onclick="markAllNotificationsAsRead()">Đánh dấu tất cả đã đọc</button>
+                            </div>
+                            <div class="notification-dropdown-list" id="notificationList">
+                                <div class="notification-empty">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Đang tải...</p>
+                                </div>
+                            </div>
+                            <div class="notification-dropdown-footer">
+                                <a href="../user/notifications.php">Xem tất cả thông báo</a>
+                            </div>
+                        </div>
                     </div>
                     <div class="user-menu-wrapper" style="position: relative;">
                         <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
@@ -596,33 +611,37 @@ try {
                     <div class="contact-card">
                         <h3 style="margin-bottom: 1.5rem;">Liên hệ</h3>
                         <div class="landlord-info">
-                            <img src="<?php 
-                                if (!empty($landlord['avatar']) && file_exists(__DIR__ . '/../../' . $landlord['avatar'])) {
-                                    echo htmlspecialchars($landlord['avatar']);
-                                } else {
-                                    echo getPlaceholderImage(60, 60, '667eea', substr($landlord['username'], 0, 1));
+                            <?php
+                            $landlord_avatar = 'https://via.placeholder.com/60/3b82f6/ffffff?text=' . strtoupper(substr($landlord['username'] ?? 'U', 0, 1));
+                            if (!empty($landlord['avatar'])) {
+                                if (file_exists(__DIR__ . '/../../uploads/avatars/' . basename($landlord['avatar']))) {
+                                    $landlord_avatar = '../../uploads/avatars/' . basename($landlord['avatar']);
+                                } elseif (file_exists(__DIR__ . '/../../' . $landlord['avatar'])) {
+                                    $landlord_avatar = '../../' . $landlord['avatar'];
                                 }
-                            ?>" alt="Chủ trọ" class="landlord-avatar">
+                            }
+                            ?>
+                            <img src="<?php echo $landlord_avatar; ?>" alt="Chủ trọ" class="landlord-avatar">
                             <div class="landlord-details">
                                 <h4><?php echo htmlspecialchars($landlord['username'] ?? 'Chủ trọ'); ?></h4>
                                 <p>Chủ trọ</p>
                             </div>
                         </div>
                         <div class="contact-actions">
-                            <a href="tel:<?php echo htmlspecialchars($landlord['phone'] ?? ''); ?>" class="btn btn-primary">
+                            <a href="tel:<?php echo htmlspecialchars($landlord['phone'] ?? ''); ?>" class="btn btn-primary" style="background: #10b981; border-color: #10b981;">
                                 <i class="fas fa-phone"></i> <?php echo htmlspecialchars($landlord['phone'] ?? 'Không có'); ?>
                             </a>
-                            <a href="../chat/chat.php?user_id=<?php echo $post['user_id']; ?>" class="btn btn-outline">
+                            <a href="../chat/chat.php?user_id=<?php echo $post['user_id']; ?>" class="btn btn-primary" style="background: #10b981; border-color: #10b981;">
                                 <i class="fas fa-comment"></i> Nhắn tin
                             </a>
                             <?php 
                             $fav_icon_class = $is_favorited ? 'fas' : 'far';
-                            $fav_btn_class = $is_favorited ? 'btn-danger' : 'btn-secondary';
+                            $fav_btn_class = $is_favorited ? 'btn-danger' : 'btn-danger';
                             ?>
                             <button class="btn <?php echo $fav_btn_class; ?> <?php echo $is_favorited ? 'active' : ''; ?>" onclick="toggleFavorite(<?php echo $post_id; ?>, this)" id="favBtn">
                                 <i class="<?php echo $fav_icon_class; ?> fa-heart"></i> Yêu thích
                             </button>
-                            <button class="btn btn-secondary" onclick="toggleLike(<?php echo $post_id; ?>)" style="width: 100%; margin-top: 0.5rem;">
+                            <button class="btn btn-primary" onclick="toggleLike(<?php echo $post_id; ?>)" style="width: 100%; margin-top: 0.5rem; background: #0ea5e9; border-color: #0ea5e9;">
                                 <i class="fas fa-thumbs-up"></i> Thích (<span id="likesCount"><?php echo $likes_count; ?></span>)
                             </button>
                         </div>
@@ -719,6 +738,22 @@ try {
         const POST_ID = <?php echo $post_id; ?>;
         const USER_ROLE = '<?php echo $_SESSION['role'] ?? 'guest'; ?>';
 
+        // User menu toggle
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('userDropdownMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('userDropdownMenu');
+            const userWrapper = document.querySelector('.user-menu-wrapper');
+            if (menu && !userWrapper.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
         // Load comments on page load
         document.addEventListener('DOMContentLoaded', () => {
             loadComments();
@@ -745,17 +780,31 @@ try {
                 });
         }
 
+        // Helper function to get avatar URL
+        function getAvatarUrl(avatar, username) {
+            if (avatar && avatar !== '' && avatar !== null) {
+                // If avatar starts with 'uploads/', use it as is
+                if (avatar.startsWith('uploads/')) {
+                    return '../../' + avatar;
+                }
+                // Otherwise add uploads/avatars/ prefix
+                return '../../uploads/avatars/' + avatar;
+            }
+            // Fallback to placeholder
+            return 'https://via.placeholder.com/40/3b82f6/ffffff?text=' + username.charAt(0).toUpperCase();
+        }
+
         // Helper function to render nested replies recursively
         function renderNestedReplies(replies) {
             if (!replies || replies.length === 0) return '';
             
             return `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">` +
-                replies.map(reply => `
+                replies.map(reply => {
+                    const avatarUrl = getAvatarUrl(reply.avatar, reply.username);
+                    return `
                 <div style="margin-top: 0.75rem; padding-left: 1rem; border-left: 3px solid #10b981;">
                     <div style="display: flex; gap: 0.75rem;">
-                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 0.75rem;">
-                            ${reply.username.charAt(0).toUpperCase()}
-                        </div>
+                        <img src="${avatarUrl}" alt="${reply.username}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
                         <div style="flex: 1;">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.25rem;">
                                 <div>
@@ -807,7 +856,8 @@ try {
                         </div>
                     </div>
                 </div>
-            `).join('') + `</div>`;
+            `;
+                }).join('') + `</div>`;
         }
 
         // Display comments on page
@@ -816,6 +866,9 @@ try {
             const comments = data.comments || [];
             const avgRating = parseFloat(data.avg_rating) || 0;
             const commentCount = parseInt(data.comment_count) || 0;
+            
+            // Debug: check if avatar exists
+            console.log('Comments data:', comments);
 
             // Update rating display
             document.getElementById('avgRating').textContent = avgRating.toFixed(1);
@@ -830,13 +883,12 @@ try {
 
             commentsList.innerHTML = comments.map(comment => {
                 let repliesHtml = renderNestedReplies(comment.replies);
+                const avatarUrl = getAvatarUrl(comment.avatar, comment.username);
 
                 return `
                     <div id="comment-${comment.id}" class="comment-item" style="border: 1px solid #e5e7eb; padding: 1.25rem; margin-bottom: 1rem; border-radius: 0.5rem; background: white; box-sizing: border-box;">
                         <div class="comment-header" style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
-                                ${comment.username.charAt(0).toUpperCase()}
-                            </div>
+                            <img src="${avatarUrl}" alt="${comment.username}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
                             <div style="flex: 1;">
                                 <div style="display: flex; justify-content: space-between; align-items: start;">
                                     <div>
@@ -1241,14 +1293,8 @@ try {
                     icon.classList.toggle('far');
                     icon.classList.toggle('fas');
                     
-                    // Update button class
-                    if (button.classList.contains('active')) {
-                        button.classList.remove('btn-secondary');
-                        button.classList.add('btn-danger');
-                    } else {
-                        button.classList.remove('btn-danger');
-                        button.classList.add('btn-secondary');
-                    }
+                    // Button always stays red (btn-danger)
+                    // No class change needed
                 } else {
                     alert(data.message || 'Lỗi khi thay đổi yêu thích');
                 }
@@ -1300,5 +1346,6 @@ try {
             }
         }
     </script>
+    <script src="../../assets/js/notifications.js"></script>
 </body>
 </html>

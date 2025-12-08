@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_info']) && !is
     <style>
         /* Page Header - không dùng trong footer */
         .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #3470f3ff;
             color: white;
             padding: 3rem 0;
             text-align: center;
@@ -502,18 +502,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_info']) && !is
 
             <div class="nav-actions">
                 <?php if (isLoggedIn()): ?>
-                    <a href="notifications.php" style="position: relative; display: inline-flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.5rem; margin-right: 1rem;" title="Thông báo">
-                        <i class="fas fa-bell"></i>
-                        <?php 
-                        $notifModel = new Notification();
-                        $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
-                        if ($unread > 0): 
-                        ?>
-                        <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; padding: 2px;">
-                            <?php echo $unread > 99 ? '99+' : $unread; ?>
-                        </span>
-                        <?php endif; ?>
-                    </a>
+                    <div class="notification-wrapper">
+                        <button class="notification-bell-btn" onclick="toggleNotificationDropdown(event)" title="Thông báo">
+                            <i class="fas fa-bell"></i>
+                            <?php 
+                            $notifModel = new Notification();
+                            $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
+                            if ($unread > 0): 
+                            ?>
+                            <span class="notification-badge">
+                                <?php echo $unread > 99 ? '99+' : $unread; ?>
+                            </span>
+                            <?php endif; ?>
+                        </button>
+                        <div class="notification-dropdown" id="notificationDropdown">
+                            <div class="notification-dropdown-header">
+                                <h3>Thông báo</h3>
+                                <button class="mark-all-read-btn" onclick="markAllNotificationsAsRead()">Đánh dấu tất cả đã đọc</button>
+                            </div>
+                            <div class="notification-dropdown-list" id="notificationList">
+                                <div class="notification-empty">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Đang tải...</p>
+                                </div>
+                            </div>
+                            <div class="notification-dropdown-footer">
+                                <a href="notifications.php">Xem tất cả thông báo</a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="user-menu-wrapper" style="position: relative;">
                         <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
                             <img src="<?php echo !empty($user['avatar']) ? '../../uploads/avatars/' . htmlspecialchars($user['avatar']) : 'https://via.placeholder.com/40/3b82f6/ffffff?text=' . strtoupper(substr($_SESSION['username'], 0, 1)); ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6; cursor: pointer;">
@@ -1019,5 +1036,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_info']) && !is
             });
         });
     </script>
+    <script src="../../assets/js/notifications.js"></script>
 </body>
 </html>

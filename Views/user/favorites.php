@@ -200,19 +200,36 @@ try {
 
             <div class="nav-actions">
                 <?php if (isLoggedIn()): ?>
-                    <a href="notifications.php" style="position: relative; display: inline-flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.5rem; margin-right: 1rem;" title="Thông báo">
-                        <i class="fas fa-bell"></i>
-                        <?php 
-                        require_once '../../Models/Notification.php';
-                        $notifModel = new Notification();
-                        $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
-                        if ($unread > 0): 
-                        ?>
-                        <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; padding: 2px;">
-                            <?php echo $unread > 99 ? '99+' : $unread; ?>
-                        </span>
-                        <?php endif; ?>
-                    </a>
+                    <div class="notification-wrapper">
+                        <button class="notification-bell-btn" onclick="toggleNotificationDropdown(event)" title="Thông báo">
+                            <i class="fas fa-bell"></i>
+                            <?php 
+                            require_once '../../Models/Notification.php';
+                            $notifModel = new Notification();
+                            $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
+                            if ($unread > 0): 
+                            ?>
+                            <span class="notification-badge">
+                                <?php echo $unread > 99 ? '99+' : $unread; ?>
+                            </span>
+                            <?php endif; ?>
+                        </button>
+                        <div class="notification-dropdown" id="notificationDropdown">
+                            <div class="notification-dropdown-header">
+                                <h3>Thông báo</h3>
+                                <button class="mark-all-read-btn" onclick="markAllNotificationsAsRead()">Đánh dấu tất cả đã đọc</button>
+                            </div>
+                            <div class="notification-dropdown-list" id="notificationList">
+                                <div class="notification-empty">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Đang tải...</p>
+                                </div>
+                            </div>
+                            <div class="notification-dropdown-footer">
+                                <a href="notifications.php">Xem tất cả thông báo</a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="user-menu-wrapper" style="position: relative;">
                         <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
                             <?php
@@ -335,5 +352,6 @@ try {
             .catch(error => console.error('Error:', error));
         }
     </script>
+    <script src="../../assets/js/notifications.js"></script>
 </body>
 </html>

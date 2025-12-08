@@ -25,7 +25,7 @@ $totalPosts = count($posts);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #3470f3ff;
             color: white;
             padding: 3rem 0;
             text-align: center;
@@ -126,27 +126,42 @@ $totalPosts = count($posts);
             <ul class="nav-menu">
                 <li><a href="../../index.php" class="nav-link">Trang chủ</a></li>
                 <li><a href="../posts/list.php" class="nav-link">Danh sách trọ</a></li>
-                <li><a href="../posts/create.php" class="nav-link active">Đăng tin</a></li>
+                <li><a href="../posts/create.php" class="nav-link">Đăng tin</a></li>
                 <li><a href="../chat/chat.php" class="nav-link">Tin nhắn</a></li>
             </ul>
 
             <div class="nav-actions">
-                <div style="position: relative; display: inline-block;">
-            <div class="nav-actions">
                 <?php if (isLoggedIn()): ?>
-                    <a href="notifications.php" style="position: relative; display: inline-flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.5rem; margin-right: 1rem;" title="Thông báo">
-                        <i class="fas fa-bell"></i>
-                        <?php 
-                        require_once '../../Models/Notification.php';
-                        $notifModel = new Notification();
-                        $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
-                        if ($unread > 0): 
-                        ?>
-                        <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; padding: 2px;">
-                            <?php echo $unread > 99 ? '99+' : $unread; ?>
-                        </span>
-                        <?php endif; ?>
-                    </a>
+                    <div class="notification-wrapper">
+                        <button class="notification-bell-btn" onclick="toggleNotificationDropdown(event)" title="Thông báo">
+                            <i class="fas fa-bell"></i>
+                            <?php 
+                            require_once '../../Models/Notification.php';
+                            $notifModel = new Notification();
+                            $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
+                            if ($unread > 0): 
+                            ?>
+                            <span class="notification-badge">
+                                <?php echo $unread > 99 ? '99+' : $unread; ?>
+                            </span>
+                            <?php endif; ?>
+                        </button>
+                        <div class="notification-dropdown" id="notificationDropdown">
+                            <div class="notification-dropdown-header">
+                                <h3>Thông báo</h3>
+                                <button class="mark-all-read-btn" onclick="markAllNotificationsAsRead()">Đánh dấu tất cả đã đọc</button>
+                            </div>
+                            <div class="notification-dropdown-list" id="notificationList">
+                                <div class="notification-empty">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Đang tải...</p>
+                                </div>
+                            </div>
+                            <div class="notification-dropdown-footer">
+                                <a href="notifications.php">Xem tất cả thông báo</a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="user-menu-wrapper" style="position: relative;">
                         <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
                             <?php
@@ -173,19 +188,10 @@ $totalPosts = count($posts);
                             </a>
                         </div>
                     </div>
-                    <?php 
-                    require_once __DIR__ . '/../../Models/Notification.php';
-                    $notifModel = new Notification();
-                    $unread = $notifModel->getUnreadCount($_SESSION['user_id']);
-                    if ($unread > 0): 
-                    ?>
-                    <span style="position: absolute; top: -5px; right: -5px; background: var(--danger-color); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">
-                        <?php echo $unread > 99 ? '99+' : $unread; ?>
-                    </span>
-                    <?php endif; ?>
-                </div>
-                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($_SESSION['username']); ?></a>
-                <a href="../../Controllers/AuthController.php?action=logout" class="btn btn-danger btn-sm"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                <?php else: ?>
+                    <a href="../auth/login.php" class="btn btn-outline btn-sm">Đăng nhập</a>
+                    <a href="../auth/register.php" class="btn btn-register btn-sm">Đăng ký</a>
+                <?php endif; ?>
             </div>
 
             <button class="mobile-menu-toggle">
@@ -322,3 +328,6 @@ $totalPosts = count($posts);
             return confirm(message);
         }
     </script>
+    <script src="../../assets/js/notifications.js"></script>
+</body>
+</html>

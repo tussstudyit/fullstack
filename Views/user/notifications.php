@@ -28,7 +28,9 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
         }
 
         .content-wrapper {
+            min-height: calc(100vh - 80px);
             padding: 3rem 0;
+            background: #f8fafc;
         }
 
         .notifications-container {
@@ -243,6 +245,34 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
             </ul>
 
             <div class="nav-actions">
+                    <div class="notification-wrapper">
+                        <button class="notification-bell-btn" onclick="toggleNotificationDropdown(event)" title="Thông báo">
+                            <i class="fas fa-bell"></i>
+                            <?php 
+                            $unread = $notificationModel->getUnreadCount($_SESSION['user_id']);
+                            if ($unread > 0): 
+                            ?>
+                            <span class="notification-badge">
+                                <?php echo $unread > 99 ? '99+' : $unread; ?>
+                            </span>
+                            <?php endif; ?>
+                        </button>
+                        <div class="notification-dropdown" id="notificationDropdown">
+                            <div class="notification-dropdown-header">
+                                <h3>Thông báo</h3>
+                                <button class="mark-all-read-btn" onclick="markAllNotificationsAsRead()">Đánh dấu tất cả đã đọc</button>
+                            </div>
+                            <div class="notification-dropdown-list" id="notificationList">
+                                <div class="notification-empty">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Đang tải...</p>
+                                </div>
+                            </div>
+                            <div class="notification-dropdown-footer">
+                                <a href="notifications.php">Xem tất cả thông báo</a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="user-menu-wrapper" style="position: relative;">
                         <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
                             <?php
@@ -276,11 +306,6 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
             </button>
         </nav>
     </header>
-
-    <div class="page-header">
-        <h1>Thông Báo</h1>
-        <p>Các thông báo của bạn</p>
-    </div>
 
     <div class="content-wrapper">
         <div class="container">
@@ -326,8 +351,8 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
                                     $icon_class = 'success';
                                     $icon = 'fa-envelope';
                                 } elseif ($notification['type'] === 'post_like') {
-                                    $icon_class = 'danger';
-                                    $icon = 'fa-heart';
+                                    $icon_class = 'info';
+                                    $icon = 'fa-thumbs-up';
                                 } elseif ($notification['type'] === 'post_approved') {
                                     $icon_class = 'success';
                                     $icon = 'fa-check';
@@ -478,6 +503,20 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
             });
         }
 
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('userDropdownMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('userDropdownMenu');
+            const userWrapper = document.querySelector('.user-menu-wrapper');
+            if (menu && !userWrapper.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
         function deleteNotification(notificationId) {
             if (confirm('Bạn chắc chắn muốn xóa thông báo này?')) {
                 fetch('../../Controllers/NotificationController.php', {
@@ -501,5 +540,6 @@ $unread_count = $notificationModel->getUnreadCount($_SESSION['user_id']);
             }
         }
     </script>
+    <script src="../../assets/js/notifications.js"></script>
 </body>
 </html>
