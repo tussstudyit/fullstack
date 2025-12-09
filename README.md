@@ -2,6 +2,79 @@
 
 Hệ thống tìm kiếm và quản lý phòng trọ dành cho sinh viên với 3 vai trò: Admin, Người cho thuê, Người thuê.
 
+## 🔧 Công nghệ sử dụng
+
+### Backend
+- **PHP 7.4+** - Server-side programming language
+- **MySQL 5.7+** - Relational database management system
+- **PDO (PHP Data Objects)** - Database abstraction layer
+- **Composer** - Dependency manager for PHP
+- **Ratchet** - WebSocket library for realtime chat
+- **bcrypt** - Password hashing algorithm
+
+### Frontend
+- **HTML5** - Semantic markup language
+- **CSS3** - Styling with modern features (Grid, Flexbox, Variables)
+- **JavaScript (Vanilla ES6+)** - Client-side scripting
+- **Font Awesome 6.4.0** - Icon library
+- **Google Fonts** - Web typography (Dancing Script)
+
+### Server & Infrastructure
+- **Apache 2.4** - Web server with mod_rewrite
+- **.htaccess** - URL rewriting and routing rules
+- **WebSocket Server** - Ratchet on port 8080 for chat
+- **Session Management** - PHP native sessions
+
+### Database
+- **MySQL 5.7+** / **MariaDB 10.2+**
+- **PDO Prepared Statements** - SQL injection prevention
+- **InnoDB Engine** - Transaction support
+- **Foreign Keys** - Referential integrity
+- **Indexes** - Query optimization
+
+### Development Tools
+- **Git** - Version control system
+- **GitHub** - Code hosting and collaboration
+- **VS Code** - Code editor (recommended)
+- **phpMyAdmin** - Database administration
+- **Composer** - Package management
+- **XAMPP/WAMP** - Local development environment
+
+### Architecture & Patterns
+- **MVC (Model-View-Controller)** - Application architecture
+  - **Models** (`Models/`) - Data layer & business logic
+  - **Views** (`Views/`) - Presentation layer (PHP templates)
+  - **Controllers** (`Controllers/`) - Request handling
+- **RESTful API** - API endpoints design (`api/`)
+- **Repository Pattern** - Database query abstraction
+- **Session-based Authentication** - User authentication
+- **RBAC** - Role-based access control
+
+### Security
+- **Password Hashing** - bcrypt with cost factor 10
+- **SQL Injection Prevention** - PDO prepared statements
+- **XSS Protection** - htmlspecialchars() sanitization
+- **CSRF Protection** - Session token validation
+- **File Upload Validation** - Type, size, and extension checks
+- **Input Sanitization** - Filter and validate user inputs
+
+### Libraries & Dependencies (Composer)
+```json
+{
+  "cboden/ratchet": "^0.4",           // WebSocket server
+  "guzzlehttp/psr7": "^2.0",          // HTTP message interfaces
+  "symfony/http-foundation": "^6.0",  // HTTP abstraction
+  "symfony/routing": "^6.0"           // URL routing
+}
+```
+
+### Browser Compatibility
+- ✅ Chrome 90+
+- ✅ Firefox 88+
+- ✅ Safari 14+
+- ✅ Edge 90+
+- ✅ Mobile browsers (iOS Safari, Chrome Mobile)
+
 ## 📋 Tính năng
 
 ### ✅ Chức năng đã hoàn thành
@@ -2471,44 +2544,9 @@ function getDB() {
 - **Start Command:** `php websocket/server.php` or `start-chat.bat`
 - **Status:** Configured, ready for chat implementation
 
-## 🔧 Công nghệ sử dụng
-
-### Backend
-- **PHP 7.4+** - Server-side language
-- **MySQL 5.7+** - Relational database
-- **PDO** - Database abstraction layer
-- **Composer** - Dependency manager
-- **Ratchet** - WebSocket library
-- **bcrypt** - Password hashing
-
-### Frontend
-- **HTML5** - Markup language
-- **CSS3** - Styling with CSS Variables
-- **JavaScript (Vanilla)** - Client-side logic
-- **Font Awesome 6.4.0** - Icons library
-- **Google Fonts** - Typography (Dancing Script)
-
-### Server
-- **Apache** - Web server (with mod_rewrite)
-- **.htaccess** - URL rewriting rules
-- **WebSocket Server** - Port 8080
-
-### Development Tools
-- **Git** - Version control
-- **GitHub** - Code repository
-- **VS Code** - Code editor (recommended)
-- **phpMyAdmin** - Database management
-
-### Architecture Pattern
-- **MVC (Model-View-Controller)**
-  - Models: Data layer (`Models/`)
-  - Views: Presentation layer (`Views/`)
-  - Controllers: Business logic (`Controllers/`)
-- **RESTful API** endpoints (`api/`)
-- **Session-based Authentication**
 - **Repository Pattern** for database queries
 
-## 📱 Responsive Design
+## 📋 Tính năng
 
 Giao diện được thiết kế responsive với breakpoints:
 
