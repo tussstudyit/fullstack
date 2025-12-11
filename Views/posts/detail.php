@@ -393,7 +393,37 @@ try {
                 <?php if (isLoggedIn() && $_SESSION['role'] === 'tenant'): ?>
                 <li><a href="../user/favorites.php" class="nav-link">Yêu thích</a></li>
                 <?php endif; ?>
-                <li><a href="../chat/chat.php" class="nav-link">Tin nhắn</a></li>
+                <?php if (isLoggedIn()): ?>
+                <li style="position: relative;">
+                    <a href="../chat/chat.php" class="nav-link">Tin nhắn</a>
+                    <?php 
+                    try {
+                        $db = getDB();
+                        $unread_stmt = $db->prepare("
+                            SELECT COUNT(DISTINCT c.id) as unread_conversations
+                            FROM conversations c
+                            INNER JOIN messages m ON m.conversation_id = c.id
+                            WHERE m.is_read = 0 
+                            AND m.sender_id != ?
+                            AND (c.landlord_id = ? OR c.tenant_id = ?)
+                        ");
+                        $unread_stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
+                        $unread_result = $unread_stmt->fetch(PDO::FETCH_ASSOC);
+                        $unread_count = $unread_result['unread_conversations'] ?? 0;
+                        
+                        if ($unread_count > 0):
+                    ?>
+                    <span class="notification-badge" style="position: absolute; top: -5px; right: -10px; background: #ef4444; color: white; border-radius: 10px; padding: 2px 6px; font-size: 0.7rem; font-weight: 700; min-width: 18px; text-align: center;">
+                        <?php echo $unread_count > 99 ? '99+' : $unread_count; ?>
+                    </span>
+                    <?php 
+                        endif;
+                    } catch (Exception $e) {
+                        // Ignore errors
+                    }
+                    ?>
+                </li>
+                <?php endif; ?>
             </ul>
 
             <div class="nav-actions">
@@ -631,7 +661,7 @@ try {
                             <a href="tel:<?php echo htmlspecialchars($landlord['phone'] ?? ''); ?>" class="btn btn-primary" style="background: #10b981; border-color: #10b981;">
                                 <i class="fas fa-phone"></i> <?php echo htmlspecialchars($landlord['phone'] ?? 'Không có'); ?>
                             </a>
-                            <a href="../chat/chat.php?user_id=<?php echo $post['user_id']; ?>" class="btn btn-primary" style="background: #10b981; border-color: #10b981;">
+                            <a href="../chat/chat.php?post_id=<?php echo $post_id; ?>&user_id=<?php echo $post['user_id']; ?>" class="btn btn-primary" style="background: #10b981; border-color: #10b981;">
                                 <i class="fas fa-comment"></i> Nhắn tin
                             </a>
                             <?php 

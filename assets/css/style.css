@@ -500,6 +500,16 @@ img {
     margin-bottom: 1rem;
 }
 
+/* Toast Notification - showNotification() */
+.notification {
+    position: fixed !important;
+    z-index: 10000 !important;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
 .mobile-menu-toggle {
     display: none;
     font-size: 1.5rem;

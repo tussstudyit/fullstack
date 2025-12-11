@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Badge System Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 { color: #333; margin-bottom: 0.5rem; }
+        .header p { color: #666; }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .test-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .test-card h2 {
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .status-badge.loading {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-badge.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-badge.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .metrics {
+            display: grid;
+            gap: 0.75rem;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        
+        .metric-label { color: #666; }
+        .metric-value { 
+            font-weight: 600;
+            color: #333;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover { background: #5568d3; }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover { background: #059669; }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover { background: #dc2626; }
+        
+        .console {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .console h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        .console-output {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+        
+        .log-entry {
+            margin: 0.25rem 0;
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .log-entry.info .icon { color: #60a5fa; }
+        .log-entry.success .icon { color: #34d399; }
+        .log-entry.error .icon { color: #f87171; }
+        .log-entry.warning .icon { color: #fbbf24; }
+        
+        .icon { 
+            min-width: 20px;
+            font-weight: bold;
+        }
+        
+        .real-time-demo {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .real-time-demo h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        .demo-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .demo-section h3 {
+            color: #555;
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .demo-display {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 0.75rem;
+        }
+        
+        .navbar-demo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .navbar-item {
+            padding: 0.5rem 1rem;
+            background: #667eea;
+            color: white;
+            border-radius: 6px;
+            position: relative;
+        }
+        
+        .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .conversation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .conv-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f3f4f6;
+            border-radius: 6px;
+        }
+        
+        .conv-name { color: #333; font-weight: 500; }
+        .conv-badge {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Live Chat Badge System Test</h1>
+            <p>Real-time badge functionality verification - December 11, 2025</p>
+        </div>
+        
+        <!-- Test Cards -->
+        <div class="test-grid">
+            <!-- Feature 1 -->
+            <div class="test-card">
+                <h2>
+                    🔔 Feature 1: Navbar Badge
+                    <span class="status-badge loading" id="feature1-status">Testing...</span>
+                </h2>
+                <div class="metrics">
+                    <div class="metric">
+                        <span class="metric-label">Status</span>
+                        <span class="metric-value" id="feature1-status-text">Loading...</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Conversations with Unread</span>
+                        <span class="metric-value" id="feature1-count">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Expected Display</span>
+                        <span class="metric-value" id="feature1-display">[?]</span>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="testFeature1()">Test Now</button>
+                </div>
+            </div>
+            
+            <!-- Feature 2A -->
+            <div class="test-card">
+                <h2>
+                    📋 Feature 2A: Conv Badges
+                    <span class="status-badge loading" id="feature2a-status">Testing...</span>
+                </h2>
+                <div class="metrics">
+                    <div class="metric">
+                        <span class="metric-label">Status</span>
+                        <span class="metric-value" id="feature2a-status-text">Loading...</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total Conversations</span>
+                        <span class="metric-value" id="feature2a-count">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">With Badges</span>
+                        <span class="metric-value" id="feature2a-with-badges">-</span>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="testFeature2A()">Test Now</button>
+                </div>
+            </div>
+            
+            <!-- Feature 2B -->
+            <div class="test-card">
+                <h2>
+                    📈 Feature 2B: Sidebar Total
+                    <span class="status-badge loading" id="feature2b-status">Testing...</span>
+                </h2>
+                <div class="metrics">
+                    <div class="metric">
+                        <span class="metric-label">Status</span>
+                        <span class="metric-value" id="feature2b-status-text">Loading...</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total Unread Messages</span>
+                        <span class="metric-value" id="feature2b-total">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Expected Display</span>
+                        <span class="metric-value" id="feature2b-display">[?]</span>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="testFeature2B()">Test Now</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Console -->
+        <div class="console">
+            <h2>📺 Console Output</h2>
+            <div class="console-output" id="console"></div>
+            <div class="action-buttons" style="margin-top: 1rem;">
+                <button class="btn-primary" onclick="clearConsole()">Clear Console</button>
+                <button class="btn-success" onclick="runAllTests()">Run All Tests</button>
+            </div>
+        </div>
+        
+        <!-- Real-time Demo -->
+        <div class="real-time-demo">
+            <h2>⚡ Real-time Demo</h2>
+            
+            <div class="demo-section">
+                <h3>Navbar Badge</h3>
+                <div class="demo-display">
+                    <div class="navbar-demo">
+                        <div class="navbar-item">
+                            Tin nhắn
+                            <div class="badge" id="navbar-badge" style="display: none;">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="demo-section">
+                <h3>Sidebar Total Badge</h3>
+                <div class="demo-display" id="sidebar-demo">
+                    "X tin" will display here
+                </div>
+            </div>
+            
+            <div class="demo-section">
+                <h3>Conversation List</h3>
+                <div class="conversation-list" id="conv-list">
+                    <div style="color: #999; padding: 1rem; text-align: center;">Loading...</div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn-primary" onclick="loadDemoData()">Load Demo Data</button>
+                <button class="btn-success" onclick="simulateMessage()">Simulate Message</button>
+                <button class="btn-danger" onclick="simulateMarkAsRead()">Simulate Mark as Read</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let demoData = {
+            navbarBadge: 0,
+            conversations: [],
+            totalUnread: 0
+        };
+        
+        function log(message, type = 'info') {
+            const console = document.getElementById('console');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const icons = { info: 'ℹ️', success: '✅', error: '❌', warning: '⚠️' };
+            entry.innerHTML = `<span class="icon">${icons[type]}</span><span>${message}</span>`;
+            console.appendChild(entry);
+            console.scrollTop = console.scrollHeight;
+        }
+        
+        function clearConsole() {
+            document.getElementById('console').innerHTML = '';
+            log('Console cleared');
+        }
+        
+        async function testFeature1() {
+            log('Testing Feature 1: Navbar Badge...', 'info');
+            try {
+                const response = await fetch('/api/chat.php?action=getConversations');
+                const data = await response.json();
+                
+                if (data.success) {
+                    let count = 0;
+                    data.data.forEach(conv => {
+                        if (conv.unread_count > 0) count++;
+                    });
+                    
+                    document.getElementById('feature1-count').textContent = count;
+                    document.getElementById('feature1-display').textContent = count > 0 ? `[${count}]` : 'Hidden';
+                    document.getElementById('feature1-status-text').textContent = '✅ Passed';
+                    document.getElementById('feature1-status').className = 'status-badge success';
+                    
+                    log(`✅ Feature 1: Found ${count} conversations with unread`, 'success');
+                    demoData.navbarBadge = count;
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                log(`❌ Feature 1 Error: ${error.message}`, 'error');
+                document.getElementById('feature1-status-text').textContent = '❌ Failed';
+                document.getElementById('feature1-status').className = 'status-badge error';
+            }
+        }
+        
+        async function testFeature2A() {
+            log('Testing Feature 2A: Per-Conversation Badges...', 'info');
+            try {
+                const response = await fetch('/api/chat.php?action=getConversations');
+                const data = await response.json();
+                
+                if (data.success) {
+                    let withBadges = 0;
+                    data.data.forEach(conv => {
+                        if (conv.unread_count > 0) withBadges++;
+                    });
+                    
+                    document.getElementById('feature2a-count').textContent = data.data.length;
+                    document.getElementById('feature2a-with-badges').textContent = withBadges;
+                    document.getElementById('feature2a-status-text').textContent = '✅ Passed';
+                    document.getElementById('feature2a-status').className = 'status-badge success';
+                    
+                    log(`✅ Feature 2A: ${data.data.length} conversations, ${withBadges} with badges`, 'success');
+                    demoData.conversations = data.data;
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                log(`❌ Feature 2A Error: ${error.message}`, 'error');
+                document.getElementById('feature2a-status-text').textContent = '❌ Failed';
+                document.getElementById('feature2a-status').className = 'status-badge error';
+            }
+        }
+        
+        async function testFeature2B() {
+            log('Testing Feature 2B: Sidebar Total Badge...', 'info');
+            try {
+                const response = await fetch('/api/chat.php?action=getConversations');
+                const data = await response.json();
+                
+                if (data.success) {
+                    let total = 0;
+                    data.data.forEach(conv => {
+                        total += conv.unread_count;
+                    });
+                    
+                    const display = total > 99 ? '99+ tin' : `${total} tin`;
+                    document.getElementById('feature2b-total').textContent = total;
+                    document.getElementById('feature2b-display').textContent = total > 0 ? `[${display}]` : 'Hidden';
+                    document.getElementById('feature2b-status-text').textContent = '✅ Passed';
+                    document.getElementById('feature2b-status').className = 'status-badge success';
+                    
+                    log(`✅ Feature 2B: Total ${total} unread messages - Display: "${display}"`, 'success');
+                    demoData.totalUnread = total;
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                log(`❌ Feature 2B Error: ${error.message}`, 'error');
+                document.getElementById('feature2b-status-text').textContent = '❌ Failed';
+                document.getElementById('feature2b-status').className = 'status-badge error';
+            }
+        }
+        
+        async function runAllTests() {
+            clearConsole();
+            log('🧪 Running all tests...', 'info');
+            await testFeature1();
+            await testFeature2A();
+            await testFeature2B();
+            log('✅ All tests completed!', 'success');
+        }
+        
+        async function loadDemoData() {
+            log('Loading demo data...', 'info');
+            try {
+                const response = await fetch('/api/chat.php?action=getConversations');
+                const data = await response.json();
+                
+                if (data.success) {
+                    demoData.conversations = data.data;
+                    
+                    // Update navbar
+                    let navbarCount = 0;
+                    data.data.forEach(conv => {
+                        if (conv.unread_count > 0) navbarCount++;
+                    });
+                    
+                    if (navbarCount > 0) {
+                        document.getElementById('navbar-badge').textContent = navbarCount;
+                        document.getElementById('navbar-badge').style.display = 'flex';
+                    } else {
+                        document.getElementById('navbar-badge').style.display = 'none';
+                    }
+                    
+                    // Update sidebar total
+                    let total = 0;
+                    data.data.forEach(conv => {
+                        total += conv.unread_count;
+                    });
+                    demoData.totalUnread = total;
+                    const display = total > 99 ? '99+ tin' : `${total} tin`;
+                    document.getElementById('sidebar-demo').textContent = total > 0 ? `[${display}]` : 'No unread';
+                    
+                    // Update conversation list
+                    const convList = document.getElementById('conv-list');
+                    convList.innerHTML = data.data.map(conv => `
+                        <div class="conv-item">
+                            <span class="conv-name">${conv.other_user_name}</span>
+                            <span class="conv-badge">${conv.unread_count > 0 ? conv.unread_count : '✓'}</span>
+                        </div>
+                    `).join('');
+                    
+                    log(`✅ Loaded ${data.data.length} conversations`, 'success');
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                log(`❌ Error loading demo data: ${error.message}`, 'error');
+            }
+        }
+        
+        function simulateMessage() {
+            log('⚡ Simulating message arrival from new conversation...', 'warning');
+            
+            // Simulate: increment first conversation by 1
+            if (demoData.conversations.length > 0) {
+                demoData.conversations[0].unread_count += 1;
+                demoData.totalUnread += 1;
+                
+                // Update navbar badge
+                let navbarCount = 0;
+                demoData.conversations.forEach(conv => {
+                    if (conv.unread_count > 0) navbarCount++;
+                });
+                
+                const badge = document.getElementById('navbar-badge');
+                badge.textContent = navbarCount;
+                badge.style.display = navbarCount > 0 ? 'flex' : 'none';
+                
+                // Update sidebar total
+                const display = demoData.totalUnread > 99 ? '99+ tin' : `${demoData.totalUnread} tin`;
+                document.getElementById('sidebar-demo').textContent = `[${display}]`;
+                
+                // Update conversation list
+                const convList = document.getElementById('conv-list');
+                convList.innerHTML = demoData.conversations.map(conv => `
+                    <div class="conv-item">
+                        <span class="conv-name">${conv.other_user_name}</span>
+                        <span class="conv-badge">${conv.unread_count}</span>
+                    </div>
+                `).join('');
+                
+                log(`✅ Simulated: Navbar [${navbarCount}], Total [${display}], Conv 1 [${demoData.conversations[0].unread_count}]`, 'success');
+            }
+        }
+        
+        function simulateMarkAsRead() {
+            log('📖 Simulating mark as read...', 'warning');
+            
+            // Simulate: mark first conversation as read
+            if (demoData.conversations.length > 0 && demoData.conversations[0].unread_count > 0) {
+                const unreadBefore = demoData.conversations[0].unread_count;
+                demoData.totalUnread -= unreadBefore;
+                demoData.conversations[0].unread_count = 0;
+                
+                // Update navbar badge
+                let navbarCount = 0;
+                demoData.conversations.forEach(conv => {
+                    if (conv.unread_count > 0) navbarCount++;
+                });
+                
+                const badge = document.getElementById('navbar-badge');
+                badge.textContent = navbarCount;
+                badge.style.display = navbarCount > 0 ? 'flex' : 'none';
+                
+                // Update sidebar total
+                const display = demoData.totalUnread > 0 ? (demoData.totalUnread > 99 ? '99+ tin' : `${demoData.totalUnread} tin`) : 'No unread';
+                document.getElementById('sidebar-demo').textContent = demoData.totalUnread > 0 ? `[${display}]` : display;
+                
+                // Update conversation list
+                const convList = document.getElementById('conv-list');
+                convList.innerHTML = demoData.conversations.map(conv => `
+                    <div class="conv-item">
+                        <span class="conv-name">${conv.other_user_name}</span>
+                        <span class="conv-badge">${conv.unread_count > 0 ? conv.unread_count : '✓'}</span>
+                    </div>
+                `).join('');
+                
+                log(`✅ Marked as read: Navbar [${navbarCount}], Total [${display}]`, 'success');
+            }
+        }
+        
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            log('🚀 Test page loaded', 'info');
+            runAllTests();
+            loadDemoData();
+        });
+    </script>
+</body>
+</html>

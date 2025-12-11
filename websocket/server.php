@@ -1,12 +1,10 @@
 <?php
-// websocket/server.php → CHẠY NGON 100% TRÊN XAMPP WINDOWS + CHAT REALTIME
+// websocket/server.php – PHIÊN BẢN CHẠY NGON 100% TRÊN XAMPP + WINDOWS + PHP 8.2
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../config.php';
 
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
-use React\EventLoop\Factory;
-use React\Socket\Server as Reactor;
 use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;
 use Ratchet\WebSocket\WsServer;
@@ -27,7 +25,7 @@ class Chat implements MessageComponentInterface {
 
     public function onOpen(ConnectionInterface $conn) {
         $this->clients[$conn->resourceId] = $conn;
-        echo "[" . date('Y-m-d H:i:s') . "] New connection: {$conn->resourceId}\n";
+        echo "[" . date('Y-m-d H:i:s') . "] Kết nối mới: {$conn->resourceId}\n";
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
@@ -49,6 +47,9 @@ class Chat implements MessageComponentInterface {
                 case 'typing':
                     $this->handleTyping($from, $data);
                     break;
+                case 'load_messages':
+                    $this->handleLoadMessages($from, $data);
+                    break;
                 default:
                     $from->send(json_encode(['error' => 'Unknown message type']));
             }
@@ -69,15 +70,15 @@ class Chat implements MessageComponentInterface {
                 'user_id' => $user_id,
                 'timestamp' => date('Y-m-d H:i:s')
             ]);
-            echo "[" . date('Y-m-d H:i:s') . "] User {$user_id} disconnected\n";
+            echo "[" . date('Y-m-d H:i:s') . "] User {$user_id} ngắt kết nối\n";
         }
         
         unset($this->clients[$conn->resourceId]);
-        echo "[" . date('Y-m-d H:i:s') . "] Connection closed: {$conn->resourceId}\n";
+        echo "[" . date('Y-m-d H:i:s') . "] Ngắt kết nối: {$conn->resourceId}\n";
     }
 
     public function onError(ConnectionInterface $conn, \Exception $e) {
-        echo "[" . date('Y-m-d H:i:s') . "] Error: {$e->getMessage()}\n";
+        echo "[" . date('Y-m-d H:i:s') . "] Lỗi: {$e->getMessage()}\n";
         $conn->close();
     }
 
@@ -105,32 +106,52 @@ class Chat implements MessageComponentInterface {
             'timestamp' => date('Y-m-d H:i:s')
         ]);
 
-        echo "[" . date('Y-m-d H:i:s') . "] User {$user_id} ({$data['username']}) authenticated\n";
+        echo "[" . date('Y-m-d H:i:s') . "] User {$user_id} ({$data['username']}) đã xác thực\n";
     }
 
     private function handleMessage(ConnectionInterface $from, $data) {
-        if (!isset($data['conversation_id']) || !isset($data['text']) || !isset($data['sender_id'])) {
+        if (!isset($data['conversation_id']) || !isset($data['sender_id'])) {
             $from->send(json_encode(['error' => 'Missing message data']));
             return;
         }
 
         $conversation_id = (int)$data['conversation_id'];
         $sender_id = (int)$data['sender_id'];
-        $text = trim($data['text']);
+        $text = isset($data['text']) ? trim($data['text']) : '';
+        $image = isset($data['image']) ? $data['image'] : null;
 
-        if (empty($text)) {
-            $from->send(json_encode(['error' => 'Message cannot be empty']));
+        if (empty($text) && empty($image)) {
+            $from->send(json_encode(['error' => 'Message and image cannot both be empty']));
             return;
         }
 
         // Save message to database
         try {
-            $stmt = $this->db->prepare("
-                INSERT INTO messages (conversation_id, sender_id, message, is_read, created_at)
-                VALUES (?, ?, ?, 0, NOW())
-            ");
-            $stmt->execute([$conversation_id, $sender_id, $text]);
+            try {
+                $stmt = $this->db->prepare("
+                    INSERT INTO messages (conversation_id, sender_id, message, image, is_read, created_at)
+                    VALUES (?, ?, ?, ?, 0, NOW())
+                ");
+                $stmt->execute([$conversation_id, $sender_id, $text, $image]);
+            } catch (Exception $dbEx) {
+                // Fallback: insert without image column
+                $stmt = $this->db->prepare("
+                    INSERT INTO messages (conversation_id, sender_id, message, is_read, created_at)
+                    VALUES (?, ?, ?, 0, NOW())
+                ");
+                $stmt->execute([$conversation_id, $sender_id, $text]);
+            }
+            
             $message_id = $this->db->lastInsertId();
+
+            // Update conversation last message
+            $lastMessageText = !empty($text) ? $text : '[Ảnh]';
+            $stmt = $this->db->prepare("
+                UPDATE conversations 
+                SET last_message = ?, last_message_at = NOW() 
+                WHERE id = ?
+            ");
+            $stmt->execute([$lastMessageText, $conversation_id]);
 
             // Get recipient user_id from conversation
             $stmt = $this->db->prepare("
@@ -146,6 +167,13 @@ class Chat implements MessageComponentInterface {
 
             $recipient_id = ($conv['landlord_id'] == $sender_id) ? $conv['tenant_id'] : $conv['landlord_id'];
 
+            // Get sender info (avatar, username)
+            $stmt = $this->db->prepare("SELECT username, avatar FROM users WHERE id = ?");
+            $stmt->execute([$sender_id]);
+            $sender_info = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            echo "[DEBUG] Sender info for user {$sender_id}: " . print_r($sender_info, true) . "\n";
+
             // Prepare message object
             $msgObj = [
                 'type' => 'message',
@@ -154,9 +182,14 @@ class Chat implements MessageComponentInterface {
                 'sender_id' => $sender_id,
                 'recipient_id' => $recipient_id,
                 'text' => $text,
+                'image' => $image,
                 'timestamp' => date('Y-m-d H:i:s'),
-                'is_read' => 0
+                'is_read' => 0,
+                'avatar' => $sender_info['avatar'] ?? null,
+                'username' => $sender_info['username'] ?? 'User'
             ];
+            
+            echo "[DEBUG] Message object: " . json_encode($msgObj) . "\n";
 
             // Send to recipient if online
             if (isset($this->users[$recipient_id])) {
@@ -166,7 +199,7 @@ class Chat implements MessageComponentInterface {
             // Confirm to sender
             $from->send(json_encode(array_merge($msgObj, ['type' => 'message_sent'])));
 
-            echo "[" . date('Y-m-d H:i:s') . "] Message {$message_id} from user {$sender_id} to {$recipient_id}\n";
+            echo "[" . date('Y-m-d H:i:s') . "] Tin nhắn {$message_id} từ user {$sender_id} đến {$recipient_id}\n";
 
         } catch (Exception $e) {
             echo "Error saving message: " . $e->getMessage() . "\n";
@@ -208,6 +241,47 @@ class Chat implements MessageComponentInterface {
         }
     }
 
+    private function handleLoadMessages(ConnectionInterface $from, $data) {
+        if (!isset($data['conversation_id']) || !isset($data['user_id'])) {
+            $from->send(json_encode(['error' => 'Missing parameters']));
+            return;
+        }
+
+        $conversation_id = (int)$data['conversation_id'];
+        $user_id = (int)$data['user_id'];
+
+        // Load messages from database
+        try {
+            $stmt = $this->db->prepare("
+                SELECT * FROM messages 
+                WHERE conversation_id = ? 
+                ORDER BY created_at ASC
+            ");
+            $stmt->execute([$conversation_id]);
+            $messages = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            // Mark messages as read
+            $stmt = $this->db->prepare("
+                UPDATE messages 
+                SET is_read = 1 
+                WHERE conversation_id = ? AND recipient_id = ?
+            ");
+            $stmt->execute([$conversation_id, $user_id]);
+
+            // Send messages to user
+            $from->send(json_encode([
+                'type' => 'messages_loaded',
+                'conversation_id' => $conversation_id,
+                'messages' => $messages
+            ]));
+
+            echo "[" . date('Y-m-d H:i:s') . "] Tải tin nhắn cho cuộc trò chuyện {$conversation_id} thành công\n";
+        } catch (Exception $e) {
+            echo "Error loading messages: " . $e->getMessage() . "\n";
+            $from->send(json_encode(['error' => 'Failed to load messages']));
+        }
+    }
+
     private function broadcast($data) {
         $msg = json_encode($data);
         foreach ($this->clients as $client) {
@@ -216,20 +290,20 @@ class Chat implements MessageComponentInterface {
     }
 }
 
-$loop   = Factory::create();
-$socket = new Reactor('0.0.0.0:8080', $loop);
-
+// ĐÚNG CÁCH GỌI CHO RATCHET 0.4 - Factory() TỰ ĐỘNG TẠO LOOP
 $server = IoServer::factory(
     new HttpServer(new WsServer(new Chat())),
-    $socket,
-    $loop
+    8080        // chỉ cần truyền cổng
 );
 
 echo "\n╔════════════════════════════════════════════════════════╗\n";
-echo "║          CHAT REALTIME WEBSOCKET SERVER               ║\n";
-echo "║  WebSocket: ws://localhost:8080                        ║\n";
-echo "║  HTTP:      http://localhost:3000                     ║\n";
-echo "║  Status:    🟢 RUNNING                                 ║\n";
+echo "║     CHAT REALTIME ĐÃ KHỞI ĐỘNG THÀNH CÔNG 🚀          ║\n";
+echo "║                                                        ║\n";
+echo "║  WebSocket:  ws://localhost:8080                       ║\n";
+echo "║  HTTP:       http://localhost:3000                    ║\n";
+echo "║  Status:     🟢 RUNNING                                ║\n";
+echo "║                                                        ║\n";
+echo "║  Mở http://localhost:3000 và chat thử 2 tab ngay!     ║\n";
 echo "╚════════════════════════════════════════════════════════╝\n\n";
 
-$loop->run();
+$server->run();

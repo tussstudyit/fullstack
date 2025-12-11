@@ -114,21 +114,93 @@ function setRating(rating, container) {
 }
 
 // =============================================
+// NAVBAR BADGE POLLING
+// =============================================
+
+function updateNavbarBadgePolling() {
+    const chatLink = document.querySelector('a[href*="chat.php"]');
+    if (!chatLink) return;
+    
+    const liElement = chatLink.closest('li');
+    if (!liElement) return;
+    
+    fetch('../../api/get-unread-conversations.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.count !== undefined) {
+                let badge = liElement.querySelector('.notification-badge');
+                
+                if (data.count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'notification-badge';
+                        badge.style.cssText = 'position: absolute; top: -5px; right: -10px; background: #ef4444; color: white; border-radius: 10px; padding: 2px 6px; font-size: 0.7rem; font-weight: 700; min-width: 18px; text-align: center;';
+                        liElement.appendChild(badge);
+                    }
+                    badge.textContent = data.count > 99 ? '99+' : data.count;
+                } else {
+                    if (badge) {
+                        badge.remove();
+                    }
+                }
+            }
+        })
+        .catch(error => console.error('Error fetching unread count:', error));
+}
+
+// Start polling when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial update
+    updateNavbarBadgePolling();
+    
+    // Poll every 2 seconds
+    setInterval(updateNavbarBadgePolling, 2000);
+});
+
+// =============================================
 // NOTIFICATION SYSTEM
 // =============================================
 
 function showNotification(message, type = 'info') {
+    // Disable notifications on specific pages (list.php, create.php, favorites.php, chat.php)
+    const currentPath = window.location.pathname;
+    const disableNotificationPages = [
+        '/Views/posts/list.php',
+        '/Views/posts/create.php',
+        '/Views/user/favorites.php',
+        '/Views/chat/chat.php'
+    ];
+    
+    // Check if current page is in disable list
+    for (let page of disableNotificationPages) {
+        if (currentPath.includes(page)) {
+            console.log('ℹ️ Notifications disabled on this page:', currentPath);
+            return; // Exit without showing notification
+        }
+    }
+    
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
+    
+    // Calculate top position based on navbar/header height
+    // Check if page has a page-header element (like list.php, create.php)
+    const pageHeader = document.querySelector('.page-header');
+    let topPosition = '100px'; // Default for pages without page-header
+    
+    if (pageHeader) {
+        // If page-header exists, add extra space to avoid overlap
+        topPosition = '130px';
+    }
+    
     notification.style.cssText = `
         position: fixed;
-        top: 20px;
+        top: ${topPosition};
         right: 20px;
         padding: 1rem 1.5rem;
         border-radius: 8px;
         color: white;
         font-weight: 500;
-        z-index: 9999;
+        z-index: 10000;
         animation: slideIn 0.3s ease-out;
         max-width: 350px;
         box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
