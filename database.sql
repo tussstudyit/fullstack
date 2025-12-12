@@ -242,16 +242,31 @@ INSERT INTO users (username, email, password, full_name, phone, role) VALUES
 
 -- Insert sample posts
 INSERT INTO posts (user_id, category_id, title, description, address, district, city, price, area, room_type, room_status, max_people, gender, amenities, utilities, deposit_amount, electric_price, water_price, status) VALUES
-(2, 1, 'Phòng trọ gần ĐH Bách Khoa', 'Phòng trọ sạch sẽ, thoáng mát, an ninh tốt', '123 Nguyễn Chí Thanh', 'Quận Hải Châu', 'Đà Nẵng', 2500000, 20, 'single', 'available', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh', 'Điện, nước, internet', 2500000, 3500, 20000, 'approved'),
-(2, 2, 'Căn hộ mini cao cấp Quận 1', 'Căn hộ đầy đủ nội thất, view đẹp', '456 Tran Phu', 'Quận Thanh Khê', 'Đà Nẵng', 8000000, 35, 'apartment', 'available', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh, Máy giặt, Bếp', 'Điện, nước, internet, dọn dẹp', 8000000, 3500, 25000, 'approved'),
-(3, 1, 'Phòng trọ sinh viên giá rẻ', 'Phòng mới xây, gần chợ, trường học', '789 Lê Văn Việt', 'Quận Cẩm Lệ', 'Đà Nẵng', 1800000, 18, 'single', 'available', 1, 'female', 'WiFi, Điều hòa', 'Điện, nước', 1800000, 3500, 15000, 'approved');
+(2, 1, 'Phòng trọ gần ĐH Bách Khoa', 'Phòng trọ sạch sẽ, thoáng mát, an ninh tốt', '123 Nguyễn Chí Thanh', 'Quận Hải Châu', 'TP. Đà Nẵng', 2500000, 20, 'single', 'available', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh', 'Điện, nước, internet', 2500000, 3500, 20000, 'approved'),
+(2, 2, 'Căn hộ mini cao cấp Quận Thanh Khê', 'Căn hộ đầy đủ nội thất, view đẹp', '456 Trần Phú', 'Quận Thanh Khê', 'TP. Đà Nẵng', 8000000, 35, 'apartment', 'available', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh, Máy giặt, Bếp', 'Điện, nước, internet, dọn dẹp', 8000000, 3500, 25000, 'approved'),
+(3, 1, 'Phòng trọ sinh viên giá rẻ', 'Phòng mới xây, gần chợ, trường học', '789 Lê Văn Việt', 'Quận Sơn Trà', 'TP. Đà Nẵng', 1800000, 18, 'single', 'available', 1, 'female', 'WiFi, Điều hòa', 'Điện, nước', 1800000, 3500, 15000, 'approved'),
+(2, 1, 'Phòng trọ tại Huyện Hòa Vang', 'Phòng trọ yên tĩnh, gần công viên', '321 Nguyễn Văn Linh', 'Huyện Hòa Vang', 'TP. Đà Nẵng', 1500000, 15, 'single', 'available', 1, 'male', 'WiFi', 'Điện, nước', 1500000, 3500, 15000, 'approved'),
+(3, 2, 'Căn hộ mini tại Quận Ngũ Hành Sơn', 'Căn hộ gần biển, tầm nhìn đẹp', '654 Hùng Vương', 'Quận Ngũ Hành Sơn', 'TP. Đà Nẵng', 6500000, 30, 'apartment', 'available', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh, Máy giặt', 'Điện, nước, internet', 6500000, 3500, 25000, 'approved'),
+(2, 1, 'Phòng ghép với người bạn', 'Phòng ghép, giá rẻ, thoáng mát', '147 Thái Phiên', 'Quận Liên Chiểu', 'TP. Đà Nẵng', 1200000, 12, 'shared', 'available', 2, 'any', 'WiFi, Quạt', 'Điện, nước', 1200000, 3500, 15000, 'approved'),
+(3, 3, 'Nhà nguyên căn tại Hải Châu', 'Nhà 2 tầng, có sân, gần trường', '369 Lý Thái Tổ', 'Quận Hải Châu', 'TP. Đà Nẵng', 12000000, 80, 'house', 'available', 6, 'any', 'WiFi, Điều hòa, Bếp, TV', 'Điện, nước, gas, internet', 12000000, 3500, 25000, 'approved'),
+(2, 2, 'Studio cao cấp tại Thanh Khê', 'Studio 1 phòng ngủ + 1 phòng khách', '258 Ngô Quyền', 'Quận Thanh Khê', 'TP. Đà Nẵng', 5000000, 25, 'apartment', 'available', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh, Bếp', 'Điện, nước, internet', 5000000, 3500, 20000, 'approved'),
+(3, 1, 'Phòng trọ gần chợ Hàn', 'Phòng trọ an toàn, có khóa riêng', '111 Nguyễn Hữu Thọ', 'Quận Sơn Trà', 'TP. Đà Nẵng', 2000000, 16, 'single', 'available', 1, 'female', 'WiFi, Quạt, Tủ lạnh', 'Điện, nước', 2000000, 3500, 15000, 'approved'),
+(2, 2, 'Căn hộ tại Ngũ Hành Sơn', 'Căn hộ view biển, gần chợ', '777 Bạch Đằng', 'Quận Ngũ Hành Sơn', 'TP. Đà Nẵng', 7000000, 32, 'apartment', 'available', 2, 'any', 'WiFi, Điều hòa, Tủ lạnh, Máy giặt', 'Điện, nước, internet', 7000000, 3500, 25000, 'approved');
+
 
 -- Insert sample images
 INSERT INTO post_images (post_id, image_url, is_primary, display_order) VALUES
 (1, 'room1-1.jpg', TRUE, 1),
 (1, 'room1-2.jpg', FALSE, 2),
 (2, 'room2-1.jpg', TRUE, 1),
-(3, 'room3-1.jpg', TRUE, 1);
+(3, 'room3-1.jpg', TRUE, 1),
+(4, 'room4-1.jpg', TRUE, 1),
+(5, 'room5-1.jpg', TRUE, 1),
+(6, 'room6-1.jpg', TRUE, 1),
+(7, 'room7-1.jpg', TRUE, 1),
+(8, 'room8-1.jpg', TRUE, 1),
+(9, 'room9-1.jpg', TRUE, 1),
+(10, 'room10-1.jpg', TRUE, 1);
 
 -- =============================================
 -- END OF DATABASE SCHEMA

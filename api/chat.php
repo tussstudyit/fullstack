@@ -431,10 +431,18 @@ function createOrGetConversation($conn, $user_id) {
         $existing = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($existing) {
+            // Get other user info
+            $user_stmt = $conn->prepare("SELECT username, avatar FROM users WHERE id = ?");
+            $user_stmt->execute([$other_user_id]);
+            $other_user = $user_stmt->fetch(PDO::FETCH_ASSOC);
+            
             echo json_encode([
                 'success' => true,
                 'conversation_id' => $existing['id'],
-                'created' => false
+                'created' => false,
+                'other_user_id' => $other_user_id,
+                'other_user_name' => $other_user['username'] ?? 'Người dùng',
+                'other_user_avatar' => $other_user['avatar'] ?? null
             ]);
             return;
         }
@@ -447,10 +455,18 @@ function createOrGetConversation($conn, $user_id) {
         $stmt->execute([$post_id, $landlord_id, $tenant_id]);
         $conversation_id = $conn->lastInsertId();
 
+        // Get other user info
+        $user_stmt = $conn->prepare("SELECT username, avatar FROM users WHERE id = ?");
+        $user_stmt->execute([$other_user_id]);
+        $other_user = $user_stmt->fetch(PDO::FETCH_ASSOC);
+
         echo json_encode([
             'success' => true,
             'conversation_id' => $conversation_id,
-            'created' => true
+            'created' => true,
+            'other_user_id' => $other_user_id,
+            'other_user_name' => $other_user['username'] ?? 'Người dùng',
+            'other_user_avatar' => $other_user['avatar'] ?? null
         ]);
     } catch (Exception $e) {
         error_log("createOrGetConversation error: " . $e->getMessage());

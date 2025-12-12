@@ -883,21 +883,38 @@ require_once __DIR__ . '/../../helpers.php';
                                     current_conversation: currentConversationId,
                                     sender_id: data.sender_id,
                                     text: data.text,
+                                    image: data.image,
                                     avatar: data.avatar,
                                     username: data.username
                                 });
                                 
                                 // Hiển thị tin nhắn nếu thuộc cuộc trò chuyện hiện tại
                                 if (data.conversation_id == currentConversationId) {
-                                    addMessageToUI({
-                                        id: data.message_id,
-                                        sender_id: data.sender_id,
-                                        text: data.text,
-                                        timestamp: data.timestamp || new Date().toISOString(),
-                                        is_read: 0,
-                                        avatar: data.avatar,
-                                        username: data.username
-                                    });
+                                    // Nếu có ảnh, dùng addMessageImageToUI, ngược lại dùng addMessageToUI
+                                    if (data.image) {
+                                        const imagePath = data.image.startsWith('http') || data.image.startsWith('/') 
+                                            ? data.image 
+                                            : '../../uploads/messages/' + data.image;
+                                        
+                                        addMessageImageToUI({
+                                            id: data.message_id,
+                                            sender_id: data.sender_id,
+                                            image: imagePath,
+                                            timestamp: data.timestamp || new Date().toISOString(),
+                                            is_read: 0,
+                                            avatar: data.avatar
+                                        });
+                                    } else {
+                                        addMessageToUI({
+                                            id: data.message_id,
+                                            sender_id: data.sender_id,
+                                            text: data.text,
+                                            timestamp: data.timestamp || new Date().toISOString(),
+                                            is_read: 0,
+                                            avatar: data.avatar,
+                                            username: data.username
+                                        });
+                                    }
                                     console.log('✅ Message added to UI');
                                 } else {
                                     console.log('💡 Message for different conversation, updating preview only');
@@ -922,7 +939,8 @@ require_once __DIR__ . '/../../helpers.php';
                                 }
                                 
                                 // Luôn cập nhật conversation list preview
-                                updateConversationPreview(data.conversation_id, data.text);
+                                const previewText = data.image ? '📷 Ảnh' : data.text;
+                                updateConversationPreview(data.conversation_id, previewText);
                                 break;
                                 
                             case 'typing':
@@ -1522,6 +1540,11 @@ require_once __DIR__ . '/../../helpers.php';
             if (postLink) {
                 postLink.href = '../posts/detail.php?id=' + postId;
             }
+            
+            // Load danh sách conversations sau khi tạo
+            setTimeout(() => {
+                loadConversationsList();
+            }, 500);
         } else {
             // Trường hợp: Vào trang chat trực tiếp, load danh sách conversations
             loadConversationsList();
@@ -1727,6 +1750,33 @@ require_once __DIR__ . '/../../helpers.php';
                     const data = JSON.parse(text);
                     if (data.success) {
                         currentConversationId = data.conversation_id;
+                        
+                        // Ẩn empty state và hiển thị header & input
+                        const emptyState = document.getElementById('emptyState');
+                        const chatHeader = document.getElementById('chatHeader');
+                        const chatInputArea = document.getElementById('chatInputArea');
+                        
+                        if (emptyState) emptyState.style.display = 'none';
+                        if (chatHeader) chatHeader.style.display = 'flex';
+                        if (chatInputArea) chatInputArea.style.display = 'flex';
+                        
+                        // Update chat header with user info
+                        const chatUserName = document.getElementById('chatUserName');
+                        const chatUserAvatar = document.getElementById('chatUserAvatar');
+                        
+                        if (chatUserName) chatUserName.textContent = data.other_user_name || 'Người dùng';
+                        
+                        // Update avatar
+                        const avatarUrl = data.other_user_avatar 
+                            ? '../../uploads/avatars/' + data.other_user_avatar 
+                            : '<?php echo getPlaceholderImage(45, 45, "667eea", "?"); ?>';
+                        if (chatUserAvatar) chatUserAvatar.src = avatarUrl;
+                        
+                        // Update post link
+                        const postLink = document.getElementById('postLink');
+                        if (postLink) postLink.href = '../posts/detail.php?id=' + postId;
+                        
+                        // Load messages
                         loadMessages(currentConversationId);
                         console.log('✅ Conversation loaded:', currentConversationId);
                     } else {
