@@ -25,11 +25,6 @@ require_once __DIR__ . '/../../helpers.php';
             height: calc(100vh - 70px);
             background: white;
             overflow: hidden;
-            transition: grid-template-columns 0.3s ease;
-        }
-
-        .chat-container.info-open {
-            grid-template-columns: 360px 1fr 360px;
         }
 
         .conversations-sidebar {
@@ -402,107 +397,164 @@ require_once __DIR__ . '/../../helpers.php';
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
+            font-size: 1.125rem;
         }
 
         .info-toggle-btn:hover {
             background: #eff6ff;
         }
 
-        .info-toggle-btn.active {
-            background: #dbeafe;
-        }
-
-        .chat-info-panel {
-            border-left: 1px solid var(--border-color);
+        .search-panel-modal {
             display: none;
-            flex-direction: column;
-            height: 100%;
-            overflow-y: auto;
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            width: 350px;
             background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            flex-direction: column;
+            max-height: calc(100vh - 90px);
+            overflow: hidden;
         }
 
-        .chat-info-panel.show {
+        .search-panel-modal.show {
             display: flex;
         }
 
-        .info-panel-header {
+        .search-panel-header {
             padding: 1rem;
             border-bottom: 1px solid #f0f0f0;
-            text-align: center;
-        }
-
-        .info-user-avatar-large {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin: 0 auto 1rem;
-            object-fit: cover;
-        }
-
-        .info-user-name {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .info-user-status {
-            font-size: 0.85rem;
-            color: var(--success-color);
-        }
-
-        .info-section {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .info-section-title {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #65676b;
-            margin-bottom: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .info-option {
-            padding: 0.75rem;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 0.875rem;
+        }
+
+        .search-panel-header h3 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .search-panel-close {
+            background: none;
+            border: none;
+            color: #6b7280;
             cursor: pointer;
+            font-size: 1.25rem;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+        }
+
+        .search-panel-close:hover {
+            color: #000;
+        }
+
+        .search-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .search-result-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
             border-radius: 8px;
+            background: #f9fafb;
+            cursor: pointer;
             transition: background 0.2s;
-            text-decoration: none;
-            color: inherit;
+            border-left: 3px solid transparent;
         }
 
-        .info-option:hover {
-            background: #f0f9ff;
-        }
-
-        .info-option-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
+        .search-result-item:hover {
             background: #eff6ff;
-            display: flex;
+            border-left-color: var(--primary-color);
+        }
+
+        .media-gallery-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1001;
             align-items: center;
             justify-content: center;
-            color: var(--primary-color);
         }
 
-        .info-option-text {
+        .media-gallery-modal.show {
+            display: flex;
+        }
+
+        .media-gallery-container {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .media-gallery-header {
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .media-gallery-header h3 {
+            margin: 0;
+            font-size: 1.125rem;
+        }
+
+        .media-gallery-close {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+        }
+
+        .media-gallery-close:hover {
+            color: #000;
+        }
+
+        .media-gallery-content {
             flex: 1;
-            font-size: 0.9375rem;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.75rem;
+            padding: 1rem;
         }
 
-        .info-option.danger .info-option-icon {
-            background: #fee;
-            color: var(--danger-color);
+        .media-item {
+            aspect-ratio: 1;
+            background: #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
         }
 
-        .info-option.danger .info-option-text {
-            color: var(--danger-color);
+        .media-item:hover {
+            transform: scale(1.05);
+        }
+
+        .media-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .empty-chat {
@@ -704,8 +756,11 @@ require_once __DIR__ . '/../../helpers.php';
                         <a href="../posts/detail.php?id=0" class="btn btn-outline btn-sm" id="postLink">
                             <i class="fas fa-home"></i> Xem tin
                         </a>
-                        <button class="info-toggle-btn" onclick="toggleInfoPanel()" id="infoToggleBtn">
-                            <i class="fas fa-info-circle"></i>
+                        <button class="info-toggle-btn" onclick="toggleSearchPanel()" title="Tìm kiếm">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <button class="info-toggle-btn" onclick="toggleMediaGallery()" title="Kho ảnh">
+                            <i class="fas fa-image"></i>
                         </button>
                     </div>
                 </div>
@@ -747,79 +802,28 @@ require_once __DIR__ . '/../../helpers.php';
                 </div>
             </main>
 
-            <aside class="chat-info-panel" id="chatInfoPanel">
-                <div class="info-panel-header">
-                    <img src="<?php echo getPlaceholderImage(80, 80, '667eea', '?'); ?>" alt="User" class="info-user-avatar-large" id="infoUserAvatar">
-                    <div class="info-user-name" id="infoUserName">Đang tải...</div>
-                    <div class="info-user-status" id="infoUserStatus"><i class="fas fa-circle" style="font-size: 0.5rem;"></i> Đang hoạt động</div>
+            <div class="search-panel-modal" id="searchPanelModal">
+                <div class="search-panel-header">
+                    <h3>Tìm kiếm</h3>
+                    <button class="search-panel-close" onclick="toggleSearchPanel()">✕</button>
                 </div>
+                <div class="search-panel-content" id="searchPanelContent">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm tin nhắn..." style="margin-bottom: 1rem;">
+                    <div id="searchResults"></div>
+                </div>
+            </div>
 
-                <div class="info-section">
-                    <div class="info-section-title">Tùy chọn</div>
-                    <a href="../user/profile.php?id=0" class="info-option" id="profileLink">
-                        <div class="info-option-icon">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="info-option-text">Xem trang cá nhân</div>
-                    </a>
-                    <div class="info-option" onclick="searchInConversation()">
-                        <div class="info-option-icon">
-                            <i class="fas fa-search"></i>
-                        </div>
-                        <div class="info-option-text">Tìm kiếm trong đoạn chat</div>
+            <div class="media-gallery-modal" id="mediaGalleryModal">
+                <div class="media-gallery-container">
+                    <div class="media-gallery-header">
+                        <h3>Kho ảnh & Video</h3>
+                        <button class="media-gallery-close" onclick="toggleMediaGallery()">✕</button>
                     </div>
-                    <div class="info-option" onclick="changeTheme()">
-                        <div class="info-option-icon">
-                            <i class="fas fa-palette"></i>
-                        </div>
-                        <div class="info-option-text">Đổi giao diện</div>
+                    <div class="media-gallery-content" id="mediaGalleryContent">
+                        <!-- Media items will be loaded here -->
                     </div>
                 </div>
-
-                <div class="info-section">
-                    <div class="info-section-title">File phương tiện</div>
-                    <div class="info-option" onclick="viewMedia()">
-                        <div class="info-option-icon">
-                            <i class="fas fa-images"></i>
-                        </div>
-                        <div class="info-option-text">Ảnh & Video</div>
-                    </div>
-                    <div class="info-option" onclick="viewFiles()">
-                        <div class="info-option-icon">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <div class="info-option-text">File</div>
-                    </div>
-                    <div class="info-option" onclick="viewLinks()">
-                        <div class="info-option-icon">
-                            <i class="fas fa-link"></i>
-                        </div>
-                        <div class="info-option-text">Liên kết</div>
-                    </div>
-                </div>
-
-                <div class="info-section">
-                    <div class="info-section-title">Quyền riêng tư & hỗ trợ</div>
-                    <div class="info-option" onclick="muteConversation()">
-                        <div class="info-option-icon">
-                            <i class="fas fa-bell-slash"></i>
-                        </div>
-                        <div class="info-option-text">Tắt thông báo</div>
-                    </div>
-                    <div class="info-option" onclick="blockUser()">
-                        <div class="info-option-icon">
-                            <i class="fas fa-ban"></i>
-                        </div>
-                        <div class="info-option-text">Chặn</div>
-                    </div>
-                    <div class="info-option danger" onclick="deleteConversation()">
-                        <div class="info-option-icon">
-                            <i class="fas fa-trash"></i>
-                        </div>
-                        <div class="info-option-text">Xóa đoạn chat</div>
-                    </div>
-                </div>
-            </aside>
+            </div>
         </div>
 
     <script src="../../assets/js/main.js"></script>
@@ -1218,14 +1222,111 @@ require_once __DIR__ . '/../../helpers.php';
             this.style.height = this.scrollHeight + 'px';
         });
 
-        function toggleInfoPanel() {
-            const container = document.querySelector('.chat-container');
-            const panel = document.getElementById('chatInfoPanel');
-            const btn = document.getElementById('infoToggleBtn');
+        function toggleSearchPanel() {
+            const modal = document.getElementById('searchPanelModal');
+            modal.classList.toggle('show');
             
-            container.classList.toggle('info-open');
-            panel.classList.toggle('show');
-            btn.classList.toggle('active');
+            if (modal.classList.contains('show')) {
+                document.getElementById('searchInput').focus();
+            }
+        }
+
+        function toggleMediaGallery() {
+            const modal = document.getElementById('mediaGalleryModal');
+            modal.classList.toggle('show');
+            
+            if (modal.classList.contains('show')) {
+                loadMediaGallery();
+            }
+        }
+
+        function loadMediaGallery() {
+            if (!currentConversationId) return;
+            
+            fetch(`../../api/chat.php?action=getMediaGallery&conversation_id=${currentConversationId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        const mediaItems = data.data;
+                        const galleryContent = document.getElementById('mediaGalleryContent');
+                        
+                        if (mediaItems.length === 0) {
+                            galleryContent.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #999; padding: 2rem;">Chưa có ảnh nào</div>';
+                            return;
+                        }
+                        
+                        galleryContent.innerHTML = mediaItems.map(item => {
+                            const imagePath = item.image_path ? '../..' + '/' + item.image_path : '';
+                            return `
+                                <div class="media-item" onclick="openImageViewer('${imagePath}')">
+                                    <img src="${imagePath}" alt="Media" onerror="this.src='<?php echo getPlaceholderImage(100, 100, "ccc", "?"); ?>'">
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading media gallery:', error);
+                    document.getElementById('mediaGalleryContent').innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #e74c3c; padding: 2rem;">Lỗi tải ảnh</div>';
+                });
+        }
+
+        document.getElementById('searchInput')?.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            if (!query) {
+                document.getElementById('searchResults').innerHTML = '';
+                return;
+            }
+
+            if (!currentConversationId) return;
+            
+            fetch(`../../api/chat.php?action=searchMessages&conversation_id=${currentConversationId}&query=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        const results = data.data;
+                        
+                        const resultsHtml = results.length === 0 
+                            ? '<div style="color: #999; text-align: center; padding: 1rem;">Không tìm thấy kết quả</div>'
+                            : results.map(msg => `
+                                <div class="search-result-item" onclick="scrollToMessage(${msg.id})" style="cursor: pointer;">
+                                    <div style="font-size: 0.85rem; color: #333;">${escapeHtml(msg.text || '(Chỉ ảnh)')}</div>
+                                    <div style="font-size: 0.75rem; color: #999; margin-top: 0.25rem;">${formatTime(msg.created_at)}</div>
+                                </div>
+                            `).join('');
+                        
+                        document.getElementById('searchResults').innerHTML = resultsHtml;
+                    } else {
+                        document.getElementById('searchResults').innerHTML = '<div style="color: #999; text-align: center; padding: 1rem;">Không tìm thấy kết quả</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error searching messages:', error);
+                    document.getElementById('searchResults').innerHTML = '<div style="color: #e74c3c; text-align: center; padding: 1rem;">Lỗi tìm kiếm</div>';
+                });
+        });
+
+        function scrollToMessage(messageId) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageElement = document.querySelector(`[data-message-id="temp_${messageId}"], [data-message-id="${messageId}"]`);
+            
+            if (messageElement) {
+                // Scroll đến tin nhắn
+                messagesContainer.scrollTop = messageElement.offsetTop - messagesContainer.offsetTop - 100;
+                
+                // Highlight tin nhắn tạm thời
+                messageElement.style.backgroundColor = '#fffacd';
+                messageElement.style.transition = 'background-color 0.3s ease';
+                
+                // Bỏ highlight sau 2 giây
+                setTimeout(() => {
+                    messageElement.style.backgroundColor = '';
+                }, 2000);
+                
+                console.log('✅ Scrolled to message:', messageId);
+            } else {
+                console.warn('⚠️ Message element not found:', messageId);
+            }
         }
 
         function searchInConversation() {
@@ -1250,18 +1351,6 @@ require_once __DIR__ . '/../../helpers.php';
             if (confirm('Bạn có chắc muốn xóa đoạn chat này?')) {
                 alert('Đã xóa đoạn chat');
             }
-        }
-
-        function viewMedia() {
-            alert('Xem ảnh & video trong đoạn chat');
-        }
-
-        function viewFiles() {
-            alert('Xem file đã gửi trong đoạn chat');
-        }
-
-        function viewLinks() {
-            alert('Xem các liên kết đã chia sẻ');
         }
 
         function handleImageUpload(event) {
@@ -1556,14 +1645,9 @@ require_once __DIR__ . '/../../helpers.php';
             // Update chat header
             const chatUserName = document.getElementById('chatUserName');
             const chatUserAvatar = document.getElementById('chatUserAvatar');
-            const infoUserName = document.getElementById('infoUserName');
-            const infoUserAvatar = document.getElementById('infoUserAvatar');
-            const profileLink = document.getElementById('profileLink');
             const postLink = document.getElementById('postLink');
             
             if (chatUserName) chatUserName.textContent = conv.other_user_name || 'Người dùng';
-            if (infoUserName) infoUserName.textContent = conv.other_user_name || 'Người dùng';
-            if (profileLink) profileLink.href = '../user/profile.php?id=' + conv.other_user_id;
             if (postLink) postLink.href = '../posts/detail.php?id=' + conv.post_id;
             
             // Update avatars
@@ -1571,7 +1655,6 @@ require_once __DIR__ . '/../../helpers.php';
                 ? '../../uploads/avatars/' + conv.other_user_avatar 
                 : '<?php echo getPlaceholderImage(45, 45, "667eea", "?"); ?>';
             if (chatUserAvatar) chatUserAvatar.src = avatarUrl;
-            if (infoUserAvatar) infoUserAvatar.src = avatarUrl.replace('45', '80');
             
             // Load messages for this conversation
             loadMessages(currentConversationId);
@@ -1610,18 +1693,12 @@ require_once __DIR__ . '/../../helpers.php';
             // Update chat header
             const chatUserName = document.getElementById('chatUserName');
             const chatUserAvatar = document.getElementById('chatUserAvatar');
-            const infoUserName = document.getElementById('infoUserName');
-            const infoUserAvatar = document.getElementById('infoUserAvatar');
-            const profileLink = document.getElementById('profileLink');
             
             if (chatUserName) chatUserName.textContent = user.username || 'Người dùng';
-            if (infoUserName) infoUserName.textContent = user.username || 'Người dùng';
-            if (profileLink) profileLink.href = '../user/profile.php?id=' + user.id;
             
             // Update avatars if available
             if (user.avatar) {
                 if (chatUserAvatar) chatUserAvatar.src = '../../uploads/avatars/' + user.avatar;
-                if (infoUserAvatar) infoUserAvatar.src = '../../uploads/avatars/' + user.avatar;
             }
             
             console.log('✅ Updated chat header for user:', user.username);
@@ -1699,15 +1776,15 @@ require_once __DIR__ . '/../../helpers.php';
                         // API trả về data.data chứ không phải data.messages
                         data.data.forEach(msg => {
                             console.log('💬 Adding message:', msg);
-                            console.log('📸 Image field:', msg.image, 'Type:', typeof msg.image);
+                            console.log('📸 Image field:', msg.image_filename, 'Type:', typeof msg.image_filename);
                             
                             // Nếu có ảnh, hiển thị ảnh
-                            if (msg.image && msg.image.trim() !== '') {
+                            if (msg.image_filename && msg.image_filename.trim() !== '') {
                                 console.log('🖼️ Displaying image message');
                                 addMessageImageToUI({
                                     id: msg.id,
                                     sender_id: msg.sender_id,
-                                    image: '../../uploads/messages/' + msg.image,
+                                    image: '../../uploads/messages/' + msg.image_filename,
                                     timestamp: msg.created_at,
                                     is_read: msg.is_read,
                                     avatar: msg.avatar,
@@ -1719,7 +1796,7 @@ require_once __DIR__ . '/../../helpers.php';
                                 addMessageToUI({
                                     id: msg.id,
                                     sender_id: msg.sender_id,
-                                    text: msg.message,
+                                    text: msg.text,
                                     timestamp: msg.created_at,
                                     is_read: msg.is_read,
                                     avatar: msg.avatar,

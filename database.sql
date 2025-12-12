@@ -154,6 +154,7 @@ CREATE TABLE messages (
     conversation_id INT NOT NULL,
     sender_id INT NOT NULL,
     message TEXT NOT NULL,
+    image VARCHAR(255) NULL,
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,

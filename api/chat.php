@@ -33,6 +33,12 @@ try {
         case 'getMessages':
             getMessages($conn);
             break;
+        case 'searchMessages':
+            searchMessages($conn);
+            break;
+        case 'getMediaGallery':
+            getMediaGallery($conn);
+            break;
         case 'saveMessage':
             saveMessage($conn, $user_id);
             break;
@@ -127,8 +133,8 @@ function getMessages($conn) {
                 m.id,
                 m.conversation_id,
                 m.sender_id,
-                m.message,
-                m.image,
+                m.message as text,
+                m.image as image_filename,
                 m.is_read,
                 m.created_at,
                 u.username,
@@ -150,8 +156,8 @@ function getMessages($conn) {
                     m.id,
                     m.conversation_id,
                     m.sender_id,
-                    m.message,
-                    NULL as image,
+                    m.message as text,
+                    NULL as image_filename,
                     m.is_read,
                     m.created_at,
                     u.username,
@@ -179,6 +185,99 @@ function getMessages($conn) {
         'success' => true,
         'data' => $messages
     ]);
+}
+
+/**
+ * Search messages in a conversation
+ */
+function searchMessages($conn) {
+    if (!isset($_GET['conversation_id']) || !isset($_GET['query'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Conversation ID and query required']);
+        return;
+    }
+
+    $conversation_id = (int)$_GET['conversation_id'];
+    $query = '%' . $_GET['query'] . '%';
+
+    try {
+        $stmt = $conn->prepare("
+            SELECT 
+                m.id,
+                m.conversation_id,
+                m.sender_id,
+                m.message as text,
+                m.image as image_filename,
+                m.is_read,
+                m.created_at,
+                u.username,
+                u.avatar
+            FROM messages m
+            JOIN users u ON m.sender_id = u.id
+            WHERE m.conversation_id = ? AND m.message LIKE ?
+            ORDER BY m.created_at DESC
+        ");
+        
+        $stmt->execute([$conversation_id, $query]);
+        $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode([
+            'success' => true,
+            'data' => $messages
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);
+    }
+}
+
+/**
+ * Get media gallery (images) from a conversation
+ */
+function getMediaGallery($conn) {
+    if (!isset($_GET['conversation_id'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Conversation ID required']);
+        return;
+    }
+
+    $conversation_id = (int)$_GET['conversation_id'];
+
+    try {
+        $stmt = $conn->prepare("
+            SELECT 
+                m.id,
+                m.conversation_id,
+                m.sender_id,
+                m.image as image_filename,
+                m.created_at,
+                u.username,
+                u.avatar
+            FROM messages m
+            JOIN users u ON m.sender_id = u.id
+            WHERE m.conversation_id = ? AND m.image IS NOT NULL AND m.image != ''
+            ORDER BY m.created_at DESC
+        ");
+        
+        $stmt->execute([$conversation_id]);
+        $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Add full path to images
+        $images = array_map(function($img) {
+            if ($img['image_filename']) {
+                $img['image_path'] = 'uploads/messages/' . $img['image_filename'];
+            }
+            return $img;
+        }, $images);
+
+        echo json_encode([
+            'success' => true,
+            'data' => $images
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);
+    }
 }
 
 /**
