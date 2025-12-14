@@ -37,13 +37,13 @@ class NotificationController {
      */
     public function getUnreadCount() {
         if (!isLoggedIn()) {
-            return ['success' => false, 'count' => 0];
+            return ['success' => false, 'unread_count' => 0];
         }
 
         $user_id = $_SESSION['user_id'];
         $count = $this->notificationModel->getUnreadCount($user_id);
 
-        return ['success' => true, 'count' => $count];
+        return ['success' => true, 'unread_count' => $count];
     }
 
     /**

@@ -171,9 +171,11 @@ class CommentController {
 
             $reply_id = $this->commentModel->create($data);
             
-            // Send notification to original comment author
+            // Send notification to parent comment author
             require_once __DIR__ . '/../Models/Notification.php';
             $notificationModel = new Notification();
+            
+            // Notify parent comment author
             $notificationModel->notifyReply(
                 $data['parent_id'],
                 $reply_id,
@@ -182,6 +184,20 @@ class CommentController {
                 $data['post_id'],
                 $post['title']
             );
+            
+            // Also notify post owner (landlord) if they're not the parent comment author
+            // to let them know there's activity on their post
+            if ($post['user_id'] != $parent['user_id'] && $post['user_id'] != $data['user_id']) {
+                $notificationModel->notifyReply(
+                    $data['parent_id'],
+                    $reply_id,
+                    $data['user_id'],
+                    $_SESSION['username'],
+                    $data['post_id'],
+                    $post['title'],
+                    $post['user_id'] // landlord_id
+                );
+            }
             
             return $this->success([
                 'message' => 'Reply added successfully'

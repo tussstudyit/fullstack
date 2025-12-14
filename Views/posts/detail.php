@@ -846,7 +846,7 @@ try {
                 replies.map(reply => {
                     const avatarUrl = getAvatarUrl(reply.avatar, reply.username);
                     return `
-                <div style="margin-top: 0.75rem; padding-left: 1rem; border-left: 3px solid #10b981;">
+                <div id="comment-${reply.id}" style="margin-top: 0.75rem; padding-left: 1rem; border-left: 3px solid #10b981;">
                     <div style="display: flex; gap: 0.75rem;">
                         <img src="${avatarUrl}" alt="${reply.username}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
                         <div style="flex: 1;">

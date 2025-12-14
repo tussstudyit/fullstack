@@ -84,7 +84,7 @@ class Notification {
                 return false; // Don't notify if commenter is the post author
             }
             
-            $link = "/{$post['slug']}#comment-{$comment_id}";
+            $link = "/Views/posts/detail.php?slug={$post['slug']}#comment-{$comment_id}";
             
             return $this->create([
                 'user_id' => $post['user_id'],
@@ -113,7 +113,7 @@ class Notification {
                 return false;
             }
             
-            $link = "/{$post['slug']}#comment-{$comment_id}";
+            $link = "/Views/posts/detail.php?slug={$post['slug']}#comment-{$comment_id}";
             
             return $this->create([
                 'user_id' => $post['user_id'],
@@ -131,7 +131,7 @@ class Notification {
     /**
      * Tạo thông báo cho reply/phản hồi
      */
-    public function notifyReply($comment_id, $reply_id, $replier_id, $replier_name, $post_id, $post_title) {
+    public function notifyReply($comment_id, $reply_id, $replier_id, $replier_name, $post_id, $post_title, $landlord_id = null) {
         try {
             // Get original comment author
             $stmt = $this->db->prepare("SELECT user_id FROM comments WHERE id = ?");
@@ -147,12 +147,15 @@ class Notification {
             $stmt->execute([$post_id]);
             $post = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            $link = "/{$post['slug']}#comment-{$comment_id}";
+            // Link trỏ đến reply comment vừa tạo (reply_id), không phải comment gốc
+            $link = "/Views/posts/detail.php?slug={$post['slug']}#comment-{$reply_id}";
+            
+            $notification_user_id = $landlord_id ?? $comment['user_id'];
             
             return $this->create([
-                'user_id' => $comment['user_id'],
+                'user_id' => $notification_user_id,
                 'type' => 'reply',
-                'title' => "{$replier_name} đã phản hồi bình luận của bạn",
+                'title' => "{$replier_name} đã phản hồi bình luận",
                 'message' => "Bài viết: {$post_title}",
                 'link' => $link
             ]);
@@ -167,7 +170,7 @@ class Notification {
      */
     public function notifyMessage($receiver_id, $sender_name, $message_preview, $conversation_id) {
         try {
-            $link = "../../Views/chat/chat.php?conversation_id={$conversation_id}";
+            $link = "/Views/chat/chat.php?conversation_id={$conversation_id}";
             
             return $this->create([
                 'user_id' => $receiver_id,
@@ -196,7 +199,7 @@ class Notification {
                 return false; // Don't notify if liker is the post author
             }
             
-            $link = "/{$post['slug']}";
+            $link = "/Views/posts/detail.php?slug={$post['slug']}";
             
             return $this->create([
                 'user_id' => $post['user_id'],

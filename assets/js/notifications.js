@@ -1,6 +1,8 @@
 // Notification Dropdown Functionality
 let notificationDropdown = null;
 let notificationData = [];
+let notificationRefreshInterval = null;
+let lastNotificationCount = 0;
 
 function toggleNotificationDropdown(event) {
     event.stopPropagation();
@@ -30,9 +32,71 @@ function loadNotifications() {
                 notificationData = data.notifications;
                 renderNotifications(data.notifications);
                 updateNotificationBadge(data.unread_count);
+                
+                // Phát hiệu âm nếu có notification mới
+                if (data.unread_count > lastNotificationCount) {
+                    playNotificationSound();
+                }
+                lastNotificationCount = data.unread_count;
             }
         })
         .catch(error => console.error('Error loading notifications:', error));
+}
+
+function startRealtimeNotificationListener() {
+    const basePath = getBasePath();
+    
+    // Load notifications ngay lập tức
+    loadNotifications();
+    
+    // Sau đó polling mỗi 5 giây (nhanh hơn 30 giây)
+    if (!notificationRefreshInterval) {
+        notificationRefreshInterval = setInterval(() => {
+            fetch(basePath + 'Controllers/NotificationController.php?action=getUnreadCount')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.unread_count !== lastNotificationCount) {
+                        console.log('🔔 Có notification mới:', data.unread_count);
+                        updateNotificationBadge(data.unread_count);
+                        lastNotificationCount = data.unread_count;
+                        
+                        // Phát hiệu âm
+                        playNotificationSound();
+                        
+                        // Nếu dropdown mở, load lại danh sách
+                        const dropdown = document.getElementById('notificationDropdown');
+                        if (dropdown && dropdown.classList.contains('show')) {
+                            loadNotifications();
+                        }
+                    }
+                })
+                .catch(error => console.error('Error checking notifications:', error));
+        }, 5000); // Check mỗi 5 giây
+    }
+}
+
+function playNotificationSound() {
+    try {
+        // Tạo âm thanh notification đơn giản
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (e) {
+        // Nếu không thể phát âm, bỏ qua
+        console.log('Notification sound disabled');
+    }
 }
 
 function renderNotifications(notifications) {
@@ -172,9 +236,7 @@ document.addEventListener('click', function(event) {
 });
 
 // Auto-refresh notifications every 30 seconds
-setInterval(() => {
-    const dropdown = document.getElementById('notificationDropdown');
-    if (dropdown && dropdown.classList.contains('show')) {
-        loadNotifications();
-    }
-}, 30000);
+// Thay bằng realtime listener
+window.addEventListener('load', function() {
+    startRealtimeNotificationListener();
+});
