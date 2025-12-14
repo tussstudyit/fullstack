@@ -25,7 +25,10 @@ if (isset($_GET['slug']) && !empty($_GET['slug'])) {
 }
 
 if (!$post) {
-    redirect('../../index.php');
+    header("HTTP/1.1 404 Not Found");
+    header("Status: 404 Not Found");
+    include __DIR__ . '/../404/404.html';
+    exit;
 }
 
 // Set post_id for later use

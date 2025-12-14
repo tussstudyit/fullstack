@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Không Tìm Thấy Trang | HomeRental</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #002efc 0%, #2988d6 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.container {
+    text-align: center;
+    padding: 40px 20px;
+    position: relative;
+}
+
+.house-icon {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 30px;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+.roof {
+    width: 0;
+    height: 0;
+    border-left: 85px solid transparent;
+    border-right: 85px solid transparent;
+    border-bottom: 60px solid #e74c3c;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.house-body {
+    width: 130px;
+    height: 80px;
+    background: #f5f5f5;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 0 0 8px 8px;
+}
+
+.door {
+    width: 30px;
+    height: 45px;
+    background: #8b4513;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 5px 5px 0 0;
+}
+
+.door::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #ffd700;
+    border-radius: 50%;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+}
+
+.window {
+    width: 25px;
+    height: 25px;
+    background: #87ceeb;
+    border: 3px solid #fff;
+    position: absolute;
+    top: 15px;
+}
+
+.window-left {
+    left: 15px;
+}
+
+.window-right {
+    right: 15px;
+}
+
+.question-mark {
+    position: absolute;
+    top: -20px;
+    right: -10px;
+    font-size: 50px;
+    color: #fff;
+    animation: pulse 1.5s ease-in-out infinite;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.error-content {
+    color: #fff;
+}
+
+.error-code {
+    font-size: 120px;
+    font-weight: 800;
+    text-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+    margin-bottom: 10px;
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.error-title {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.error-message {
+    font-size: 16px;
+    max-width: 400px;
+    margin: 0 auto 30px;
+    opacity: 0.9;
+    line-height: 1.6;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.home-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    color: #667eea;
+    padding: 15px 35px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.home-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    background: #f8f9fa;
+}
+
+.button-icon {
+    font-size: 20px;
+}
+
+.floating-houses {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.floating-house {
+    position: absolute;
+    font-size: 40px;
+    opacity: 0.3;
+    animation: float 15s ease-in-out infinite;
+}
+
+#house1 {
+    left: 10%;
+    top: 20%;
+    animation-delay: 0s;
+}
+
+#house2 {
+    right: 15%;
+    top: 60%;
+    animation-delay: -5s;
+}
+
+#house3 {
+    left: 70%;
+    top: 30%;
+    animation-delay: -10s;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(20px, -30px) rotate(5deg);
+    }
+    50% {
+        transform: translate(-10px, -50px) rotate(-5deg);
+    }
+    75% {
+        transform: translate(30px, -20px) rotate(3deg);
+    }
+}
+
+@media (max-width: 600px) {
+    .error-code {
+        font-size: 80px;
+    }
+    
+    .error-title {
+        font-size: 22px;
+    }
+    
+    .error-message {
+        font-size: 14px;
+        padding: 0 20px;
+    }
+    
+    .house-icon {
+        transform: scale(0.8);
+    }
+    
+    .home-button {
+        padding: 12px 25px;
+        font-size: 14px;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="house-icon">
+            <div class="roof"></div>
+            <div class="house-body">
+                <div class="door"></div>
+                <div class="window window-left"></div>
+                <div class="window window-right"></div>
+            </div>
+            <div class="question-mark">?</div>
+        </div>
+        
+        <div class="error-content">
+            <h1 class="error-code">404</h1>
+            <h2 class="error-title">Không Tìm Thấy Trang</h2>
+            <p class="error-message">Xin lỗi, căn nhà bạn đang tìm kiếm không tồn tại hoặc đã được thuê rồi!</p>
+            <a href="../../index.php" class="home-button">
+                <span class="button-icon">🏠</span>
+                <span>Về Trang Chủ</span>
+            </a>
+        </div>
+        
+        <div class="floating-houses">
+            <div class="floating-house" id="house1">🏡</div>
+            <div class="floating-house" id="house2">🏘️</div>
+            <div class="floating-house" id="house3">🏠</div>
+        </div>
+    </div>
+    
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    createParticles();
+    addMouseParallax();
+    addButtonEffects();
+});
+
+function createParticles() {
+    const container = document.querySelector('.floating-houses');
+    const houseEmojis = ['🏠', '🏡', '🏘️', '🏚️', '🏗️'];
+    
+    for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+            const particle = document.createElement('div');
+            particle.className = 'floating-house';
+            particle.textContent = houseEmojis[Math.floor(Math.random() * houseEmojis.length)];
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * -15 + 's';
+            particle.style.fontSize = (30 + Math.random() * 20) + 'px';
+            container.appendChild(particle);
+        }, i * 500);
+    }
+}
+
+function addMouseParallax() {
+    const houseIcon = document.querySelector('.house-icon');
+    
+    document.addEventListener('mousemove', function(e) {
+        const x = (window.innerWidth / 2 - e.clientX) / 50;
+        const y = (window.innerHeight / 2 - e.clientY) / 50;
+        
+        houseIcon.style.transform = `translate(${x}px, ${y}px)`;
+    });
+}
+
+function addButtonEffects() {
+    const button = document.querySelector('.home-button');
+    
+    button.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px) scale(1.05)';
+    });
+    
+    button.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+    });
+    
+    button.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        ripple.style.cssText = `
+            position: absolute;
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        `;
+        
+        const rect = this.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+        ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+        
+        this.style.position = 'relative';
+        this.style.overflow = 'hidden';
+        this.appendChild(ripple);
+        
+        setTimeout(() => ripple.remove(), 600);
+    });
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+console.log('HomeRental 404 Page - Loaded Successfully');
+    </script>
+</body>
+</html>

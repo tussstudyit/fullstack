@@ -4,8 +4,12 @@ php_value post_max_size 100M
 php_value max_input_time 300
 php_value max_execution_time 300
 
+# Custom 404 Error Page
+ErrorDocument 404 /Views/404/404.html
+
 # Enable mod_rewrite for pretty URLs
-RewriteEngine On
+<IfModule mod_rewrite.c>
+    RewriteEngine On
 RewriteBase /
 
 # Redirect old detail.php?id=X to new slug URL
@@ -24,7 +28,14 @@ RewriteCond %{REQUEST_URI} !^/uploads/
 RewriteCond %{REQUEST_URI} !\.(php|html|css|js|jpg|jpeg|png|gif|ico|svg)$
 RewriteRule ^([a-z0-9\-]+)$ /Views/posts/detail.php?slug=$1 [L,QSA]
 
+# Catch-all: If file/directory doesn't exist, return 404
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/Views/404/
+RewriteRule ^(.+)$ - [L,R=404]
+
 # JSON content type
 <FilesMatch "\.php$">
     Header set Content-Type "application/json; charset=utf-8"
 </FilesMatch>
+</IfModule>
