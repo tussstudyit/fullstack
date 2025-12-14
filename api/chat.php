@@ -71,6 +71,7 @@ function getConversations($conn, $user_id) {
                 c.last_message,
                 c.last_message_at,
                 p.title as post_title,
+                p.slug as post_slug,
                 p.price,
                 CASE 
                     WHEN c.landlord_id = ? THEN tenant.username
@@ -409,7 +410,7 @@ function createOrGetConversation($conn, $user_id) {
         $other_user_id = (int)$other_user_id;
 
         // Get post to determine landlord/tenant
-        $stmt = $conn->prepare("SELECT user_id FROM posts WHERE id = ?");
+        $stmt = $conn->prepare("SELECT user_id, slug FROM posts WHERE id = ?");
         $stmt->execute([$post_id]);
         $post = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -420,6 +421,7 @@ function createOrGetConversation($conn, $user_id) {
         }
 
         $landlord_id = $post['user_id'];
+        $post_slug = $post['slug'];
         $tenant_id = ($user_id == $landlord_id) ? $other_user_id : $user_id;
 
         // Check if conversation exists
@@ -442,7 +444,8 @@ function createOrGetConversation($conn, $user_id) {
                 'created' => false,
                 'other_user_id' => $other_user_id,
                 'other_user_name' => $other_user['username'] ?? 'Người dùng',
-                'other_user_avatar' => $other_user['avatar'] ?? null
+                'other_user_avatar' => $other_user['avatar'] ?? null,
+                'post_slug' => $post_slug
             ]);
             return;
         }
@@ -466,7 +469,8 @@ function createOrGetConversation($conn, $user_id) {
             'created' => true,
             'other_user_id' => $other_user_id,
             'other_user_name' => $other_user['username'] ?? 'Người dùng',
-            'other_user_avatar' => $other_user['avatar'] ?? null
+            'other_user_avatar' => $other_user['avatar'] ?? null,
+            'post_slug' => $post_slug
         ]);
     } catch (Exception $e) {
         error_log("createOrGetConversation error: " . $e->getMessage());

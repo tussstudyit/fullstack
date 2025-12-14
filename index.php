@@ -24,7 +24,7 @@ try {
     $postImageModel = new PostImage();
     
     // Fetch featured posts
-    $featured_stmt = $conn->prepare("SELECT id, title, address, district, city, price, area, room_type, room_status, max_people FROM posts WHERE status = 'approved' LIMIT 3");
+    $featured_stmt = $conn->prepare("SELECT id, title, slug, address, district, city, price, area, room_type, room_status, max_people FROM posts WHERE status = 'approved' LIMIT 3");
     $featured_stmt->execute();
     $featured_posts = $featured_stmt->fetchAll(PDO::FETCH_ASSOC);
     
@@ -1102,7 +1102,7 @@ if (isLoggedIn()) {
                             </div>
                             <div class="post-footer">
                                 <div class="post-price"><?php echo number_format($post['price'], 0, ',', '.'); ?>/tháng</div>
-                                <a href="Views/posts/detail.php?id=<?php echo $post['id']; ?>" class="btn btn-primary btn-sm">Xem chi tiết</a>
+                                <a href="Views/posts/detail.php?slug=<?php echo $post['slug']; ?>" class="btn btn-primary btn-sm">Xem chi tiết</a>
                             </div>
                         </div>
                     </div>

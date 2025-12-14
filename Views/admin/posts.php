@@ -351,7 +351,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                     </td>
                                     <td><?php echo date('d/m/Y', strtotime($post['created_at'])); ?></td>
                                     <td>
-                                        <a href="../../Views/posts/detail.php?id=<?php echo $post['id']; ?>" class="btn btn-sm btn-outline">
+                                        <a href="../../Views/posts/detail.php?slug=<?php echo $post['slug']; ?>" class="btn btn-sm btn-outline">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         <form method="POST" style="display: inline;" onsubmit="return confirm('Xác nhận xóa bài đăng này?');">

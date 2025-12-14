@@ -30,22 +30,47 @@ class Post {
     }
 
     /**
+     * Tìm post theo slug
+     */
+    public function findBySlug($slug) {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT p.*, u.full_name, u.phone, u.email, c.name as category_name
+                FROM {$this->table} p
+                JOIN users u ON p.user_id = u.id
+                JOIN categories c ON p.category_id = c.id
+                WHERE p.slug = ?
+            ");
+            $stmt->execute([$slug]);
+            return $stmt->fetch();
+        } catch (PDOException $e) {
+            error_log("Error in Post::findBySlug: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Tạo bài đăng mới
      */
     public function create($data) {
         try {
+            // Generate slug from title
+            require_once __DIR__ . '/../helpers.php';
+            $slug = getUniqueSlug($data['title']);
+            
             $stmt = $this->db->prepare("
                 INSERT INTO {$this->table} (
-                    user_id, category_id, title, description, address, district, city, 
+                    user_id, category_id, title, slug, description, address, district, city, 
                     price, area, room_type, max_people, gender, amenities, utilities, 
                     rules, available_from, deposit_amount, electric_price, water_price, status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
 
             $result = $stmt->execute([
                 $data['user_id'],
                 $data['category_id'] ?? 1,
                 $data['title'],
+                $slug,
                 $data['description'],
                 $data['address'],
                 $data['district'] ?? null,
@@ -69,7 +94,8 @@ class Post {
                 return [
                     'success' => true,
                     'message' => 'Tạo bài đăng thành công',
-                    'post_id' => $this->db->lastInsertId()
+                    'post_id' => $this->db->lastInsertId(),
+                    'slug' => $slug
                 ];
             }
 
@@ -89,6 +115,13 @@ class Post {
             $values = [];
 
             $allowedFields = ['title', 'description', 'address', 'district', 'city', 'price', 'area', 'room_type', 'max_people', 'gender', 'amenities', 'utilities', 'rules', 'available_from', 'deposit_amount', 'electric_price', 'water_price', 'status'];
+
+            // If title is being updated, regenerate slug
+            if (isset($data['title'])) {
+                require_once __DIR__ . '/../helpers.php';
+                $data['slug'] = getUniqueSlug($data['title'], $id);
+                $allowedFields[] = 'slug';
+            }
 
             foreach ($allowedFields as $field) {
                 if (isset($data[$field])) {

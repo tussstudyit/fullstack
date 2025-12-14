@@ -4,6 +4,26 @@ php_value post_max_size 100M
 php_value max_input_time 300
 php_value max_execution_time 300
 
+# Enable mod_rewrite for pretty URLs
+RewriteEngine On
+RewriteBase /
+
+# Redirect old detail.php?id=X to new slug URL
+RewriteCond %{QUERY_STRING} ^id=([0-9]+)$
+RewriteRule ^Views/posts/detail\.php$ /%1? [R=301,L]
+
+# Handle pretty URLs for post details (slug format)
+# Match only slug patterns (lowercase letters, numbers, hyphens)
+# Exclude existing files and directories
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/Views/
+RewriteCond %{REQUEST_URI} !^/api/
+RewriteCond %{REQUEST_URI} !^/assets/
+RewriteCond %{REQUEST_URI} !^/uploads/
+RewriteCond %{REQUEST_URI} !\.(php|html|css|js|jpg|jpeg|png|gif|ico|svg)$
+RewriteRule ^([a-z0-9\-]+)$ /Views/posts/detail.php?slug=$1 [L,QSA]
+
 # JSON content type
 <FilesMatch "\.php$">
     Header set Content-Type "application/json; charset=utf-8"

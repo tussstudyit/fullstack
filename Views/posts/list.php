@@ -18,7 +18,7 @@ $postImageModel = new PostImage();
 
 try {
     $db = getDB();
-    $query = "SELECT id, title, address, district, city, price, area, room_type, room_status, max_people, created_at FROM posts WHERE status = 'approved' AND (city = 'TP. Đà Nẵng' OR city = 'Đà Nẵng')";
+    $query = "SELECT id, title, slug, address, district, city, price, area, room_type, room_status, max_people, created_at FROM posts WHERE status = 'approved' AND (city = 'TP. Đà Nẵng' OR city = 'Đà Nẵng')";
     $params = [];
     
     if (!empty($search)) {
@@ -42,7 +42,7 @@ try {
     }
     
     // Count total
-    $count_query = str_replace("SELECT id, title, address, district, city, price, area, room_type, room_status, max_people, created_at", "SELECT COUNT(*) as cnt", $query);
+    $count_query = str_replace("SELECT id, title, slug, address, district, city, price, area, room_type, room_status, max_people, created_at", "SELECT COUNT(*) as cnt", $query);
     $count_stmt = $db->prepare($count_query);
     $count_stmt->execute($params);
     $count_result = $count_stmt->fetch(PDO::FETCH_ASSOC);
@@ -656,7 +656,7 @@ if (isLoggedIn()) {
                                 </div>
                                 <div class="post-footer">
                                     <div class="post-price"><?php echo number_format($post['price'] / 1000000, 1); ?>tr/tháng</div>
-                                    <a href="detail.php?id=<?php echo $post['id']; ?>" class="btn btn-primary btn-sm">Chi tiết</a>
+                                    <a href="detail.php?slug=<?php echo $post['slug']; ?>" class="btn btn-primary btn-sm">Chi tiết</a>
                                 </div>
                             </div>
                         </div>

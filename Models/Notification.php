@@ -75,8 +75,8 @@ class Notification {
      */
     public function notifyComment($post_id, $comment_id, $commenter_id, $commenter_name, $post_title) {
         try {
-            // Get landlord of the post
-            $stmt = $this->db->prepare("SELECT user_id FROM posts WHERE id = ?");
+            // Get landlord of the post and slug
+            $stmt = $this->db->prepare("SELECT user_id, slug FROM posts WHERE id = ?");
             $stmt->execute([$post_id]);
             $post = $stmt->fetch(PDO::FETCH_ASSOC);
             
@@ -84,7 +84,7 @@ class Notification {
                 return false; // Don't notify if commenter is the post author
             }
             
-            $link = "../../Views/posts/detail.php?id={$post_id}#comment-{$comment_id}";
+            $link = "/{$post['slug']}#comment-{$comment_id}";
             
             return $this->create([
                 'user_id' => $post['user_id'],
@@ -104,8 +104,8 @@ class Notification {
      */
     public function notifyRating($post_id, $comment_id, $rater_id, $rater_name, $rating, $post_title) {
         try {
-            // Get landlord of the post
-            $stmt = $this->db->prepare("SELECT user_id FROM posts WHERE id = ?");
+            // Get landlord of the post and slug
+            $stmt = $this->db->prepare("SELECT user_id, slug FROM posts WHERE id = ?");
             $stmt->execute([$post_id]);
             $post = $stmt->fetch(PDO::FETCH_ASSOC);
             
@@ -113,7 +113,7 @@ class Notification {
                 return false;
             }
             
-            $link = "../../Views/posts/detail.php?id={$post_id}#comment-{$comment_id}";
+            $link = "/{$post['slug']}#comment-{$comment_id}";
             
             return $this->create([
                 'user_id' => $post['user_id'],
@@ -142,7 +142,12 @@ class Notification {
                 return false;
             }
             
-            $link = "../../Views/posts/detail.php?id={$post_id}#comment-{$comment_id}";
+            // Get post slug
+            $stmt = $this->db->prepare("SELECT slug FROM posts WHERE id = ?");
+            $stmt->execute([$post_id]);
+            $post = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            $link = "/{$post['slug']}#comment-{$comment_id}";
             
             return $this->create([
                 'user_id' => $comment['user_id'],
@@ -182,8 +187,8 @@ class Notification {
      */
     public function notifyLike($post_id, $liker_id, $liker_name, $post_title) {
         try {
-            // Get post owner
-            $stmt = $this->db->prepare("SELECT user_id FROM posts WHERE id = ?");
+            // Get post owner and slug
+            $stmt = $this->db->prepare("SELECT user_id, slug FROM posts WHERE id = ?");
             $stmt->execute([$post_id]);
             $post = $stmt->fetch(PDO::FETCH_ASSOC);
             
@@ -191,7 +196,7 @@ class Notification {
                 return false; // Don't notify if liker is the post author
             }
             
-            $link = "../../Views/posts/detail.php?id={$post_id}";
+            $link = "/{$post['slug']}";
             
             return $this->create([
                 'user_id' => $post['user_id'],

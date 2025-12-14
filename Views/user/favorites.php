@@ -20,7 +20,7 @@ $conn = getDB();
 $favorites = [];
 try {
     $stmt = $conn->prepare("
-        SELECT p.id, p.title, p.description, p.address, p.district, p.city, p.price, p.area, p.status
+        SELECT p.id, p.title, p.description, p.address, p.district, p.city, p.price, p.area, p.status, p.slug
         FROM posts p
         JOIN favorites f ON p.id = f.post_id
         WHERE f.user_id = ? AND p.status = 'approved'
@@ -335,7 +335,7 @@ try {
                             </div>
                             <div class="post-footer">
                                 <div class="post-price"><?php echo number_format($post['price']); ?>đ</div>
-                                <a href="../posts/detail.php?id=<?php echo $post['id']; ?>" class="btn btn-primary btn-sm">Chi tiết</a>
+                                <a href="../posts/detail.php?slug=<?php echo $post['slug']; ?>" class="btn btn-primary btn-sm">Chi tiết</a>
                             </div>
                         </div>
                     </div>

@@ -846,7 +846,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_info']) && !is
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; 2025 NhaTot. Tất cả quyền được bảo lưu.</p>
+                <p>&copy; 2025 NhaTot. All rights reserved.</p>
             </div>
         </div>
     </footer>

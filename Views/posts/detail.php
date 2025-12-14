@@ -5,20 +5,31 @@ require_once __DIR__ . '/../../Models/Post.php';
 require_once __DIR__ . '/../../Models/PostImage.php';
 require_once __DIR__ . '/../../Models/User.php';
 
-// Get post ID from URL
-$post_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
-if (!$post_id) {
-    redirect('../../index.php');
-}
-
-// Get post data
+// Get post from URL - support both slug and id
 $postModel = new Post();
-$post = $postModel->findById($post_id);
+$post = null;
+
+if (isset($_GET['slug']) && !empty($_GET['slug'])) {
+    // Get post by slug
+    $post = $postModel->findBySlug($_GET['slug']);
+} elseif (isset($_GET['id']) && !empty($_GET['id'])) {
+    // Get post by ID (backward compatibility)
+    $post_id = (int)$_GET['id'];
+    $post = $postModel->findById($post_id);
+    
+    // Redirect to slug URL if post found
+    if ($post && !empty($post['slug'])) {
+        header("Location: /" . $post['slug']);
+        exit;
+    }
+}
 
 if (!$post) {
     redirect('../../index.php');
 }
+
+// Set post_id for later use
+$post_id = $post['id'];
 
 // Get post images
 $postImageModel = new PostImage();

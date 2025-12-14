@@ -753,7 +753,7 @@ require_once __DIR__ . '/../../helpers.php';
                         </div>
                     </div>
                     <div class="chat-actions">
-                        <a href="../posts/detail.php?id=0" class="btn btn-outline btn-sm" id="postLink">
+                        <a href="#" class="btn btn-outline btn-sm" id="postLink">
                             <i class="fas fa-home"></i> Xem tin
                         </a>
                         <button class="info-toggle-btn" onclick="toggleSearchPanel()" title="Tìm kiếm">
@@ -1537,8 +1537,8 @@ require_once __DIR__ . '/../../helpers.php';
             loadOtherUserInfo(otherUserId);
             
             const postLink = document.getElementById('postLink');
-            if (postLink) {
-                postLink.href = '../posts/detail.php?id=' + postId;
+            if (postLink && data.post_slug) {
+                postLink.href = '../posts/detail.php?slug=' + data.post_slug;
             }
             
             // Load danh sách conversations sau khi tạo
@@ -1671,7 +1671,7 @@ require_once __DIR__ . '/../../helpers.php';
             const postLink = document.getElementById('postLink');
             
             if (chatUserName) chatUserName.textContent = conv.other_user_name || 'Người dùng';
-            if (postLink) postLink.href = '../posts/detail.php?id=' + conv.post_id;
+            if (postLink && conv.post_slug) postLink.href = '../posts/detail.php?slug=' + conv.post_slug;
             
             // Update avatars
             const avatarUrl = conv.other_user_avatar 
@@ -1774,7 +1774,7 @@ require_once __DIR__ . '/../../helpers.php';
                         
                         // Update post link
                         const postLink = document.getElementById('postLink');
-                        if (postLink) postLink.href = '../posts/detail.php?id=' + postId;
+                        if (postLink && data.post_slug) postLink.href = '../posts/detail.php?slug=' + data.post_slug;
                         
                         // Load messages
                         loadMessages(currentConversationId);
