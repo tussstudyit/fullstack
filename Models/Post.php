@@ -12,13 +12,13 @@ class Post {
     /**
      * Tìm post theo ID
      */
-    public function findById($id) {
+    public function findById($id) { // Tìm bài viết: join user + category info
         try {
             $stmt = $this->db->prepare("
                 SELECT p.*, u.full_name, u.phone, u.email, c.name as category_name
                 FROM {$this->table} p
-                JOIN users u ON p.user_id = u.id
-                JOIN categories c ON p.category_id = c.id
+                JOIN users u ON p.user_id = u.id -- JOIN với users để lấy thông tin chủ trọ
+                JOIN categories c ON p.category_id = c.id -- JOIN với categories để lấy tên danh mục
                 WHERE p.id = ?
             ");
             $stmt->execute([$id]);
@@ -32,14 +32,14 @@ class Post {
     /**
      * Tìm post theo slug
      */
-    public function findBySlug($slug) {
+    public function findBySlug($slug) { // Tìm bài viết theo slug: để detail page
         try {
             $stmt = $this->db->prepare("
                 SELECT p.*, u.full_name, u.phone, u.email, c.name as category_name
                 FROM {$this->table} p
-                JOIN users u ON p.user_id = u.id
-                JOIN categories c ON p.category_id = c.id
-                WHERE p.slug = ?
+                JOIN users u ON p.user_id = u.id -- Thông tin chủ trọ
+                JOIN categories c ON p.category_id = c.id -- Tên danh mục
+                WHERE p.slug = ? -- Slug là định danh URL thân thiện
             ");
             $stmt->execute([$slug]);
             return $stmt->fetch();
@@ -52,11 +52,11 @@ class Post {
     /**
      * Tạo bài đăng mới
      */
-    public function create($data) {
+    public function create($data) { // Tạo bài viết: tạo slug + insert + trả về ID
         try {
             // Generate slug from title
             require_once __DIR__ . '/../helpers.php';
-            $slug = getUniqueSlug($data['title']);
+            $slug = getUniqueSlug($data['title']); // Tạo slug duy nhất từ title
             
             $stmt = $this->db->prepare("
                 INSERT INTO {$this->table} (
@@ -67,35 +67,35 @@ class Post {
             ");
 
             $result = $stmt->execute([
-                $data['user_id'],
-                $data['category_id'] ?? 1,
-                $data['title'],
-                $slug,
-                $data['description'],
-                $data['address'],
-                $data['district'] ?? null,
-                $data['city'] ?? null,
-                $data['price'],
-                $data['area'] ?? null,
-                $data['room_type'] ?? 'single',
-                $data['max_people'] ?? 1,
-                $data['gender'] ?? 'any',
-                $data['amenities'] ?? null,
-                $data['utilities'] ?? null,
-                $data['rules'] ?? null,
-                $data['available_from'] ?? date('Y-m-d'),
-                $data['deposit_amount'] ?? null,
-                $data['electric_price'] ?? null,
-                $data['water_price'] ?? null,
-                $data['status'] ?? 'approved'
+                $data['user_id'], // Chủ trọ đăng bài
+                $data['category_id'] ?? 1, // Danh mục bài viết
+                $data['title'], // Tiêu đề
+                $slug, // URL slug
+                $data['description'], // Mô tả chi tiết
+                $data['address'], // Địa chỉ đầy đủ
+                $data['district'] ?? null, // Quận/huyện
+                $data['city'] ?? null, // Thành phố
+                $data['price'], // Giá tiền/tháng
+                $data['area'] ?? null, // Diện tích m2
+                $data['room_type'] ?? 'single', // Loại phòng
+                $data['max_people'] ?? 1, // Số người tối đa
+                $data['gender'] ?? 'any', // Yêu cầu giới tính
+                $data['amenities'] ?? null, // Tiện ích JSON
+                $data['utilities'] ?? null, // Dịch vụ JSON
+                $data['rules'] ?? null, // Quy định JSON
+                $data['available_from'] ?? date('Y-m-d'), // Ngày sẵn sàng nhận
+                $data['deposit_amount'] ?? null, // Tiền cọc
+                $data['electric_price'] ?? null, // Giá điện/kWh
+                $data['water_price'] ?? null, // Giá nước/m3
+                $data['status'] ?? 'approved' // Trạng thái duyệt
             ]);
 
-            if ($result) {
+            if ($result) { // Nếu insert thành công
                 return [
                     'success' => true,
                     'message' => 'Tạo bài đăng thành công',
-                    'post_id' => $this->db->lastInsertId(),
-                    'slug' => $slug
+                    'post_id' => $this->db->lastInsertId(), // ID bài vừa tạo
+                    'slug' => $slug // Slug để redirect
                 ];
             }
 

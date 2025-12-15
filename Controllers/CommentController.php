@@ -19,19 +19,19 @@ class CommentController {
      * Get all comments for a post with pagination
      * GET /api/comments.php?action=getComments&post_id=X&limit=10&offset=0
      */
-    public function getComments() {
+    public function getComments() { // Lấy bình luận: phân trang + trung bình rating
         try {
-            $post_id = isset($_GET['post_id']) ? (int)$_GET['post_id'] : 0;
-            $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
-            $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+            $post_id = isset($_GET['post_id']) ? (int)$_GET['post_id'] : 0; // Lấy post_id từ URL
+            $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10; // Số bình luận mỗi trang
+            $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0; // Vị trí bắt đầu (phân trang)
 
-            if (!$post_id) {
+            if (!$post_id) { // Kiểm tra post_id tồn tại
                 return $this->error('Post ID is required', 400);
             }
 
-            $comments = $this->commentModel->getByPost($post_id, $limit, $offset);
-            $total = $this->commentModel->getTotalCommentCount($post_id);
-            $avgRating = $this->commentModel->getAverageRating($post_id);
+            $comments = $this->commentModel->getByPost($post_id, $limit, $offset); // Lấy bình luận từ DB
+            $total = $this->commentModel->getTotalCommentCount($post_id); // Tổng số bình luận
+            $avgRating = $this->commentModel->getAverageRating($post_id); // Tính trung bình rating
 
             return $this->success([
                 'comments' => $comments,
@@ -49,55 +49,55 @@ class CommentController {
      * POST /api/comments.php?action=addComment
      * Body: {post_id, content, rating (optional)}
      */
-    public function addComment() {
+    public function addComment() { // Tạo bình luận: kiểm tra quyền + validate + lưu + notify
         try {
             // Check if user is logged in
-            if (!isset($_SESSION['user_id'])) {
+            if (!isset($_SESSION['user_id'])) { // Kiểm tra đăng nhập
                 return $this->error('You must be logged in to comment', 401);
             }
 
             // Check role - only tenant and admin can comment
-            if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['tenant', 'admin'])) {
+            if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['tenant', 'admin'])) { // Chỉ tenant + admin bình luận
                 return $this->error('Chủ trọ không có quyền bình luận', 403);
             }
 
-            $data = json_decode(file_get_contents("php://input"), true);
+            $data = json_decode(file_get_contents("php://input"), true); // Lấy JSON từ request body
 
-            if (!isset($data['post_id']) || !isset($data['content'])) {
+            if (!isset($data['post_id']) || !isset($data['content'])) { // Kiểm tra bắt buộc
                 return $this->error('Post ID and content are required', 400);
             }
 
             $data['post_id'] = (int)$data['post_id'];
-            $data['user_id'] = $_SESSION['user_id'];
-            $data['content'] = trim($data['content']);
-            $data['rating'] = isset($data['rating']) ? (int)$data['rating'] : 0;
+            $data['user_id'] = $_SESSION['user_id']; // Set user_id từ session
+            $data['content'] = trim($data['content']); // Trim whitespace
+            $data['rating'] = isset($data['rating']) ? (int)$data['rating'] : 0; // Rating: 0-5 sao
 
-            if (empty($data['content'])) {
+            if (empty($data['content'])) { // Nội dung không được rỗng
                 return $this->error('Comment content cannot be empty', 400);
             }
 
-            if (strlen($data['content']) > 5000) {
+            if (strlen($data['content']) > 5000) { // Giới hạn 5000 ký tự
                 return $this->error('Comment cannot exceed 5000 characters', 400);
             }
 
-            if ($data['rating'] < 0 || $data['rating'] > 5) {
+            if ($data['rating'] < 0 || $data['rating'] > 5) { // Rating từ 0-5
                 return $this->error('Rating must be between 0 and 5', 400);
             }
 
             // Verify post exists
-            $post = $this->postModel->findById($data['post_id']);
+            $post = $this->postModel->findById($data['post_id']); // Kiểm tra bài viết tồn tại
             if (!$post) {
                 return $this->error('Post not found', 404);
             }
 
-            $comment_id = $this->commentModel->create($data);
+            $comment_id = $this->commentModel->create($data); // Lưu bình luận vào DB
             
             // Send notification to post author
             require_once __DIR__ . '/../Models/Notification.php';
             $notificationModel = new Notification();
             
             // Notify if rating > 0
-            if ($data['rating'] > 0) {
+            if ($data['rating'] > 0) { // Nếu có rating: gửi notification
                 $notificationModel->notifyRating(
                     $data['post_id'],
                     $comment_id,

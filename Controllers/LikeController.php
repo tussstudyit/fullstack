@@ -15,37 +15,37 @@ class LikeController {
      * Toggle like on a post
      * POST /Controllers/LikeController.php?action=toggleLike
      */
-    public function toggleLike() {
+    public function toggleLike() { // Like/Unlike: toggle like + notify + cập nhật count
         // Check if user is logged in
-        if (!isLoggedIn()) {
+        if (!isLoggedIn()) { // Chỉ user đăng nhập mới like
             return $this->json(['success' => false, 'message' => 'Unauthorized']);
         }
 
-        $post_id = isset($_POST['post_id']) ? (int)$_POST['post_id'] : 0;
-        $user_id = $_SESSION['user_id'];
+        $post_id = isset($_POST['post_id']) ? (int)$_POST['post_id'] : 0; // Lấy post_id
+        $user_id = $_SESSION['user_id']; // User hiện tại
 
-        if (!$post_id) {
+        if (!$post_id) { // Kiểm tra post_id tồn tại
             return $this->json(['success' => false, 'message' => 'Post ID is required']);
         }
 
         // Verify post exists
-        $post = $this->postModel->findById($post_id);
+        $post = $this->postModel->findById($post_id); // Kiểm tra bài viết tồn tại
         if (!$post) {
             return $this->json(['success' => false, 'message' => 'Post not found']);
         }
 
         try {
             // Check if user already liked this post
-            $stmt = $this->db->prepare("SELECT id FROM post_likes WHERE post_id = ? AND user_id = ?");
+            $stmt = $this->db->prepare("SELECT id FROM post_likes WHERE post_id = ? AND user_id = ?"); // Kiểm tra đã like chưa
             $stmt->execute([$post_id, $user_id]);
             $existing_like = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($existing_like) {
+            if ($existing_like) { // Nếu đã like: unlike (xóa)
                 // Unlike
                 $stmt = $this->db->prepare("DELETE FROM post_likes WHERE post_id = ? AND user_id = ?");
                 $stmt->execute([$post_id, $user_id]);
                 $action = 'unliked';
-            } else {
+            } else { // Nếu chưa like: like (insert)
                 // Like
                 $stmt = $this->db->prepare("INSERT INTO post_likes (post_id, user_id, created_at) VALUES (?, ?, NOW())");
                 $stmt->execute([$post_id, $user_id]);
@@ -54,14 +54,14 @@ class LikeController {
                 // Send notification to post author
                 require_once __DIR__ . '/../Models/Notification.php';
                 $notificationModel = new Notification();
-                $notificationModel->notifyLike($post_id, $user_id, $_SESSION['username'], $post['title']);
+                $notificationModel->notifyLike($post_id, $user_id, $_SESSION['username'], $post['title']); // Thông báo cho chủ bài
             }
 
             // Get updated likes count
-            $stmt = $this->db->prepare("SELECT COUNT(*) as count FROM post_likes WHERE post_id = ?");
+            $stmt = $this->db->prepare("SELECT COUNT(*) as count FROM post_likes WHERE post_id = ?"); // Đếm lại like
             $stmt->execute([$post_id]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $likes_count = $result['count'] ?? 0;
+            $likes_count = $result['count'] ?? 0; // Số like mới
 
             return $this->json([
                 'success' => true,

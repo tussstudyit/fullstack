@@ -3,12 +3,12 @@ require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../Models/PostImage.php';
 require_once __DIR__ . '/../../helpers.php';
 
-$search = sanitize($_GET['search'] ?? '');
-$district = sanitize($_GET['district'] ?? '');
-$min_price = isset($_GET['min_price']) ? (int)$_GET['min_price'] : 0;
-$max_price = isset($_GET['max_price']) ? (int)$_GET['max_price'] : PHP_INT_MAX;
-$room_type = sanitize($_GET['room_type'] ?? '');
-$sort = sanitize($_GET['sort'] ?? 'newest');
+$search = sanitize($_GET['search'] ?? ''); // Tìm kiếm: từ khóa từ URL
+$district = sanitize($_GET['district'] ?? ''); // Lọc theo quận/huyện
+$min_price = isset($_GET['min_price']) ? (int)$_GET['min_price'] : 0; // Giá tối thiểu (triệu)
+$max_price = isset($_GET['max_price']) ? (int)$_GET['max_price'] : PHP_INT_MAX; // Giá tối đa
+$room_type = sanitize($_GET['room_type'] ?? ''); // Loại phòng: single/shared/apartment/house
+$sort = sanitize($_GET['sort'] ?? 'newest'); // Sắp xếp: newest/price_asc/price_desc
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Phân trang: lấy page từ URL, mặc định = 1
 $per_page = 6; // Số bài đăng mỗi trang
 $posts = [];
@@ -21,44 +21,44 @@ try {
     $query = "SELECT id, title, slug, address, district, city, price, area, room_type, room_status, max_people, created_at FROM posts WHERE status = 'approved' AND (city = 'TP. Đà Nẵng' OR city = 'Đà Nẵng')";
     $params = [];
     
-    if (!empty($search)) {
+    if (!empty($search)) { // Lọc search: tìm trong tiêu đề hoặc địa chỉ
         $query .= " AND (title LIKE ? OR address LIKE ?)";
         $search_term = "%$search%";
         $params[] = $search_term;
         $params[] = $search_term;
     }
-    if (!empty($district)) {
+    if (!empty($district)) { // Lọc district: WHERE district = ?
         $query .= " AND district = ?";
         $params[] = $district;
     }
-    if ($min_price > 0 || $max_price < PHP_INT_MAX) {
+    if ($min_price > 0 || $max_price < PHP_INT_MAX) { // Lọc giá: BETWEEN min và max (nhân 1M)
         $query .= " AND price BETWEEN ? AND ?";
         $params[] = $min_price * 1000000;
         $params[] = $max_price * 1000000;
     }
-    if (!empty($room_type)) {
+    if (!empty($room_type)) { // Lọc loại phòng: WHERE room_type = ?
         $query .= " AND room_type = ?";
         $params[] = $room_type;
     }
     
     // Count total
-    $count_query = str_replace("SELECT id, title, slug, address, district, city, price, area, room_type, room_status, max_people, created_at", "SELECT COUNT(*) as cnt", $query);
+    $count_query = str_replace("SELECT id, title, slug, address, district, city, price, area, room_type, room_status, max_people, created_at", "SELECT COUNT(*) as cnt", $query); // Đếm tổng posts
     $count_stmt = $db->prepare($count_query);
     $count_stmt->execute($params);
     $count_result = $count_stmt->fetch(PDO::FETCH_ASSOC);
-    $total_posts = $count_result['cnt'] ?? 0;
+    $total_posts = $count_result['cnt'] ?? 0; // Lưu tổng số bài
     $total_pages = ceil($total_posts / $per_page); // tính tổng số trang
     
     // Add sort
-    switch ($sort) {
+    switch ($sort) { // Sắp xếp theo: price_asc/price_desc/newest
         case 'price_asc':
-            $query .= " ORDER BY price ASC";
+            $query .= " ORDER BY price ASC"; // Giá thấp → cao
             break;
         case 'price_desc':
-            $query .= " ORDER BY price DESC";
+            $query .= " ORDER BY price DESC"; // Giá cao → thấp
             break;
         default:
-            $query .= " ORDER BY created_at DESC";
+            $query .= " ORDER BY created_at DESC"; // Mặc định: mới nhất
     }
 
     $offset = ($page - 1) * $per_page; // Add pagination: LIMIT items_per_page OFFSET (page-1)*per_page

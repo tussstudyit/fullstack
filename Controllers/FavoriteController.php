@@ -12,56 +12,56 @@ class FavoriteController {
     /**
      * Thêm vào yêu thích
      */
-    public function add() {
-        if (!isLoggedIn()) {
+    public function add() { // Thêm yêu thích: kiểm tra đăng nhập + gọi model add
+        if (!isLoggedIn()) { // Chỉ user đăng nhập mới yêu thích
             return ['success' => false, 'message' => 'Vui lòng đăng nhập'];
         }
 
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { // Chỉ POST
             return ['success' => false, 'message' => 'Invalid request method'];
         }
 
-        $post_id = $_POST['post_id'] ?? null;
+        $post_id = $_POST['post_id'] ?? null; // Lấy post_id
 
-        if (!$post_id) {
+        if (!$post_id) { // Kiểm tra post_id tồn tại
             return ['success' => false, 'message' => 'Bài đăng không tồn tại'];
         }
 
-        $result = $this->favoriteModel->add($_SESSION['user_id'], $post_id);
+        $result = $this->favoriteModel->add($_SESSION['user_id'], $post_id); // Thêm vào DB
         return $result;
     }
 
     /**
      * Xóa khỏi yêu thích
      */
-    public function remove() {
-        if (!isLoggedIn()) {
+    public function remove() { // Xóa yêu thích: kiểm tra đăng nhập + gọi model remove
+        if (!isLoggedIn()) { // Chỉ user đăng nhập
             return ['success' => false, 'message' => 'Vui lòng đăng nhập'];
         }
 
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { // Chỉ POST
             return ['success' => false, 'message' => 'Invalid request method'];
         }
 
-        $post_id = $_POST['post_id'] ?? null;
+        $post_id = $_POST['post_id'] ?? null; // Lấy post_id
 
-        if (!$post_id) {
+        if (!$post_id) { // Kiểm tra post_id
             return ['success' => false, 'message' => 'Bài đăng không tồn tại'];
         }
 
-        $result = $this->favoriteModel->remove($_SESSION['user_id'], $post_id);
+        $result = $this->favoriteModel->remove($_SESSION['user_id'], $post_id); // Xóa khỏi DB
         return $result;
     }
 
     /**
      * Xử lý hành động
      */
-    public function handleAction($action) {
+    public function handleAction($action) { // Route: add/remove
         switch ($action) {
             case 'add':
-                return $this->add();
+                return $this->add(); // Thêm yêu thích
             case 'remove':
-                return $this->remove();
+                return $this->remove(); // Xóa yêu thích
             default:
                 return ['success' => false, 'message' => 'Action not found'];
         }

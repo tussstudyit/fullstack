@@ -315,27 +315,27 @@ $totalPosts = count($posts);
             }
         });
 
-        function deletePost(postId) {
-            fetch('../../Controllers/PostController.php', {
-                method: 'POST',
+        function deletePost(postId) { // Xóa bài viết: gọi API delete POST
+            fetch('../../Controllers/PostController.php', { // URL controller xử lý xóa
+                method: 'POST', // HTTP POST
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: 'action=delete&post_id=' + postId
+                body: 'action=delete&post_id=' + postId // Gửi action + post_id
             })
-            .then(response => response.json())
+            .then(response => response.json()) // Parse JSON response
             .then(data => {
-                if (data.success) {
+                if (data.success) { // Nếu xóa thành công
                     // Remove post card from UI
-                    const postItem = document.querySelector(`[data-post-id="${postId}"]`);
-                    if (postItem) {
-                        postItem.style.opacity = '0';
+                    const postItem = document.querySelector(`[data-post-id="${postId}"]`); // Tìm phần tử post
+                    if (postItem) { // Nếu tìm thấy
+                        postItem.style.opacity = '0'; // Fade out
                         postItem.style.transition = 'opacity 0.3s ease';
-                        setTimeout(() => postItem.remove(), 300);
+                        setTimeout(() => postItem.remove(), 300); // Xóa DOM sau 300ms
                         
                         // Update total posts count
                         const countElement = document.querySelector('h2');
-                        if (countElement) {
+                        if (countElement) { // Cập nhật số lượng bài viết
                             const match = countElement.textContent.match(/\((\d+)\)/);
                             if (match) {
                                 const newCount = parseInt(match[1]) - 1;
@@ -344,17 +344,17 @@ $totalPosts = count($posts);
                         }
                     }
                     alert('Xóa tin đăng thành công');
-                } else {
+                } else { // Xóa thất bại
                     alert('Lỗi: ' + (data.message || 'Không thể xóa tin đăng'));
                 }
             })
-            .catch(error => {
+            .catch(error => { // Xử lý lỗi fetch
                 console.error('Error:', error);
                 alert('Lỗi khi xóa tin đăng');
             });
         }
 
-        function confirmDelete(message) {
+        function confirmDelete(message) { // Xác nhận xóa
             return confirm(message);
         }
     </script>
