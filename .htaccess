@@ -10,6 +10,7 @@ php_value max_execution_time 300
 
 # Custom 404 Error Page
 ErrorDocument 404 /Views/404/404.html
+# Hiển thị 404.html khi URL không tồn tại
 <IfModule mod_rewrite.c>
     RewriteEngine On
     # Set base path 
@@ -21,7 +22,9 @@ ErrorDocument 404 /Views/404/404.html
 # ============================================
 
     RewriteCond %{QUERY_STRING} ^id=([0-9]+)$
+    # URL cũ có id=số
     RewriteRule ^Views/posts/detail\.php$ /%1? [R=301,L]
+    # Redirect 301 đến /id (SEO-friendly)
 
 # ============================================
 # SECTION 2: Slug URL → PHP handler
@@ -30,20 +33,28 @@ ErrorDocument 404 /Views/404/404.html
 
     # Không phải file thật
     RewriteCond %{REQUEST_FILENAME} !-f
+    # Nếu KHÔNG phải file thực tế
     # Không phải thư mục thật
     RewriteCond %{REQUEST_FILENAME} !-d
+    # Nếu KHÔNG phải thư mục thực tế
 
     # Bỏ qua thư mục hệ thống
     RewriteCond %{REQUEST_URI} !^/Views/
+    # Bỏ qua /Views/
     RewriteCond %{REQUEST_URI} !^/api/
+    # Bỏ qua /api/
     RewriteCond %{REQUEST_URI} !^/assets/
+    # Bỏ qua /assets/
     RewriteCond %{REQUEST_URI} !^/uploads/
+    # Bỏ qua /uploads/
 
     # Bỏ qua file có extension
     RewriteCond %{REQUEST_URI} !\.(php|html|css|js|jpg|jpeg|png|gif|ico|svg)$
+    # Bỏ qua file với extension
 
     # Slug: chữ thường, số, dấu gạch ngang
     RewriteRule ^([a-z0-9\-]+)$ /Views/posts/detail.php?slug=$1 [L,QSA]
+    # Rewrite slug → detail.php?slug=...
 
 
 # ============================================
@@ -54,17 +65,21 @@ ErrorDocument 404 /Views/404/404.html
     # Kiểm tra request KHÔNG phải file thực tế
     # !-f = negate (NOT) file-exists test
     RewriteCond %{REQUEST_FILENAME} !-f
+    # URL KHÔNG phải file thực tế
     # Kiểm tra request KHÔNG phải thư mục thực tế
     # !-d = negate (NOT) directory-exists test
     RewriteCond %{REQUEST_FILENAME} !-d
+    # URL KHÔNG phải thư mục thực tế
     # Không trigger 404 cho /Views/404/ folder
     # Tránh vòng lặp (404 page itself không được rewrite)
     RewriteCond %{REQUEST_URI} !^/Views/404/
+    # Tránh vòng lặp: 404 page không rewrite lại
     # Nếu không match bất kỳ rule nào trên, trigger 404
     # ^(.+)$ = match 1+ ký tự bất kỳ (any URL path)
     # - (dash) = don't rewrite, return only status code
     # [L,R=404] = L (Last), R=404 (return 404 status)
     RewriteRule ^(.+)$ - [L,R=404]
+    # Nếu không match → Return 404 status
 
 # ============================================
 # SECTION 4: Content-Type header for API
@@ -76,8 +91,10 @@ ErrorDocument 404 /Views/404/404.html
     # Lưu ý: Rule này có thể ảnh hưởng đến HTML output
     # Tốt hơn nên set ở PHP directly: header('Content-Type: application/json');
     <FilesMatch "\.php$">
+    # Tất cả file .php
         # Set content type là JSON cho API responses
         # Có thể gây lỗi nếu output là HTML (form, page)
         Header set Content-Type "application/json; charset=utf-8"
+        # Set header: Content-Type = JSON
     </FilesMatch>
 </IfModule>

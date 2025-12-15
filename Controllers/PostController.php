@@ -26,64 +26,66 @@ class PostController {
     }
 
     /**
-     * Tạo bài đăng mới
+     * Tạo bài đăng mới: kiểm tra quyền + validate + lưu DB
      */
-    public function create() { // Tạo bài đăng: kiểm tra quyền + validate + lưu
-        if (!isLoggedIn()) { // Kiểm tra đăng nhập
+    public function create() {
+        if (!isLoggedIn()) {
             return ['success' => false, 'message' => 'Vui lòng đăng nhập'];
         }
 
-        if (!isLandlord() && !isAdmin()) { // Chỉ chủ trọ + admin được đăng
+        if (!isLandlord() && !isAdmin()) {
             return ['success' => false, 'message' => 'Chỉ chủ trọ mới có thể đăng tin'];
         }
 
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { // Chỉ POST request
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return ['success' => false, 'message' => 'Invalid request method'];
         }
 
         // Validate input
-        $title = sanitize($_POST['title'] ?? ''); // Tiêu đề (sanitize XSS)
-        $description = sanitize($_POST['description'] ?? ''); // Mô tả
-        $address = sanitize($_POST['address'] ?? ''); // Địa chỉ
-        $district = sanitize($_POST['district'] ?? ''); // Quận/huyện
-        $city = sanitize($_POST['city'] ?? ''); // Thành phố
-        $price = $_POST['price'] ?? ''; // Giá tiền
-        $category_id = $_POST['category_id'] ?? '1'; // Danh mục
+        $title = sanitize($_POST['title'] ?? '');
+        $description = sanitize($_POST['description'] ?? '');
+        $address = sanitize($_POST['address'] ?? '');
+        $district = sanitize($_POST['district'] ?? '');
+        $city = sanitize($_POST['city'] ?? '');
+        $price = $_POST['price'] ?? '';
+        $category_id = $_POST['category_id'] ?? '1';
 
-        if (empty($title) || empty($description) || empty($address) || empty($price)) { // Kiểm tra bắt buộc
+        // Kiểm tra thông tin bắt buộc
+        if (empty($title) || empty($description) || empty($address) || empty($price)) {
             return ['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin bắt buộc'];
         }
 
-        if (!is_numeric($price) || $price <= 0) { // Giá phải > 0
+        // Kiểm tra giá: phải là số và lớn hơn 0
+        if (!is_numeric($price) || $price <= 0) {
             return ['success' => false, 'message' => 'Giá không hợp lệ'];
         }
 
-        $amenities = $_POST['amenities'] ?? []; // Tiện ích (tivi, wifi, ...)
-        $utilities = $_POST['utilities'] ?? []; // Dịch vụ (nước, điện, ...)
-        $rules = $_POST['rules'] ?? []; // Quy định (không khách, ...)
+        $amenities = $_POST['amenities'] ?? [];
+        $utilities = $_POST['utilities'] ?? [];
+        $rules = $_POST['rules'] ?? [];
 
         $data = [
-            'user_id' => $_SESSION['user_id'], // ID chủ trọ
-            'category_id' => $category_id, // Danh mục
+            'user_id' => $_SESSION['user_id'],
+            'category_id' => $category_id,
             'title' => $title,
             'description' => $description,
             'address' => $address,
             'district' => $district,
             'city' => $city,
-            'price' => $price, // Giá phòng/tháng
-            'area' => $_POST['area'] ?? null, // Diện tích m2
-            'room_type' => $_POST['room_type'] ?? 'single', // Loại: single/shared/apartment/house
-            'room_status' => $_POST['room_status'] ?? 'available', // Trạng thái: available/occupied/renting
-            'max_people' => $_POST['max_people'] ?? 1, // Số người tối đa
-            'gender' => $_POST['gender'] ?? 'any', // Yêu cầu giới tính: male/female/any
-            'amenities' => !empty($amenities) ? json_encode($amenities) : null, // JSON array
-            'utilities' => !empty($utilities) ? json_encode($utilities) : null, // JSON array
-            'rules' => !empty($rules) ? json_encode($rules) : null, // JSON array
-            'available_from' => $_POST['available_from'] ?? date('Y-m-d'), // Ngày sẵn sàng
-            'deposit_amount' => $_POST['deposit_amount'] ?? null, // Tiền cọc
-            'electric_price' => $_POST['electric_price'] ?? null, // Giá điện/kWh
-            'water_price' => $_POST['water_price'] ?? null, // Giá nước/m3
-            'status' => 'approved' // Trạng thái: approved/pending
+            'price' => $price,
+            'area' => $_POST['area'] ?? null,
+            'room_type' => $_POST['room_type'] ?? 'single',
+            'room_status' => $_POST['room_status'] ?? 'available',
+            'max_people' => $_POST['max_people'] ?? 1,
+            'gender' => $_POST['gender'] ?? 'any',
+            'amenities' => !empty($amenities) ? json_encode($amenities) : null,
+            'utilities' => !empty($utilities) ? json_encode($utilities) : null,
+            'rules' => !empty($rules) ? json_encode($rules) : null,
+            'available_from' => $_POST['available_from'] ?? date('Y-m-d'),
+            'deposit_amount' => $_POST['deposit_amount'] ?? null,
+            'electric_price' => $_POST['electric_price'] ?? null,
+            'water_price' => $_POST['water_price'] ?? null,
+            'status' => 'approved'
         ];
 
         $result = $this->postModel->create($data); // Lưu vào DB
@@ -91,26 +93,26 @@ class PostController {
     }
 
     /**
-     * Cập nhật bài đăng
+     * Cập nhật bài đăng: kiểm tra quyền + validate + cập nhật + xóa ảnh
      */
-    public function update() { // Cập nhật bài viết: kiểm tra quyền + validate + cập nhật
-        if (!isLoggedIn()) { // Kiểm tra đăng nhập
+    public function update() {
+        if (!isLoggedIn()) {
             return ['success' => false, 'message' => 'Vui lòng đăng nhập'];
         }
 
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { // Chỉ POST
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return ['success' => false, 'message' => 'Invalid request method'];
         }
 
-        $post_id = $_POST['post_id'] ?? null; // Lấy post_id
+        $post_id = $_POST['post_id'] ?? null;
 
-        if (!$post_id) { // Kiểm tra post_id tồn tại
+        if (!$post_id) {
             return ['success' => false, 'message' => 'Bài đăng không tồn tại'];
         }
 
-        $post = $this->postModel->findById($post_id); // Tìm bài viết
+        $post = $this->postModel->findById($post_id);
 
-        if (!$post) { // Kiểm tra bài viết tồn tại
+        if (!$post) {
             return ['success' => false, 'message' => 'Bài đăng không tồn tại'];
         }
 
@@ -198,26 +200,26 @@ class PostController {
     }
 
     /**
-     * Xóa bài đăng
+     * Xóa bài đăng: kiểm tra quyền + xóa file ảnh + xóa DB
      */
-    public function delete() { // Xóa bài viết: kiểm tra quyền + xóa file + DB
-        if (!isLoggedIn()) { // Kiểm tra đăng nhập
+    public function delete() {
+        if (!isLoggedIn()) {
             return ['success' => false, 'message' => 'Vui lòng đăng nhập'];
         }
 
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { // Chỉ chấp nhận POST request
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return ['success' => false, 'message' => 'Invalid request method'];
         }
 
-        $post_id = $_POST['post_id'] ?? null; // Lấy post_id từ request
+        $post_id = $_POST['post_id'] ?? null;
 
-        if (!$post_id) { // Kiểm tra post_id tồn tại
+        if (!$post_id) {
             return ['success' => false, 'message' => 'Bài đăng không tồn tại'];
         }
 
-        $post = $this->postModel->findById($post_id); // Tìm bài viết trong DB
+        $post = $this->postModel->findById($post_id);
 
-        if (!$post) { // Kiểm tra bài viết có tồn tại
+        if (!$post) {
             return ['success' => false, 'message' => 'Bài đăng không tồn tại'];
         }
 
@@ -227,24 +229,24 @@ class PostController {
         }
 
         // Delete images from filesystem first
-        $images = $this->postImageModel->getImages($post_id); // Lấy danh sách ảnh
-        $uploadDir = __DIR__ . '/../uploads/'; // Thư mục uploads
+        $images = $this->postImageModel->getImages($post_id);
+        $uploadDir = __DIR__ . '/../uploads/';
         
-        foreach ($images as $image) { // Xóa từng file ảnh
-            $filePath = $uploadDir . $image['image_url']; // Đường dẫn file
-            if (file_exists($filePath)) { // Nếu file tồn tại
-                @unlink($filePath); // Xóa file
+        foreach ($images as $image) {
+            $filePath = $uploadDir . $image['image_url'];
+            if (file_exists($filePath)) {
+                @unlink($filePath);
                 error_log("Deleted image file: " . $filePath);
             }
         }
 
         // Delete from database
-        $result = $this->postModel->delete($post_id); // Xóa khỏi DB
+        $result = $this->postModel->delete($post_id);
         return $result;
     }
 
     /**
-     * Xử lý hành động
+     * Xử lý hành động: route action (create/update/delete) sang method tương ứng
      */
     public function handleAction($action) {
         switch ($action) {
@@ -260,31 +262,31 @@ class PostController {
     }
 }
 
-// Xử lý request
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    try {
-        $action = sanitize($_POST['action'] ?? '');
-        $controller = new PostController();
-        $result = $controller->handleAction($action);
+// Xử lý request - chỉ chấp nhận POST request
+if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Nếu là POST
+    try { // Try-catch để xử lý lỗi
+        $action = sanitize($_POST['action'] ?? ''); // Lấy action từ POST (sanitize XSS)
+        $controller = new PostController(); // Tạo instance controller
+        $result = $controller->handleAction($action); // Gọi handleAction với action
         
-        if (is_array($result)) {
-            echo json_encode($result);
+        if (is_array($result)) { // Nếu result là array
+            echo json_encode($result); // Encode thành JSON response
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid response']);
         }
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode([
+    } catch (Exception $e) { // Catch exception
+        http_response_code(500); // Set HTTP 500
+        echo json_encode([ // Return error JSON
             'success' => false,
             'message' => $e->getMessage()
         ]);
     }
     
     // Flush output buffer
-    if (ob_get_level()) {
-        ob_end_flush();
+    if (ob_get_level()) { // Nếu output buffer active
+        ob_end_flush(); // Flush output
     }
-} else {
-    header('HTTP/1.0 404 Not Found');
+} else { // Nếu không phải POST
+    header('HTTP/1.0 404 Not Found'); // Return 404
 }
 ?>

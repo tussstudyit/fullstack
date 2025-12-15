@@ -75,11 +75,11 @@ try {
         $post['image'] = $postImageModel->getPrimaryImage($post['id']);
     }
     unset($post);
-} catch (PDOException $e) {
+    } catch (PDOException $e) {
     error_log("Query error: " . $e->getMessage());
     $posts = [];
     $total_posts = 0;
-}
+    }
 
 // Get user's favorites if logged in
 $user_favorites = [];

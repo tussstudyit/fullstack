@@ -401,8 +401,8 @@ if ($postId) {
                     </div>
                 </div>
 
-                <form id="createPostForm" action="../../Controllers/PostController.php" method="POST" enctype="multipart/form-data">
-                    <input type="hidden" name="action" value="<?php echo $editingPost ? 'update' : 'create'; ?>">
+                <form id="createPostForm" action="../../Controllers/PostController.php" method="POST" enctype="multipart/form-data"> <!-- Form tạo/chỉnh sửa bài đăng -->
+                    <input type="hidden" name="action" value="<?php echo $editingPost ? 'update' : 'create'; ?>">                      <!-- Action: create/update -->
                     <?php if ($editingPost): ?>
                     <input type="hidden" name="post_id" value="<?php echo $editingPost['id']; ?>">
                     <?php endif; ?>
@@ -820,40 +820,40 @@ if ($postId) {
         // Handle image selection and preview
         let uploadedImages = [];
         
-        // Backup uploadedImages in case it gets cleared
         window.uploadedImagesBackup = [];
 
-        function handleImageSelect(input) {
-            const files = input.files;
-            const preview = document.getElementById('imagePreview');
+        // Hàm thêm ảnh vào array và hiển thị preview 826-900
+        function handleImageSelect(input) { // Xử lý chọn ảnh: validate + tạo preview + lưu vào array
+            const files = input.files; // Lấy file từ input
+            const preview = document.getElementById('imagePreview'); // Container preview
             
-            if (files.length === 0) return;
+            if (files.length === 0) return; // Nếu không có file: thoát
             
             console.log('%c=== handleImageSelect CALLED ===', 'background: orange; color: white; padding: 5px;');
             console.log('Current uploadedImages before add:', uploadedImages.length);
             console.log('New files being added:', files.length);
             
             // Add new files to uploadedImages (don't clear old ones - allow multiple selections)
-            for (let file of files) {
+            for (let file of files) { // Lặp qua từng file
                 // Validate file size (5MB max)
-                if (file.size > 5 * 1024 * 1024) {
+                if (file.size > 5 * 1024 * 1024) { // Nếu file > 5MB
                     showNotification('File ' + file.name + ' quá lớn (tối đa 5MB)', 'error');
                     continue;
                 }
                 
                 // Validate file type
-                if (!file.type.startsWith('image/')) {
+                if (!file.type.startsWith('image/')) { // Nếu không phải ảnh
                     showNotification('File ' + file.name + ' không phải là ảnh', 'error');
                     continue;
                 }
                 
                 // Create preview
-                const reader = new FileReader();
-                reader.onload = function(e) {
+                const reader = new FileReader(); // Đọc file để hiển thị preview
+                reader.onload = function(e) { // Khi đọc xong
                     const fileIndex = uploadedImages.length; // Index của file này
-                    const div = document.createElement('div');
+                    const div = document.createElement('div'); // Tạo container preview
                     div.className = 'image-preview-item';
-                    div.id = 'preview-' + fileIndex;
+                    div.id = 'preview-' + fileIndex; // ID: preview-0, preview-1, ...
                     div.innerHTML = `
                         <div style="position: relative; overflow: hidden; border-radius: 8px;">
                             <img src="${e.target.result}" alt="Preview" style="width: 100%; height: 150px; object-fit: cover;">
@@ -863,13 +863,13 @@ if ($postId) {
                         </div>
                         <p style="margin-top: 0.5rem; font-size: 0.875rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${file.name}</p>
                     `;
-                    preview.appendChild(div);
+                    preview.appendChild(div); // Thêm vào DOM
                 };
-                reader.readAsDataURL(file);
+                reader.readAsDataURL(file); // Đọc file dưới dạng Data URL
                 
                 // Add to uploadedImages array
-                uploadedImages.push(file);
-                window.uploadedImagesBackup = [...uploadedImages]; // Backup
+                uploadedImages.push(file); // Lưu file vào array
+                window.uploadedImagesBackup = [...uploadedImages]; // Backup lại
                 console.log(`  ✓ Added: ${file.name} (${(file.size / 1024).toFixed(1)}KB) → uploadedImages[${uploadedImages.length - 1}]`);
             }
             
@@ -877,39 +877,39 @@ if ($postId) {
             console.log('Backup updated:', window.uploadedImagesBackup.length);
             
             // Reset input so same file can be selected again
-            input.value = '';
+            input.value = ''; // Reset input để có thể chọn file giống lần trước
         }
         
         // Handle cover image selection (CREATE mode only)
-        let coverImage = null;
+        let coverImage = null; // Biến lưu ảnh bìa
         
-        function handleCoverImageSelect(input) {
-            const files = input.files;
-            const preview = document.getElementById('coverImagePreview');
+        function handleCoverImageSelect(input) { // Xử lý chọn ảnh bìa: validate + preview + lưu
+            const files = input.files; // Lấy file từ input
+            const preview = document.getElementById('coverImagePreview'); // Container preview ảnh bìa
             
-            if (files.length === 0) return;
+            if (files.length === 0) return; // Nếu không có file: thoát
             
-            const file = files[0];
+            const file = files[0]; // Lấy file đầu tiên (chỉ 1 ảnh bìa)
             
             // Validate file size (5MB max)
-            if (file.size > 5 * 1024 * 1024) {
+            if (file.size > 5 * 1024 * 1024) { // Nếu file > 5MB
                 showNotification('File quá lớn (tối đa 5MB)', 'error');
                 return;
             }
             
             // Validate file type
-            if (!file.type.startsWith('image/')) {
+            if (!file.type.startsWith('image/')) { // Nếu không phải ảnh
                 showNotification('File không phải là ảnh', 'error');
                 return;
             }
             
             // Clear previous preview
-            preview.innerHTML = '';
+            preview.innerHTML = ''; // Xóa preview cũ
             
             // Create preview
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const div = document.createElement('div');
+            const reader = new FileReader(); // Đọc file để preview
+            reader.onload = function(e) { // Khi đọc xong
+                const div = document.createElement('div'); // Tạo container preview
                 div.className = 'image-preview-item';
                 div.innerHTML = `
                     <div style="position: relative; overflow: hidden; border-radius: 8px;">
@@ -921,70 +921,70 @@ if ($postId) {
                     </div>
                     <p style="margin-top: 0.5rem; font-size: 0.875rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${file.name}</p>
                 `;
-                preview.appendChild(div);
+                preview.appendChild(div); // Thêm vào DOM
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(file); // Đọc file dưới dạng Data URL
             
             // Set cover image
-            coverImage = file;
+            coverImage = file; // Lưu file ảnh bìa
             console.log('✓ Cover image selected:', file.name);
             
             // Reset input
-            input.value = '';
+            input.value = ''; // Reset input
         }
         
-        function removeCoverImage() {
-            coverImage = null;
-            document.getElementById('coverImagePreview').innerHTML = '';
+        function removeCoverImage() { // Xóa ảnh bìa: clear file + preview
+            coverImage = null; // Xóa file ảnh bìa
+            document.getElementById('coverImagePreview').innerHTML = ''; // Xóa preview
             console.log('✓ Cover image removed');
         }
         
         // Delete existing image (EDIT mode)
-        function deleteExistingImage(imageId, elementId) {
-            if (!confirm('Xác nhận xóa ảnh này?')) return;
+        function deleteExistingImage(imageId, elementId) { // Xóa ảnh hiện tại: xóa UI + lưu ID xóa + promote ảnh đầu
+            if (!confirm('Xác nhận xóa ảnh này?')) return; // Hỏi xác nhận
             
-            const element = document.getElementById(elementId);
+            const element = document.getElementById(elementId); // Lấy element preview
             if (element) {
                 // Check if this was the primary image
-                const wasPrimary = element.querySelector('span') && element.querySelector('span').textContent.includes('Ảnh bìa');
+                const wasPrimary = element.querySelector('span') && element.querySelector('span').textContent.includes('Ảnh bìa'); // Kiểm tra có phải ảnh bìa
                 
-                element.remove();
+                element.remove(); // Xóa element khỏi DOM
                 
                 // Add to deleted images list
-                let deletedIds = document.getElementById('deletedImageIds').value;
+                let deletedIds = document.getElementById('deletedImageIds').value; // Lấy list ID xóa
                 if (deletedIds) {
-                    deletedIds += ',' + imageId;
+                    deletedIds += ',' + imageId; // Thêm ID vào list (phẩy cách nhau)
                 } else {
                     deletedIds = imageId.toString();
                 }
-                document.getElementById('deletedImageIds').value = deletedIds;
+                document.getElementById('deletedImageIds').value = deletedIds; // Lưu lại
                 
                 console.log('✓ Marked for deletion:', imageId);
                 console.log('Was primary:', wasPrimary);
                 
                 // If deleted image was primary, promote first remaining image to primary
-                if (wasPrimary) {
-                    const container = document.getElementById('existingImagesContainer');
-                    const firstRemainingImage = container.querySelector('.image-preview-item');
+                if (wasPrimary) { // Nếu xóa ảnh bìa
+                    const container = document.getElementById('existingImagesContainer'); // Container ảnh hiện tại
+                    const firstRemainingImage = container.querySelector('.image-preview-item'); // Lấy ảnh đầu tiên còn lại
                     
-                    if (firstRemainingImage) {
+                    if (firstRemainingImage) { // Nếu còn ảnh
                         // Remove old primary badge from all images
-                        container.querySelectorAll('span').forEach(span => {
+                        container.querySelectorAll('span').forEach(span => { // Xóa badge "Ảnh bìa" khỏi tất cả
                             if (span.textContent.includes('Ảnh bìa')) {
                                 span.remove();
                             }
                         });
                         
                         // Add primary badge to first image
-                        const badge = document.createElement('span');
+                        const badge = document.createElement('span'); // Tạo badge "Ảnh bìa" mới
                         badge.style.cssText = 'position: absolute; top: 0.5rem; left: 0.5rem; background: #4CAF50; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold;';
                         badge.textContent = 'Ảnh bìa';
                         firstRemainingImage.querySelector('div').style.position = 'relative';
-                        firstRemainingImage.querySelector('div').appendChild(badge);
+                        firstRemainingImage.querySelector('div').appendChild(badge); // Thêm badge vào ảnh đầu
                         
                         // Update text below image
                         const textEl = firstRemainingImage.querySelector('p');
-                        if (textEl) textEl.textContent = '✓ Ảnh bìa';
+                        if (textEl) textEl.textContent = '✓ Ảnh bìa'; // Cập nhật text
                         
                         console.log('✓ Promoted first image to primary');
                         showNotification('Ảnh đầu tiên được chuyển làm ảnh bìa', 'info');
@@ -998,17 +998,17 @@ if ($postId) {
         }
 
         // Remove image from preview and uploadedImages
-        function removeImagePreview(index) {
-            const element = document.getElementById('preview-' + index);
+        function removeImagePreview(index) { // Xóa ảnh từ preview: xóa UI + xóa từ array
+            const element = document.getElementById('preview-' + index); // Lấy element preview
             if (element) {
-                element.remove();
+                element.remove(); // Xóa element khỏi DOM
             }
             
             // Mark as null instead of splicing to keep indices correct
-            uploadedImages[index] = null;
+            uploadedImages[index] = null; // Đánh dấu null (giữ index)
             
             // Clean up null values
-            uploadedImages = uploadedImages.filter(f => f !== null);
+            uploadedImages = uploadedImages.filter(f => f !== null); // Lọc bỏ null
             
             console.log('Images after removal:', uploadedImages.length);
         }
@@ -1036,12 +1036,12 @@ if ($postId) {
         }
 
         // Upload images after post creation (Sequential upload - one at a time)
-        function uploadPostImages(postId, imagesToUpload) {
+        function uploadPostImages(postId, imagesToUpload) { // Upload ảnh lên server: xử lý từng file, validate, gửi API
             console.log('%c=== uploadPostImages START (SEQUENTIAL MODE) ===', 'background: #667eea; color: white; padding: 10px; font-weight: bold;');
             console.log('postId:', postId);
             console.log('imagesToUpload.length:', imagesToUpload ? imagesToUpload.length : 0);
             
-            if (!imagesToUpload || imagesToUpload.length === 0) {
+            if (!imagesToUpload || imagesToUpload.length === 0) { // Nếu không có ảnh
                 console.log('%c✓ No images selected, skipping upload', 'color: orange; font-weight: bold;');
                 return Promise.resolve({ success: true, message: 'Không có ảnh để upload' });
             }
@@ -1049,12 +1049,12 @@ if ($postId) {
             console.log('%c📸 Preparing for sequential upload...', 'color: blue; font-weight: bold;');
             
             // Upload images one at a time
-            let uploadedCount = 0;
-            let uploadPromise = Promise.resolve();
+            let uploadedCount = 0; // Đếm số ảnh đã upload
+            let uploadPromise = Promise.resolve(); // Promise chain
 
-            for (let i = 0; i < imagesToUpload.length; i++) {
-                uploadPromise = uploadPromise.then(() => {
-                    const img = imagesToUpload[i];
+            for (let i = 0; i < imagesToUpload.length; i++) { // Lặp qua từng ảnh
+                uploadPromise = uploadPromise.then(() => { // Chờ upload xong rồi upload ảnh tiếp theo
+                    const img = imagesToUpload[i]; // Lấy ảnh hiện tại
                     
                     console.log(`%c[${i + 1}/${imagesToUpload.length}] Uploading: ${img.name}`, 'background: #FFB84D; color: white; padding: 3px;');
                     
@@ -1063,26 +1063,26 @@ if ($postId) {
                         return Promise.resolve();
                     }
 
-                    const formData = new FormData();
-                    formData.append('post_id', postId);
-                    formData.append('image', img, img.name);
-                    formData.append('image_order', i);  // Send order so server can determine isPrimary
+                    const formData = new FormData(); // Tạo form data chứa ảnh
+                    formData.append('post_id', postId); // ID bài đăng
+                    formData.append('image', img, img.name); // File ảnh
+                    formData.append('image_order', i);  // Thứ tự (0: ảnh bìa, 1+: ảnh phụ)
                     
                     console.log(`  - File: ${img.name} (${img.size} bytes, ${img.type})`);
                     console.log(`  - Order: ${i} (isPrimary: ${i === 0 ? 'YES' : 'NO'})`);
                     console.log(`  - Sending to API...`);
 
-                    return fetch('../../api/upload-image.php?action=upload', {
+                    return fetch('../../api/upload-image.php?action=upload', { // Gửi API upload ảnh
                         method: 'POST',
                         body: formData
                     })
-                    .then(response => {
+                    .then(response => { // Lấy kết quả từ server
                         console.log(`  - Response status: ${response.status}`);
-                        return response.json();
+                        return response.json(); // Parse JSON
                     })
-                    .then(data => {
-                        if (data.success) {
-                            uploadedCount++;
+                    .then(data => { // Xử lý kết quả
+                        if (data.success) { // Nếu upload thành công
+                            uploadedCount++; // Tăng counter
                             console.log(`%c  ✓ Upload success: ${data.filename} (isPrimary: ${data.isPrimary})`, 'color: green; font-weight: bold;');
                             return data;
                         } else {
@@ -1097,25 +1097,25 @@ if ($postId) {
                 });
             }
 
-            return uploadPromise.then(() => {
+            return uploadPromise.then(() => { // Khi tất cả upload xong
                 console.log(`%c=== uploadPostImages COMPLETE ===`, 'background: #667eea; color: white; padding: 10px; font-weight: bold;');
                 console.log(`✓ Successfully uploaded ${uploadedCount}/${imagesToUpload.length} images`);
                 
-                if (uploadedCount === imagesToUpload.length) {
+                if (uploadedCount === imagesToUpload.length) { // Nếu tất cả thành công
                     showNotification(`Upload thành công tất cả ${uploadedCount} ảnh`, 'success');
                     return { success: true, message: `Upload thành công ${uploadedCount} ảnh` };
-                } else if (uploadedCount > 0) {
+                } else if (uploadedCount > 0) { // Nếu một số thành công
                     showNotification(`Upload thành công ${uploadedCount}/${imagesToUpload.length} ảnh`, 'warning');
                     return { success: true, message: `Upload thành công ${uploadedCount}/${imagesToUpload.length} ảnh` };
-                } else {
+                } else { // Nếu tất cả thất bại
                     showNotification('Upload ảnh thất bại', 'error');
                     return { success: false, message: 'Upload ảnh thất bại' };
                 }
             })
-            .catch(error => {
+            .catch(error => { // Nếu có lỗi
                 console.error('%c✗ Upload sequence error:', 'background: #dc3545; color: white; padding: 5px; font-weight: bold;');
                 console.error(error);
-                showNotification('Lỗi khi upload ảnh: ' + error.message, 'error');
+                showNotification('Lỗi khi upload ảnh: ' + error.message, 'error'); // Hiển thị lỗi
                 return { success: false, message: error.message };
             });
         }
