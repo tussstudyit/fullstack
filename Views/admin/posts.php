@@ -18,7 +18,7 @@ $total_posts = 0;
 $total_pages = 0;
 
 try {
-    $query = "SELECT p.id, p.title, p.address, p.price, p.status, p.created_at, u.full_name 
+    $query = "SELECT p.id, p.title, p.slug, p.address, p.price, p.status, p.created_at, u.full_name 
               FROM posts p
               JOIN users u ON p.user_id = u.id
               WHERE 1=1";
@@ -37,7 +37,7 @@ try {
     }
     
     // Count total
-    $count_query = str_replace("SELECT p.id, p.title, p.address, p.price, p.status, p.created_at, u.full_name", "SELECT COUNT(*) as cnt", $query);
+    $count_query = str_replace("SELECT p.id, p.title, p.slug, p.address, p.price, p.status, p.created_at, u.full_name", "SELECT COUNT(*) as cnt", $query);
     $count_stmt = $conn->prepare($count_query);
     $count_stmt->execute($params);
     $count_result = $count_stmt->fetch(PDO::FETCH_ASSOC);
@@ -351,7 +351,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                     </td>
                                     <td><?php echo date('d/m/Y', strtotime($post['created_at'])); ?></td>
                                     <td>
-                                        <a href="../../Views/posts/detail.php?slug=<?php echo $post['slug']; ?>" class="btn btn-sm btn-outline">
+                                        <a href="../../Views/posts/detail.php?slug=<?php echo $post['slug']; ?>" class="btn btn-sm btn-primary">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         <form method="POST" style="display: inline;" onsubmit="return confirm('Xác nhận xóa bài đăng này?');">

@@ -17,16 +17,16 @@ $postImageModel = new PostImage();
 $conn = getDB();
 
 // Lấy danh sách yêu thích của user
-$favorites = [];
+$favorites = [];  //21-29 Query lấy dữ liệu 
 try {
     $stmt = $conn->prepare("
         SELECT p.id, p.title, p.description, p.address, p.district, p.city, p.price, p.area, p.status, p.slug
         FROM posts p
-        JOIN favorites f ON p.id = f.post_id
+        JOIN favorites f ON p.id = f.post_id  
         WHERE f.user_id = ? AND p.status = 'approved'
         ORDER BY f.created_at DESC
     ");
-    $stmt->execute([$_SESSION['user_id']]);
+    $stmt->execute([$_SESSION['user_id']]); 
     $favorites = $stmt->fetchAll();
     
     // Lấy ảnh cho mỗi post

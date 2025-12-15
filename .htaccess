@@ -1,41 +1,83 @@
 # Increase file upload limits
 php_value upload_max_filesize 100M
+# upload max file 100MB
 php_value post_max_size 100M
+# POST data max 100MB
 php_value max_input_time 300
+# time xử lý input data (5 phút)
 php_value max_execution_time 300
+# time execute script (5 phút)
 
 # Custom 404 Error Page
 ErrorDocument 404 /Views/404/404.html
-
-# Enable mod_rewrite for pretty URLs
 <IfModule mod_rewrite.c>
     RewriteEngine On
-RewriteBase /
+    # Set base path 
+    RewriteBase /
 
-# Redirect old detail.php?id=X to new slug URL
-RewriteCond %{QUERY_STRING} ^id=([0-9]+)$
-RewriteRule ^Views/posts/detail\.php$ /%1? [R=301,L]
+# ============================================
+# SECTION 1: Redirect old URLs (backward compatibility)
+# Chuyển hướng từ /Views/posts/detail.php?id=123 → /123
+# ============================================
 
-# Handle pretty URLs for post details (slug format)
-# Match only slug patterns (lowercase letters, numbers, hyphens)
-# Exclude existing files and directories
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_URI} !^/Views/
-RewriteCond %{REQUEST_URI} !^/api/
-RewriteCond %{REQUEST_URI} !^/assets/
-RewriteCond %{REQUEST_URI} !^/uploads/
-RewriteCond %{REQUEST_URI} !\.(php|html|css|js|jpg|jpeg|png|gif|ico|svg)$
-RewriteRule ^([a-z0-9\-]+)$ /Views/posts/detail.php?slug=$1 [L,QSA]
+    RewriteCond %{QUERY_STRING} ^id=([0-9]+)$
+    RewriteRule ^Views/posts/detail\.php$ /%1? [R=301,L]
 
-# Catch-all: If file/directory doesn't exist, return 404
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_URI} !^/Views/404/
-RewriteRule ^(.+)$ - [L,R=404]
+# ============================================
+# SECTION 2: Slug URL → PHP handler
+# /ten-bai-viet → /Views/posts/detail.php?slug=ten-bai-viet
+# ============================================
 
-# JSON content type
-<FilesMatch "\.php$">
-    Header set Content-Type "application/json; charset=utf-8"
-</FilesMatch>
+    # Không phải file thật
+    RewriteCond %{REQUEST_FILENAME} !-f
+    # Không phải thư mục thật
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Bỏ qua thư mục hệ thống
+    RewriteCond %{REQUEST_URI} !^/Views/
+    RewriteCond %{REQUEST_URI} !^/api/
+    RewriteCond %{REQUEST_URI} !^/assets/
+    RewriteCond %{REQUEST_URI} !^/uploads/
+
+    # Bỏ qua file có extension
+    RewriteCond %{REQUEST_URI} !\.(php|html|css|js|jpg|jpeg|png|gif|ico|svg)$
+
+    # Slug: chữ thường, số, dấu gạch ngang
+    RewriteRule ^([a-z0-9\-]+)$ /Views/posts/detail.php?slug=$1 [L,QSA]
+
+
+# ============================================
+# SECTION 3: Catch-all 404 handler
+# Nếu URL không match bất kỳ rule nào, trigger 404
+# ============================================
+
+    # Kiểm tra request KHÔNG phải file thực tế
+    # !-f = negate (NOT) file-exists test
+    RewriteCond %{REQUEST_FILENAME} !-f
+    # Kiểm tra request KHÔNG phải thư mục thực tế
+    # !-d = negate (NOT) directory-exists test
+    RewriteCond %{REQUEST_FILENAME} !-d
+    # Không trigger 404 cho /Views/404/ folder
+    # Tránh vòng lặp (404 page itself không được rewrite)
+    RewriteCond %{REQUEST_URI} !^/Views/404/
+    # Nếu không match bất kỳ rule nào trên, trigger 404
+    # ^(.+)$ = match 1+ ký tự bất kỳ (any URL path)
+    # - (dash) = don't rewrite, return only status code
+    # [L,R=404] = L (Last), R=404 (return 404 status)
+    RewriteRule ^(.+)$ - [L,R=404]
+
+# ============================================
+# SECTION 4: Content-Type header for API
+# Set header cho response API
+# ============================================
+
+    # Match tất cả .php files
+    # \. = escaped dot (literal .), $ = kết thúc string
+    # Lưu ý: Rule này có thể ảnh hưởng đến HTML output
+    # Tốt hơn nên set ở PHP directly: header('Content-Type: application/json');
+    <FilesMatch "\.php$">
+        # Set content type là JSON cho API responses
+        # Có thể gây lỗi nếu output là HTML (form, page)
+        Header set Content-Type "application/json; charset=utf-8"
+    </FilesMatch>
 </IfModule>

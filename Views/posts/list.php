@@ -9,8 +9,8 @@ $min_price = isset($_GET['min_price']) ? (int)$_GET['min_price'] : 0;
 $max_price = isset($_GET['max_price']) ? (int)$_GET['max_price'] : PHP_INT_MAX;
 $room_type = sanitize($_GET['room_type'] ?? '');
 $sort = sanitize($_GET['sort'] ?? 'newest');
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$per_page = 6;
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Phân trang: lấy page từ URL, mặc định = 1
+$per_page = 6; // Số bài đăng mỗi trang
 $posts = [];
 $total_posts = 0;
 $total_pages = 0;
@@ -47,7 +47,7 @@ try {
     $count_stmt->execute($params);
     $count_result = $count_stmt->fetch(PDO::FETCH_ASSOC);
     $total_posts = $count_result['cnt'] ?? 0;
-    $total_pages = ceil($total_posts / $per_page);
+    $total_pages = ceil($total_posts / $per_page); // tính tổng số trang
     
     // Add sort
     switch ($sort) {
@@ -60,9 +60,8 @@ try {
         default:
             $query .= " ORDER BY created_at DESC";
     }
-    
-    // Add pagination
-    $offset = ($page - 1) * $per_page;
+
+    $offset = ($page - 1) * $per_page; // Add pagination: LIMIT items_per_page OFFSET (page-1)*per_page
     $query .= " LIMIT ? OFFSET ?";
     $params[] = $per_page;
     $params[] = $offset;
@@ -670,8 +669,10 @@ if (isLoggedIn()) {
                     </div>
                     <?php endif; ?>
 
+                    <!-- Hiển thị pagination nếu có >1 trang -->
                     <?php if ($total_pages > 1): ?>
                     <div class="pagination">
+                        <!-- Nút "Prev" (trang trước) -->
                         <?php if ($page > 1): ?>
                         <a href="?page=<?php echo $page - 1; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?><?php echo !empty($district) ? '&district=' . urlencode($district) : ''; ?>">
                             <button><i class="fas fa-chevron-left"></i></button>
@@ -679,33 +680,34 @@ if (isLoggedIn()) {
                         <?php endif; ?>
 
                         <?php 
-                        $start_page = max(1, $page - 2);
-                        $end_page = min($total_pages, $page + 2);
+                        $start_page = max(1, $page - 2); // Tính trang bắt đầu: page - 2
+                        $end_page = min($total_pages, $page + 2); // Tính trang kết thúc: page + 2
                         
-                        if ($start_page > 1): ?>
+                        if ($start_page > 1): // Nếu ko phải trang 1, hiển thị trang 1 + "..." ?>
                         <a href="?page=1<?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">
                             <button>1</button>
                         </a>
                         <?php if ($start_page > 2): ?>
-                        <span style="padding: 0.75rem 0.5rem;">...</span>
+                        <span style="padding: 0.75rem 0.5rem;">...</span> <!-- Ellipsis nếu khoảng trống > 2 trang -->
                         <?php endif;
                         endif;
                         
-                        for ($i = $start_page; $i <= $end_page; $i++): ?>
+                        for ($i = $start_page; $i <= $end_page; $i++): // Vòng lặp hiển thị các trang giữa ?>
                         <a href="?page=<?php echo $i; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?><?php echo !empty($district) ? '&district=' . urlencode($district) : ''; ?>">
                             <button <?php echo $i === $page ? 'class="active"' : ''; ?>><?php echo $i; ?></button>
                         </a>
-                        <?php endfor;
+                        <?php endfor; // Kết thúc vòng lặp trang
                         
-                        if ($end_page < $total_pages): 
+                        if ($end_page < $total_pages): // Nếu có trang sau, show "..." + trang cuối 
                             if ($end_page < $total_pages - 1): ?>
-                        <span style="padding: 0.75rem 0.5rem;">...</span>
+                        <span style="padding: 0.75rem 0.5rem;">// Nếu khoảng trống > 2, show ellipsis ...</span>
                             <?php endif; ?>
                         <a href="?page=<?php echo $total_pages; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">
                             <button><?php echo $total_pages; ?></button>
                         </a>
                         <?php endif; ?>
 
+                        <!-- Nút "Next" (trang sau) -->
                         <?php if ($page < $total_pages): ?>
                         <a href="?page=<?php echo $page + 1; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?><?php echo !empty($district) ? '&district=' . urlencode($district) : ''; ?>">
                             <button><i class="fas fa-chevron-right"></i></button>
@@ -722,11 +724,19 @@ if (isLoggedIn()) {
             const minPrice = document.getElementById('minPrice').value;
             const maxPrice = document.getElementById('maxPrice').value;
             
+            // Get selected room type from checkboxes
+            const roomTypeCheckboxes = document.querySelectorAll('input[name="room_type"]:checked');
+            let roomType = '';
+            if (roomTypeCheckboxes.length > 0) {
+                roomType = roomTypeCheckboxes[0].value; // Get first checked value
+            }
+            
             let url = 'list.php?';
             if (search) url += '&search=' + encodeURIComponent(search);
             if (district) url += '&district=' + encodeURIComponent(district);
             if (minPrice) url += '&min_price=' + minPrice;
             if (maxPrice) url += '&max_price=' + maxPrice;
+            if (roomType) url += '&room_type=' + encodeURIComponent(roomType);
             
             window.location.href = url;
         }
@@ -762,12 +772,42 @@ if (isLoggedIn()) {
             });
         }
         
-        // Load search box if exists on page
+        // Load filter values from URL on page load
         document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            
+            // Load search value
             const searchInput = document.querySelector('input[placeholder="Tìm kiếm"]');
-            if (searchInput) {
-                const params = new URLSearchParams(window.location.search);
-                if (params.has('search')) searchInput.value = params.get('search');
+            if (searchInput && params.has('search')) {
+                searchInput.value = params.get('search');
+            }
+            
+            // Load district filter
+            const districtFilter = document.getElementById('districtFilter');
+            if (districtFilter && params.has('district')) {
+                districtFilter.value = params.get('district');
+            }
+            
+            // Load price filters
+            const minPrice = document.getElementById('minPrice');
+            if (minPrice && params.has('min_price')) {
+                minPrice.value = params.get('min_price');
+            }
+            
+            const maxPrice = document.getElementById('maxPrice');
+            if (maxPrice && params.has('max_price')) {
+                maxPrice.value = params.get('max_price');
+            }
+            
+            // Load room type checkboxes
+            const roomTypeCheckboxes = document.querySelectorAll('input[name="room_type"]');
+            if (params.has('room_type') && roomTypeCheckboxes.length > 0) {
+                const selectedRoomType = params.get('room_type');
+                roomTypeCheckboxes.forEach(checkbox => {
+                    if (checkbox.value === selectedRoomType) {
+                        checkbox.checked = true;
+                    }
+                });
             }
         });
 

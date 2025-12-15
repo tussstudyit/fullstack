@@ -1583,6 +1583,7 @@ require_once __DIR__ . '/../../helpers.php';
                      data-other-user-name="${conv.other_user_name}"
                      data-other-user-avatar="${conv.other_user_avatar || ''}"
                      data-post-id="${conv.post_id}"
+                     data-post-slug="${conv.post_slug || ''}"
                      data-unread-count="${conv.unread_count || 0}"
                      onclick="selectConversationById(${conv.id})">
                     <img src="${conv.other_user_avatar ? '../../uploads/avatars/' + conv.other_user_avatar : '<?php echo getPlaceholderImage(50, 50, "667eea", "?"); ?>'}" 
@@ -1624,7 +1625,8 @@ require_once __DIR__ . '/../../helpers.php';
                         other_user_id: item.dataset.otherUserId,
                         other_user_name: item.dataset.otherUserName,
                         other_user_avatar: item.dataset.otherUserAvatar,
-                        post_id: item.dataset.postId
+                        post_id: item.dataset.postId,
+                        post_slug: item.dataset.postSlug
                     });
                     // Update active state
                     items.forEach(i => i.classList.remove('active'));

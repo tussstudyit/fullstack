@@ -34,9 +34,9 @@ function loadNotifications() {
                 updateNotificationBadge(data.unread_count);
                 
                 // Phát hiệu âm nếu có notification mới
-                if (data.unread_count > lastNotificationCount) {
-                    playNotificationSound();
-                }
+                // if (data.unread_count > lastNotificationCount) {
+                //     playNotificationSound();
+                // }
                 lastNotificationCount = data.unread_count;
             }
         })
@@ -61,7 +61,7 @@ function startRealtimeNotificationListener() {
                         lastNotificationCount = data.unread_count;
                         
                         // Phát hiệu âm
-                        playNotificationSound();
+                        // playNotificationSound();
                         
                         // Nếu dropdown mở, load lại danh sách
                         const dropdown = document.getElementById('notificationDropdown');

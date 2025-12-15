@@ -6,49 +6,75 @@ Hệ thống tìm kiếm và quản lý phòng trọ dành cho sinh viên với 
 
 ### Backend
 - **PHP 7.4+** - Server-side programming language
-- **MySQL 5.7+** - Relational database management system
-- **PDO (PHP Data Objects)** - Database abstraction layer
+- **MySQL 5.7+ / MariaDB 10.2+** - Relational database management system
+- **PDO (PHP Data Objects)** - Database abstraction layer with prepared statements
 - **Composer** - Dependency manager for PHP
-- **Ratchet** - WebSocket library for realtime chat
-- **bcrypt** - Password hashing algorithm
+- **Ratchet WebSocket** (cboden/ratchet) - Real-time chat with WebSocket support
+- **bcrypt** - Password hashing algorithm for security
+- **React PHP** - Async I/O for WebSocket server
 
 ### Frontend
-- **HTML5** - Semantic markup language
-- **CSS3** - Styling with modern features (Grid, Flexbox, Variables)
-- **JavaScript (Vanilla ES6+)** - Client-side scripting
-- **Font Awesome 6.4.0** - Icon library
-- **Google Fonts** - Web typography (Dancing Script)
+- **HTML5** - Semantic markup
+- **CSS3** - Modern styling features
+  - CSS Grid & Flexbox - Layout system
+  - CSS Variables - Theme management
+  - Media Queries - Responsive design
+- **JavaScript (ES6+)** - Vanilla JavaScript (no frameworks)
+  - Fetch API - Asynchronous HTTP requests
+  - WebSocket API - Real-time communication
+  - DOM Manipulation - Dynamic UI updates
+- **Font Awesome 6.4.0** - Comprehensive icon library
+- **Google Fonts** - Web typography (Dancing Script font)
 
 ### Server & Infrastructure
 - **Apache 2.4** - Web server with mod_rewrite
-- **.htaccess** - URL rewriting and routing rules
-- **WebSocket Server** - Ratchet on port 8080 for chat
-- **Session Management** - PHP native sessions
+- **.htaccess** - URL rewriting for clean routing
+- **WebSocket Server** - Ratchet on port 8080 for real-time chat
+- **PHP Sessions** - Session management and authentication
+- **File Upload** - Avatar and image storage (`uploads/` folder)
 
 ### Database
-- **MySQL 5.7+** / **MariaDB 10.2+**
+- **InnoDB Engine** - Transaction support & ACID compliance
 - **PDO Prepared Statements** - SQL injection prevention
-- **InnoDB Engine** - Transaction support
 - **Foreign Keys** - Referential integrity
-- **Indexes** - Query optimization
+- **Database Indexes** - Query optimization
+- **Schema Tables:**
+  - users (login, role, avatar)
+  - posts (listing management)
+  - post_images (image storage)
+  - comments (user reviews & ratings)
+  - favorites (bookmarks)
+  - likes (post likes)
+  - conversations & messages (real-time chat)
+  - notifications (user notifications)
 
-### Development Tools
-- **Git** - Version control system
-- **GitHub** - Code hosting and collaboration
-- **VS Code** - Code editor (recommended)
-- **phpMyAdmin** - Database administration
-- **Composer** - Package management
-- **XAMPP/WAMP** - Local development environment
+### Architecture & Design Patterns
+- **MVC (Model-View-Controller)** - Clean separation of concerns
+  - `Models/` - Data layer & business logic
+  - `Views/` - Template layer (PHP files)
+  - `Controllers/` - Request handlers & routing
+- **RESTful API** - API endpoints in `api/` folder
+- **Repository Pattern** - Database abstraction
+- **Session-based Authentication** - Secure user authentication
+- **File Structure:**
+  - `config.php` - Database & environment config
+  - `router.php` - URL routing
+  - `helpers.php` - Utility functions
+  - `websocket/server.php` - WebSocket server implementation
 
-### Architecture & Patterns
-- **MVC (Model-View-Controller)** - Application architecture
-  - **Models** (`Models/`) - Data layer & business logic
-  - **Views** (`Views/`) - Presentation layer (PHP templates)
-  - **Controllers** (`Controllers/`) - Request handling
-- **RESTful API** - API endpoints design (`api/`)
-- **Repository Pattern** - Database query abstraction
-- **Session-based Authentication** - User authentication
+### Development Tools & Environment
+- **Git** - Version control
+- **GitHub** - Code hosting & collaboration
+- **VS Code** - Recommended code editor
+- **XAMPP/WAMP/MAMP** - Local development environment
+- **phpMyAdmin** - Database management UI
+- **Composer** - Package management and autoloading
+- **Port Configuration:**
+  - 80/443 - Web server (Apache)
+  - 8080 - WebSocket server (Ratchet)
+  - 3306 - MySQL database
 - **RBAC** - Role-based access control
+
 
 ### Security
 - **Password Hashing** - bcrypt with cost factor 10
