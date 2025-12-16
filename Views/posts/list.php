@@ -8,7 +8,7 @@ $district = sanitize($_GET['district'] ?? ''); // Lọc theo quận/huyện
 $min_price = isset($_GET['min_price']) ? (int)$_GET['min_price'] : 0; // Giá tối thiểu (triệu)
 $max_price = isset($_GET['max_price']) ? (int)$_GET['max_price'] : PHP_INT_MAX; // Giá tối đa
 $room_type = sanitize($_GET['room_type'] ?? ''); // Loại phòng: single/shared/apartment/house
-$sort = sanitize($_GET['sort'] ?? 'newest'); // Sắp xếp: newest/price_asc/price_desc
+$sort = sanitize($_GET['sort'] ?? 'price_asc'); // Sắp xếp: newest/price_asc/price_desc
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Phân trang: lấy page từ URL, mặc định = 1
 $per_page = 6; // Số bài đăng mỗi trang
 $posts = [];

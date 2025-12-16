@@ -466,6 +466,7 @@ if ($postId) {
                                     name="price" 
                                     placeholder="2500000"
                                     min="0"
+                                    max="10000000"
                                     value="<?php echo $editingPost ? $editingPost['price'] : ''; ?>"
                                     required
                                 >
@@ -480,6 +481,7 @@ if ($postId) {
                                     name="area" 
                                     placeholder="20"
                                     min="0"
+                                    max="30"
                                     step="0.1"
                                     value="<?php echo $editingPost ? $editingPost['area'] : ''; ?>"
                                     required
@@ -626,7 +628,7 @@ if ($postId) {
                                     name="electric_price" 
                                     placeholder="3500"
                                     min="0"
-                                    step="100"
+                                    max="4500"
                                     value="<?php echo $editingPost && $editingPost['electric_price'] ? $editingPost['electric_price'] : ''; ?>"
                                 >
                             </div>
@@ -641,7 +643,7 @@ if ($postId) {
                                 name="water_price" 
                                 placeholder="20000"
                                 min="0"
-                                step="1000"
+                                max="50000"
                                 value="<?php echo $editingPost && $editingPost['water_price'] ? $editingPost['water_price'] : ''; ?>"
                             >
                         </div>
@@ -794,6 +796,105 @@ if ($postId) {
         let currentStep = 1;
         const totalSteps = 5;
 
+        /**
+         * Validate giá tiền: chặn nhập vượt quá số tiền tối đa
+         */
+        function validatePriceInput() {
+            const priceInput = document.getElementById('price');
+            const maxPrice = 10000000;
+
+            priceInput.addEventListener('change', function() {
+                const value = parseInt(this.value) || 0;
+                if (value > maxPrice) {
+                    showNotification(`Giá thuê không được vượt quá ${maxPrice.toLocaleString('vi-VN')} VNĐ`, 'error');
+                    this.value = maxPrice;
+                }
+            });
+
+            priceInput.addEventListener('input', function() {
+                const value = parseInt(this.value) || 0;
+                if (value > maxPrice) {
+                    this.style.borderColor = '#dc2626';
+                } else {
+                    this.style.borderColor = '';
+                }
+            });
+        }
+
+        function validateElectric_priceInput(){
+            const electric_priceInput = document.getElementById('electric_price');
+            const maxElectric_price = 4500;
+
+            electric_priceInput.addEventListener('change', function() {
+                const value = parseInt(this.value) || 0;
+                if (value > maxElectric_price) {
+                    showNotification(`Giá điện không được vượt quá ${maxElectric_price.toLocaleString('vi-VN')} đ/kWh`, 'error');
+                    this.value = maxElectric_price;
+                }
+            });
+
+            electric_priceInput.addEventListener('input', function() {
+                const value = parseInt(this.value) || 0;
+                if (value > maxElectric_price) {
+                    this.style.borderColor = '#dc2626';
+                } else {
+                    this.style.borderColor = '';
+                }
+            });
+        }
+
+        function validateWater_priceInput(){
+            const water_priceInput = document.getElementById('water_price');
+            const maxWater_price = 50000;
+
+            water_priceInput.addEventListener('change', function() {
+                const value = parseInt(this.value) || 0;
+                if (value > maxWater_price) {
+                    showNotification(`Giá nước không được vượt quá ${maxWater_price.toLocaleString('vi-VN')} đ/người/tháng`, 'error');
+                    this.value = maxWater_price;
+                }
+            });
+
+            water_priceInput.addEventListener('input', function() {
+                const value = parseInt(this.value) || 0;
+                if (value > maxWater_price) {
+                    this.style.borderColor = '#dc2626';
+                } else {
+                    this.style.borderColor = '';
+                }
+            });
+        }
+
+        function validateAreaInput() {
+            const areaInput = document.getElementById('area');
+            const maxArea = 30;
+
+            areaInput.addEventListener('change', function() {
+                const value = parseFloat(this.value) || 0;
+                if (value > maxArea) {
+                    showNotification(`Diện tích không được vượt quá ${maxArea} m²`, 'error');
+                    this.value = maxArea;
+                }
+            });
+
+            areaInput.addEventListener('input', function() {
+                const value = parseFloat(this.value) || 0;
+                if (value > maxArea) {
+                    this.style.borderColor = '#dc2626';
+                } else {
+                    this.style.borderColor = '';
+                }
+            });
+        }
+
+        // Initialize price and area validation
+        document.addEventListener('DOMContentLoaded', function() {
+            if (document.getElementById('price')) validatePriceInput();
+            if (document.getElementById('area')) validateAreaInput();
+            if (document.getElementById('electric_price')) validateElectric_priceInput();
+            if (document.getElementById('water_price')) validateWater_priceInput();
+        });
+
         function changeStep(direction) {
             const newStep = currentStep + direction;
             
@@ -822,7 +923,10 @@ if ($postId) {
         
         window.uploadedImagesBackup = [];
 
-        // Hàm thêm ảnh vào array và hiển thị preview 826-900
+        /**
+         * Xử lý chọn ảnh: validate kích thước và loại file, tạo preview, lưu vào array uploadedImages
+         * @param {HTMLInputElement} input - Input element chứa file ảnh
+         */
         function handleImageSelect(input) { // Xử lý chọn ảnh: validate + tạo preview + lưu vào array
             const files = input.files; // Lấy file từ input
             const preview = document.getElementById('imagePreview'); // Container preview
@@ -883,6 +987,10 @@ if ($postId) {
         // Handle cover image selection (CREATE mode only)
         let coverImage = null; // Biến lưu ảnh bìa
         
+        /**
+         * Xử lý chọn ảnh bìa (chỉ chế độ tạo mới): validate, tạo preview, lưu file
+         * @param {HTMLInputElement} input - Input element chứa file ảnh bìa
+         */
         function handleCoverImageSelect(input) { // Xử lý chọn ảnh bìa: validate + preview + lưu
             const files = input.files; // Lấy file từ input
             const preview = document.getElementById('coverImagePreview'); // Container preview ảnh bìa
@@ -933,13 +1041,20 @@ if ($postId) {
             input.value = ''; // Reset input
         }
         
+        /**
+         * Xóa ảnh bìa: xóa file và preview khỏi giao diện
+         */
         function removeCoverImage() { // Xóa ảnh bìa: clear file + preview
             coverImage = null; // Xóa file ảnh bìa
             document.getElementById('coverImagePreview').innerHTML = ''; // Xóa preview
             console.log('✓ Cover image removed');
         }
         
-        // Delete existing image (EDIT mode)
+        /**
+         * Xóa ảnh hiện tại (chế độ chỉnh sửa): xóa khỏi giao diện, lưu ID xóa, nâng cấp ảnh đầu tiên làm ảnh bìa
+         * @param {number} imageId - ID của ảnh cần xóa
+         * @param {string} elementId - ID của element DOM chứa ảnh
+         */
         function deleteExistingImage(imageId, elementId) { // Xóa ảnh hiện tại: xóa UI + lưu ID xóa + promote ảnh đầu
             if (!confirm('Xác nhận xóa ảnh này?')) return; // Hỏi xác nhận
             
