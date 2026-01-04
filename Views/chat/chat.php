@@ -1055,6 +1055,43 @@ require_once __DIR__ . '/../../helpers.php';
             } else {
                 badge.style.display = 'none';
             }
+            
+            // 🔥 MỚI: Đồng thời cập nhật navbar badge
+            updateNavbarChatBadge();
+        }
+        
+        // 🔥 HÀM MỚI: Cập nhật badge trên navbar realtime khi có tin nhắn mới
+        function updateNavbarChatBadge() {
+            // Tìm link "Tin nhắn" trong navbar
+            const chatLink = document.querySelector('a[href*="chat.php"]');
+            if (!chatLink) return;
+            
+            const liElement = chatLink.closest('li');
+            if (!liElement) return;
+            
+            // Đếm tổng số tin nhắn chưa đọc từ tất cả conversations
+            const conversations = document.querySelectorAll('.conversation-item');
+            let totalUnread = 0;
+            conversations.forEach(conv => {
+                totalUnread += parseInt(conv.dataset.unreadCount || 0);
+            });
+            
+            // 🔥 XÓA TẤT CẢ badges cũ trước (bao gồm cả PHP-rendered badge)
+            const oldBadges = liElement.querySelectorAll('.notification-badge');
+            oldBadges.forEach(b => b.remove());
+            
+            // 🔥 CHỈ TẠO badge mới nếu có unread
+            if (totalUnread > 0) {
+                const navbarBadge = document.createElement('span');
+                navbarBadge.className = 'notification-badge';
+                navbarBadge.id = 'chat-navbar-badge'; // 🔥 THÊM ID để dễ track
+                navbarBadge.style.cssText = 'position: absolute; top: -5px; right: -10px; background: #ef4444; color: white; border-radius: 10px; padding: 2px 6px; font-size: 0.7rem; font-weight: 700; min-width: 18px; text-align: center;';
+                navbarBadge.textContent = totalUnread > 99 ? '99+' : totalUnread;
+                liElement.appendChild(navbarBadge);
+                console.log('✅ Navbar badge updated:', totalUnread);
+            } else {
+                console.log('🗑️ Navbar badge removed (no unread messages)');
+            }
         }
 
         function showTypingIndicator(username) {
@@ -1659,8 +1696,9 @@ require_once __DIR__ . '/../../helpers.php';
                     badge.remove();
                     // Reset data-unread-count
                     conversationItem.dataset.unreadCount = 0;
-                    // Cập nhật tổng tin nhắn chưa đọc trong sidebar header
+                    // Cập nhật tổng tin nhắn chưa đọc trong sidebar header VÀ navbar
                     updateTotalUnreadInSidebar();
+                    // updateTotalUnreadInSidebar() đã tự động gọi updateNavbarChatBadge()
                 }
             }
             

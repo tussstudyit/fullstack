@@ -382,6 +382,7 @@ try {
             .catch(error => console.error('Error:', error));
         }
     </script>
+    <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/notifications.js"></script>
 </body>
 </html>

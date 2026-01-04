@@ -2,8 +2,11 @@
 // MAIN JAVASCRIPT FILE
 // =============================================
 
-// Mobile Menu Toggle
+// 🔥 GỘP TẤT CẢ INITIALIZATION VÀO 1 DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Main.js initializing...');
+    
+    // Mobile Menu Toggle
     const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
     const navMenu = document.querySelector('.nav-menu');
     
@@ -12,6 +15,25 @@ document.addEventListener('DOMContentLoaded', function() {
             navMenu.classList.toggle('active');
         });
     }
+    
+    // 🔥 Chat Badge Polling Initialization
+    if (typeof window.chatBadgePollingInitialized === 'undefined') {
+        window.chatBadgePollingInitialized = true;
+        
+        console.log('🔔 Initializing chat badge polling...');
+        
+        // Force update ngay lập tức khi load trang (override PHP badge)
+        setTimeout(() => {
+            updateNavbarBadgePolling();
+        }, 100); // Delay 100ms để đảm bảo DOM đã render xong
+        
+        // Poll every 3 seconds
+        setInterval(updateNavbarBadgePolling, 3000);
+        
+        console.log('✅ Chat badge polling started');
+    }
+    
+    console.log('✅ Main.js initialized');
 });
 
 // =============================================
@@ -124,38 +146,62 @@ function updateNavbarBadgePolling() {
     const liElement = chatLink.closest('li');
     if (!liElement) return;
     
-    fetch('../../api/get-unread-conversations.php')
-        .then(response => response.json())
+    // 🔥 FIX: Dùng dynamic path thay vì hardcoded ../../
+    const apiPath = getApiPath() + 'api/get-unread-conversations.php';
+    
+    fetch(apiPath)
+        .then(response => {
+            if (!response.ok) {
+                console.warn('⚠️ API response not OK:', response.status, apiPath);
+                return null;
+            }
+            return response.json();
+        })
         .then(data => {
+            if (!data) return; // Skip if response was not OK
+            
             if (data.count !== undefined) {
-                let badge = liElement.querySelector('.notification-badge');
+                // 🔥 XÓA TẤT CẢ badges cũ (bao gồm cả PHP-rendered badge)
+                const oldBadges = liElement.querySelectorAll('.notification-badge');
+                oldBadges.forEach(b => b.remove());
                 
+                // 🔥 CHỈ TẠO badge mới nếu có unread
                 if (data.count > 0) {
-                    if (!badge) {
-                        badge = document.createElement('span');
-                        badge.className = 'notification-badge';
-                        badge.style.cssText = 'position: absolute; top: -5px; right: -10px; background: #ef4444; color: white; border-radius: 10px; padding: 2px 6px; font-size: 0.7rem; font-weight: 700; min-width: 18px; text-align: center;';
-                        liElement.appendChild(badge);
-                    }
+                    const badge = document.createElement('span');
+                    badge.className = 'notification-badge';
+                    badge.id = 'chat-navbar-badge'; // 🔥 THÊM ID để dễ track
+                    badge.style.cssText = 'position: absolute; top: -5px; right: -10px; background: #ef4444; color: white; border-radius: 10px; padding: 2px 6px; font-size: 0.7rem; font-weight: 700; min-width: 18px; text-align: center;';
                     badge.textContent = data.count > 99 ? '99+' : data.count;
+                    liElement.appendChild(badge);
+                    console.log('✅ Polling updated navbar badge:', data.count);
                 } else {
-                    if (badge) {
-                        badge.remove();
-                    }
+                    console.log('📭 No unread messages, badge removed');
                 }
             }
         })
-        .catch(error => console.error('Error fetching unread count:', error));
+        .catch(error => console.error('❌ Error fetching unread count:', error));
 }
 
-// Start polling when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    // Initial update
-    updateNavbarBadgePolling();
+// 🔥 HÀM MỚI: Lấy path động dựa vào vị trí trang hiện tại
+function getApiPath() {
+    const path = window.location.pathname;
     
-    // Poll every 2 seconds
-    setInterval(updateNavbarBadgePolling, 2000);
-});
+    // Nếu ở root (index.php)
+    if (path === '/' || path.endsWith('/index.php') || !path.includes('/Views/')) {
+        return '';
+    }
+    
+    // Nếu ở trong Views/ (đếm số cấp thư mục)
+    const viewsIndex = path.indexOf('/Views/');
+    if (viewsIndex !== -1) {
+        const afterViews = path.substring(viewsIndex + '/Views/'.length);
+        const depth = afterViews.split('/').filter(p => p && !p.endsWith('.php')).length;
+        return '../'.repeat(depth + 1);
+    }
+    
+    // Fallback
+    return '../../';
+}
 
 // =============================================
 // NOTIFICATION SYSTEM

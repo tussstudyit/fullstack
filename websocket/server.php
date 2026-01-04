@@ -297,13 +297,14 @@ $server = IoServer::factory(
 );
 
 echo "\n╔════════════════════════════════════════════════════════╗\n";
-echo "║     CHAT REALTIME ĐÃ KHỞI ĐỘNG THÀNH CÔNG 🚀          ║\n";
+echo "║     CHAT REALTIME ĐÃ KHỞI ĐỘNG THÀNH CÔNG 🚀           ║\n";
 echo "║                                                        ║\n";
 echo "║  WebSocket:  ws://localhost:8080                       ║\n";
-echo "║  HTTP:       http://localhost:3000                    ║\n";
+echo "║  HTTP:       http://localhost:3000                     ║\n";
 echo "║  Status:     🟢 RUNNING                                ║\n";
 echo "║                                                        ║\n";
-echo "║  Mở http://localhost:3000 và chat thử 2 tab ngay!     ║\n";
+echo "║  Mở http://localhost:3000 và chat thử 2 tab ngay!      ║\n";
+echo "║                                                        ║\n";
 echo "╚════════════════════════════════════════════════════════╝\n\n";
 
 $server->run();
