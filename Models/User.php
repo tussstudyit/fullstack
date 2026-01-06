@@ -8,10 +8,8 @@ class User {
     public function __construct() {
         $this->db = getDB();
     }
-
-    /**
-     * Tìm user theo ID
-     */
+    /********************/
+    /*Tìm user theo ID*/
     public function findById($id) {
         try {
             $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE id = ?");
@@ -23,9 +21,7 @@ class User {
         }
     }
 
-    /**
-     * Tìm user theo email
-     */
+    /*Tìm user theo email*/
     public function findByEmail($email) {
         try {
             $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE email = ?");
@@ -37,9 +33,7 @@ class User {
         }
     }
 
-    /**
-     * Tìm user theo username
-     */
+    /*Tìm user theo username*/
     public function findByUsername($username) {
         try {
             $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE username = ?");
@@ -51,9 +45,7 @@ class User {
         }
     }
 
-    /**
-     * Tìm user theo số điện thoại
-     */
+    /*Tìm user theo số điện thoại*/
     public function findByPhone($phone) {
         try {
             $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE phone = ?");
@@ -65,9 +57,7 @@ class User {
         }
     }
 
-    /**
-     * Tìm user theo email, username hoặc số điện thoại
-     */
+    /*Tìm user theo email, username hoặc số điện thoại*/
     public function findByEmailOrUsernameOrPhone($credential) {
         try {
             $stmt = $this->db->prepare("
@@ -83,9 +73,8 @@ class User {
         }
     }
 
-    /**
-     * Đăng ký user mới
-     */
+    /********************/
+    /*Đăng ký user mới*/
     public function register($data) {
         try {
             // Kiểm tra email tồn tại
@@ -129,12 +118,10 @@ class User {
         }
     }
 
-    /**
-     * Đăng nhập user bằng email, username hoặc số điện thoại
-     */
+    /********************/
+    /*Đăng nhập user bằng email, username hoặc số điện thoại*/
     public function login($credential, $password) {
         try {
-            // Tìm user theo email, username hoặc số điện thoại
             $user = $this->findByEmailOrUsernameOrPhone($credential);
 
             if (!$user) {
@@ -170,7 +157,7 @@ class User {
 
             return [
                 'success' => false, 
-                'message' => 'Mật khẩu không đúng',
+                'message' => 'Mật khẩu không đúng, vui lòng thử lại',
                 'errorType' => 'password_wrong'
             ];
         } catch (PDOException $e) {
@@ -179,9 +166,8 @@ class User {
         }
     }
 
-    /**
-     * Cập nhật profile user
-     */
+    /******************/
+    /*Cập nhật profile user*/
     public function updateProfile($id, $data) {
         try {
             $fields = [];
@@ -217,9 +203,8 @@ class User {
         }
     }
 
-    /**
-     * Đổi mật khẩu
-     */
+    /*************/
+    /*Đổi mật khẩu*/
     public function changePassword($id, $oldPassword, $newPassword) {
         try {
             $user = $this->findById($id);
@@ -247,9 +232,7 @@ class User {
         }
     }
 
-    /**
-     * Lấy danh sách users (admin)
-     */
+    /*Lấy danh sách users (admin)*/
     public function getAllUsers($limit = 10, $offset = 0) {
         try {
             $stmt = $this->db->prepare("
@@ -265,9 +248,7 @@ class User {
         }
     }
 
-    /**
-     * Đếm tổng users
-     */
+    /*Đếm tổng users*/
     public function countAll() {
         try {
             $stmt = $this->db->query("SELECT COUNT(*) as total FROM {$this->table}");

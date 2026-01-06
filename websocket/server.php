@@ -293,7 +293,7 @@ class Chat implements MessageComponentInterface {
 // ĐÚNG CÁCH GỌI CHO RATCHET 0.4 - Factory() TỰ ĐỘNG TẠO LOOP
 $server = IoServer::factory(
     new HttpServer(new WsServer(new Chat())),
-    8080        // chỉ cần truyền cổng
+    8080        
 );
 
 echo "\n╔════════════════════════════════════════════════════════╗\n";

@@ -6,8 +6,6 @@ define('DB_PASS', '');
 
 define('SITE_URL', 'http://localhost:3000');
 define('SITE_NAME', 'Tìm Trọ Sinh Viên');
-
-// Base path for includes and navigation
 define('BASE_PATH', '/');
 
 define('UPLOAD_DIR', __DIR__ . '/uploads/');

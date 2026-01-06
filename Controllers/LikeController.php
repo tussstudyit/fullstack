@@ -76,7 +76,7 @@ class LikeController {
     }
 
     /**
-     * Get likes count for a post
+     * Lấy só like của bài viết
      */
     public function getLikesCount() {
         $post_id = isset($_GET['post_id']) ? (int)$_GET['post_id'] : 0;
@@ -101,7 +101,7 @@ class LikeController {
     }
 
     /**
-     * Check if user liked a post
+     * Kiểm tra người dùng đã like bài viết chưa
      */
     public function checkLike() {
         if (!isLoggedIn()) {

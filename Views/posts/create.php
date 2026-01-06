@@ -796,23 +796,22 @@ if ($postId) {
         let currentStep = 1;
         const totalSteps = 5;
 
-        /**
-         * Validate giá tiền: chặn nhập vượt quá số tiền tối đa
-         */
+
+        /* Hàm chặn input vượt giá trị  */
         function validatePriceInput() {
             const priceInput = document.getElementById('price');
             const maxPrice = 10000000;
 
             priceInput.addEventListener('change', function() {
-                const value = parseInt(this.value) || 0;
+                const value = parseFloat(this.value) || 0;
                 if (value > maxPrice) {
-                    showNotification(`Giá thuê không được vượt quá ${maxPrice.toLocaleString('vi-VN')} VNĐ`, 'error');
+                    showNotification(`Giá thuê không được vượt quá ${maxPrice.toLocaleString()} VNĐ`, 'error');
                     this.value = maxPrice;
                 }
             });
 
             priceInput.addEventListener('input', function() {
-                const value = parseInt(this.value) || 0;
+                const value = parseFloat(this.value) || 0;
                 if (value > maxPrice) {
                     this.style.borderColor = '#dc2626';
                 } else {
@@ -821,51 +820,7 @@ if ($postId) {
             });
         }
 
-        function validateElectric_priceInput(){
-            const electric_priceInput = document.getElementById('electric_price');
-            const maxElectric_price = 4500;
-
-            electric_priceInput.addEventListener('change', function() {
-                const value = parseInt(this.value) || 0;
-                if (value > maxElectric_price) {
-                    showNotification(`Giá điện không được vượt quá ${maxElectric_price.toLocaleString('vi-VN')} đ/kWh`, 'error');
-                    this.value = maxElectric_price;
-                }
-            });
-
-            electric_priceInput.addEventListener('input', function() {
-                const value = parseInt(this.value) || 0;
-                if (value > maxElectric_price) {
-                    this.style.borderColor = '#dc2626';
-                } else {
-                    this.style.borderColor = '';
-                }
-            });
-        }
-
-        function validateWater_priceInput(){
-            const water_priceInput = document.getElementById('water_price');
-            const maxWater_price = 50000;
-
-            water_priceInput.addEventListener('change', function() {
-                const value = parseInt(this.value) || 0;
-                if (value > maxWater_price) {
-                    showNotification(`Giá nước không được vượt quá ${maxWater_price.toLocaleString('vi-VN')} đ/người/tháng`, 'error');
-                    this.value = maxWater_price;
-                }
-            });
-
-            water_priceInput.addEventListener('input', function() {
-                const value = parseInt(this.value) || 0;
-                if (value > maxWater_price) {
-                    this.style.borderColor = '#dc2626';
-                } else {
-                    this.style.borderColor = '';
-                }
-            });
-        }
-
-        function validateAreaInput() {
+        function vaiidateAreaInput() {
             const areaInput = document.getElementById('area');
             const maxArea = 30;
 
@@ -887,11 +842,77 @@ if ($postId) {
             });
         }
 
-        // Initialize price and area validation
+        function validateDeposit_amountInput() {
+            const depositAmountInput = document.getElementById('deposit_amount');
+            const maxDepositAmount = 10000000;
+
+            depositAmountInput.addEventListener('change', function() {
+                const value = parseFloat(this.value) || 0;
+                if (value > maxDepositAmount) {
+                    showNotification(`Tiền cọc không được vượt quá ${maxDepositAmount.toLocaleString()} VNĐ`, 'error');
+                    this.value = maxDepositAmount;
+                }
+            });
+
+            depositAmountInput.addEventListener('input', function() {
+                const value = parseFloat(this.value) || 0;
+                if (value > maxDepositAmount) {
+                    this.style.borderColor = '#dc2626';
+                } else {
+                    this.style.borderColor = '';
+                }
+            });
+        }
+
+        function validateEelectric_priceInput() {
+            const electricPriceInput = document.getElementById('electric_price');
+            const maxElectricPrice = 4500;
+
+            electricPriceInput.addEventListener('change', function() {
+                const value = parseFloat(this.value) || 0;
+                if (value > maxElectricPrice) {
+                    showNotification(`Giá điện không được vượt quá ${maxElectricPrice} đ/kWh`, 'error');
+                    this.value = maxElectricPrice;
+                }
+            });
+
+            electricPriceInput.addEventListener('input', function() {
+                const value = parseFloat(this.value) || 0;
+                if (value > maxElectricPrice) {
+                    this.style.borderColor = '#dc2626';
+                } else {
+                    this.style.borderColor = '';
+                }
+            });
+        }
+
+        function validateWater_priceInput(){
+            const waterPriceInput = document.getElementById('water_price');
+            const maxWaterPrice = 50000;
+
+            waterPriceInput.addEventListener('change', function() {
+                const value = parseFloat(this.value) || 0;
+                if (value > maxWaterPrice) {
+                    showNotification(`Giá nước không được vượt quá ${maxWaterPrice} đ/người/tháng`, 'error');
+                    this.value = maxWaterPrice;
+                }
+            });
+
+            waterPriceInput.addEventListener('input', function() {
+                const value = parseFloat(this.value) || 0;
+                if (value > maxWaterPrice) {
+                    this.style.borderColor = '#dc2626';
+                } else {
+                    this.style.borderColor = '';
+                }
+            });
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
             if (document.getElementById('price')) validatePriceInput();
-            if (document.getElementById('area')) validateAreaInput();
-            if (document.getElementById('electric_price')) validateElectric_priceInput();
+            if (document.getElementById('area')) vaiidateAreaInput();
+            if (document.getElementById('deposit_amount')) validateDeposit_amountInput();
+            if (document.getElementById('electric_price')) validateEelectric_priceInput();
             if (document.getElementById('water_price')) validateWater_priceInput();
         });
 
