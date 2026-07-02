@@ -1,203 +1,311 @@
-# WEB TÌM TRỌ CHO SINH VIÊN
+# 🏠 WEB TÌM TRỌ CHO SINH VIÊN
 
-Hệ thống tìm kiếm và quản lý phòng trọ dành cho sinh viên với 3 vai trò: Admin, Người cho thuê, Người thuê.
+Hệ thống tìm kiếm và quản lý phòng trọ online dành cho sinh viên với các tính năng:
+- 🔐 Xác thực & Phân quyền (Admin, Chủ trọ, Người thuê)
+- 📝 Quản lý bài đăng cho thuê với hình ảnh đa phương tiện
+- ⭐ Bình luận lồng nhau & Đánh giá sao
+- 💬 Chat realtime với WebSocket
+- ❤️ Danh sách yêu thích
+- 🔔 Hệ thống thông báo
+
+---
+
+## � Yêu cầu hệ thống
+
+| Thành phần | Phiên bản |
+|-----------|---------|
+| **PHP** | 7.4+ (khuyến nghị 8.0+) |
+| **MySQL** | 5.7+ hoặc MariaDB 10.2+ |
+| **Composer** | 2.0+ |
+| **Node.js** (tuỳ chọn) | 14+ |
+| **XAMPP/WAMP/MAMP** | Bất kỳ phiên bản gần đây |
+
+---
+
+## 🚀 Hướng dẫn cài đặt
+
+### **Bước 1: Clone hoặc tải project**
+
+```bash
+# Hoặc tải file ZIP, sau đó extract vào thư mục
+cd d:\baitapcuoiky\fullstack
+```
+
+### **Bước 2: Cài đặt Dependencies (Composer)**
+
+```bash
+cd d:\baitapcuoiky\fullstack
+composer install
+```
+
+**Nếu chưa cài Composer:**
+- Tải từ: https://getcomposer.org/download/
+
+### **Bước 3: Tạo Database**
+
+**Cách A: Sử dụng MySQL Command Line**
+
+```bash
+# Mở Terminal/CMD
+mysql -u root -p
+mysql> source database.sql
+
+# Hoặc (nếu MySQL password rỗng)
+mysql -u root fullstack < database.sql
+```
+
+**Cách B: Sử dụng phpMyAdmin (Giao diện)**
+1. Mở http://localhost/phpmyadmin
+2. Tạo database `fullstack`
+3. Import file `database.sql` vào database
+
+### **Bước 4: Kiểm tra Config Database**
+
+Mở file [config.php](config.php) và xác nhận:
+
+```php
+define('DB_HOST', 'localhost');   // ✓ MySQL host
+define('DB_NAME', 'fullstack');   // ✓ Database name
+define('DB_USER', 'root');        // Sửa nếu username khác
+define('DB_PASS', '');            // Nhập password nếu có
+```
+
+---
+
+## ▶️ Cách chạy project
+
+### **Cách 1: Chạy file start-chat.bat (⭐ Dễ nhất)**
+
+**Windows:**
+```bash
+D:\baitapcuoiky\fullstack\start-chat.bat
+```
+
+File này sẽ tự động:
+- ✅ Khởi động PHP Server trên `http://localhost:3000`
+- ✅ Khởi động WebSocket Server trên `ws://localhost:8080`
+
+### **Cách 2: Chạy thủ công (2 Terminal)**
+
+**Terminal 1 - Web Server:**
+```bash
+cd d:\baitapcuoiky\fullstack
+php -S localhost:3000
+```
+
+**Terminal 2 - WebSocket Server:**
+```bash
+cd d:\baitapcuoiky\fullstack
+php websocket/server.php
+```
+
+### **Cách 3: Sử dụng XAMPP Apache** (Tuỳ chọn)
+
+1. Copy toàn bộ folder `fullstack` vào `C:\xampp\htdocs\`
+2. Mở XAMPP Control Panel
+3. Click `Start` cho **Apache** và **MySQL**
+4. Truy cập: http://localhost/fullstack/
+
+---
+
+## 📍 Truy cập ứng dụng
+
+Sau khi chạy, mở trình duyệt:
+
+```
+URL: http://localhost:3000
+```
+
+### 🔓 Tài khoản TEST
+
+| Vai trò | Username | Password | Chức năng |
+|--------|----------|----------|----------|
+| Người Thuê | `tenant1` | `123456` | Tìm kiếm, yêu thích, bình luận, chat |
+| Chủ Trọ | `landlord1` | `123456` | Đăng bài, quản lý bài đăng, chat |
+| Admin | `admin` | `123456` | Quản lý hệ thống, dashboard |
+
+---
+
+## ⚙️ Ports sử dụng
+
+| Port | Dịch vụ |
+|------|--------|
+| **3000** | Web Server (PHP) |
+| **3306** | MySQL Database |
+| **8080** | WebSocket Server (Chat Realtime) |
+| **80** | Apache (nếu dùng XAMPP) |
+
+---
+
+## 🔧 Xử lý sự cố
+
+### ❌ Lỗi: `'php' is not recognized`
+
+**Nguyên nhân:** PHP chưa được thêm vào PATH
+
+**Cách fix:**
+```bash
+# Thêm PHP vào PATH hệ thống
+setx PATH "%PATH%;C:\xampp\php"
+
+# Sau đó đóng Terminal cũ, mở Terminal mới
+php --version
+```
+
+### ❌ Lỗi: `Database connection failed`
+
+**Kiểm tra:**
+1. MySQL server đang chạy?
+   ```bash
+   mysql -u root -p
+   ```
+2. Database `fullstack` tồn tại?
+   ```bash
+   mysql> SHOW DATABASES;
+   ```
+3. Config.php có đúng không?
+   ```bash
+   # Chạy script kiểm tra
+   php check-db-sync.php
+   ```
+
+### ❌ Lỗi: `WebSocket connection failed`
+
+1. Kiểm tra port 8080 không bị chiếm:
+   ```bash
+   netstat -ano | findstr :8080
+   ```
+2. WebSocket server có đang chạy không?
+   - Terminal WebSocket có chạy `php websocket/server.php`?
+
+### ❌ Lỗi: Composer install thất bại
+
+```bash
+# Xóa composer.lock và vendor folder, cài lại
+rm -r vendor
+rm composer.lock
+composer install
+```
+
+---
+
+## 📁 Cấu trúc dự án
+
+```
+fullstack/
+├── index.php                    # Entry point chính
+├── config.php                   # ⚙️ Cấu hình database & site
+├── router.php                   # 🔀 Định tuyến URL
+├── helpers.php                  # 🛠️ Hàm tiện ích
+│
+├── api/                         # 📡 REST API endpoints
+│   ├── chat.php
+│   ├── comments.php
+│   ├── user.php
+│   └── ...
+│
+├── Controllers/                 # 🎮 Logic xử lý
+│   ├── AuthController.php
+│   ├── PostController.php
+│   └── ...
+│
+├── Models/                      # 💾 Data layer
+│   ├── User.php
+│   ├── Post.php
+│   └── ...
+│
+├── Views/                       # 🎨 Templates (HTML)
+│   ├── home/
+│   ├── posts/
+│   ├── auth/
+│   └── ...
+│
+├── websocket/
+│   └── server.php              # 💬 WebSocket server
+│
+├── assets/
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       ├── main.js
+│       └── notifications.js
+│
+├── uploads/                     # 📸 Avatar & images
+│   ├── avatars/
+│   └── messages/
+│
+├── vendor/                      # 📦 Composer packages
+│
+├── database.sql                 # 📊 SQL schema
+├── composer.json                # 📋 Dependencies
+└── README.md                    # 📖 File này
+```
+
+---
 
 ## 🔧 Công nghệ sử dụng
 
-### Backend
-- **PHP 7.4+** - Server-side programming language
-- **MySQL 5.7+ / MariaDB 10.2+** - Relational database management system
-- **PDO (PHP Data Objects)** - Database abstraction layer with prepared statements
-- **Composer** - Dependency manager for PHP
-- **Ratchet WebSocket** (cboden/ratchet) - Real-time chat with WebSocket support
-- **bcrypt** - Password hashing algorithm for security
-- **React PHP** - Async I/O for WebSocket server
+### **Backend**
+- **PHP 7.4+** - Server-side language
+- **MySQL 5.7+ / MariaDB** - Database
+- **PDO** - Database abstraction layer
+- **Composer** - Dependency manager
+- **Ratchet WebSocket** - Real-time chat
+- **bcrypt** - Password hashing
 
-### Frontend
-- **HTML5** - Semantic markup
-- **CSS3** - Modern styling features
-  - CSS Grid & Flexbox - Layout system
-  - CSS Variables - Theme management
-  - Media Queries - Responsive design
-- **JavaScript (ES6+)** - Vanilla JavaScript (no frameworks)
-  - Fetch API - Asynchronous HTTP requests
-  - WebSocket API - Real-time communication
-  - DOM Manipulation - Dynamic UI updates
-- **Font Awesome 6.4.0** - Comprehensive icon library
-- **Google Fonts** - Web typography (Dancing Script font)
+### **Frontend**
+- **HTML5** - Markup
+- **CSS3** - Styling (Grid, Flexbox, Variables)
+- **JavaScript ES6+** - Vanilla JS (no framework)
+- **Fetch API** - AJAX requests
+- **WebSocket API** - Real-time communication
+- **Font Awesome 6.4.0** - Icons
 
-### Server & Infrastructure
-- **Apache 2.4** - Web server with mod_rewrite
-- **.htaccess** - URL rewriting for clean routing
-- **WebSocket Server** - Ratchet on port 8080 for real-time chat
-- **PHP Sessions** - Session management and authentication
-- **File Upload** - Avatar and image storage (`uploads/` folder)
-
-### Database
-- **InnoDB Engine** - Transaction support & ACID compliance
-- **PDO Prepared Statements** - SQL injection prevention
-- **Foreign Keys** - Referential integrity
-- **Database Indexes** - Query optimization
-- **Schema Tables:**
-  - users (login, role, avatar)
-  - posts (listing management)
-  - post_images (image storage)
-  - comments (user reviews & ratings)
-  - favorites (bookmarks)
-  - likes (post likes)
-  - conversations & messages (real-time chat)
-  - notifications (user notifications)
-
-### Architecture & Design Patterns
-- **MVC (Model-View-Controller)** - Clean separation of concerns
-  - `Models/` - Data layer & business logic
-  - `Views/` - Template layer (PHP files)
-  - `Controllers/` - Request handlers & routing
-- **RESTful API** - API endpoints in `api/` folder
-- **Repository Pattern** - Database abstraction
-- **Session-based Authentication** - Secure user authentication
-- **File Structure:**
-  - `config.php` - Database & environment config
-  - `router.php` - URL routing
-  - `helpers.php` - Utility functions
-  - `websocket/server.php` - WebSocket server implementation
-
-### Development Tools & Environment
-- **Git** - Version control
-- **GitHub** - Code hosting & collaboration
-- **VS Code** - Recommended code editor
-- **XAMPP/WAMP/MAMP** - Local development environment
-- **phpMyAdmin** - Database management UI
-- **Composer** - Package management and autoloading
-- **Port Configuration:**
-  - 80/443 - Web server (Apache)
-  - 8080 - WebSocket server (Ratchet)
-  - 3306 - MySQL database
+### **Architecture**
+- **MVC Pattern** - Models, Views, Controllers
+- **RESTful API** - Clean endpoints
+- **Session-based Auth** - User authentication
 - **RBAC** - Role-based access control
 
+---
 
-### Security
-- **Password Hashing** - bcrypt with cost factor 10
-- **SQL Injection Prevention** - PDO prepared statements
-- **XSS Protection** - htmlspecialchars() sanitization
-- **CSRF Protection** - Session token validation
-- **File Upload Validation** - Type, size, and extension checks
-- **Input Sanitization** - Filter and validate user inputs
+## ✨ Tính năng chính
 
-### Libraries & Dependencies (Composer)
-```json
-{
-  "cboden/ratchet": "^0.4",           // WebSocket server
-  "guzzlehttp/psr7": "^2.0",          // HTTP message interfaces
-  "symfony/http-foundation": "^6.0",  // HTTP abstraction
-  "symfony/routing": "^6.0"           // URL routing
-}
-```
+- ✅ **Xác thực & Phân quyền** - 3 vai trò (Admin, Chủ trọ, Người thuê)
+- ✅ **Quản lý bài đăng** - Tạo, sửa, xóa bài cho thuê
+- ✅ **Upload ảnh đa phương tiện** - Drag & drop, preview
+- ✅ **Bình luận lồng nhau** - Nested comments không giới hạn
+- ✅ **Đánh giá sao** - Rating 1-5 sao
+- ✅ **Like/Favorite** - Yêu thích bài đăng
+- ✅ **Chat realtime** - WebSocket connection
+- ✅ **Thông báo** - Notification system
+- ✅ **Dashboard Admin** - Quản lý hệ thống
+- ✅ **Responsive Design** - Mobile-friendly
 
-### Browser Compatibility
-- ✅ Chrome 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Edge 90+
-- ✅ Mobile browsers (iOS Safari, Chrome Mobile)
+---
 
-## 📋 Tính năng
+## 🔐 Security
 
-### ✅ Chức năng đã hoàn thành
+- 🔒 Password hashing với bcrypt
+- 🔒 PDO prepared statements (SQL injection prevention)
+- 🔒 Session-based authentication
+- 🔒 Input sanitization & validation
+- 🔒 File upload validation
 
-#### 🔐 Xác thực & Phân quyền
-- ✓ Đăng ký tài khoản (Người cho thuê, Người thuê, Admin)
-- ✓ Đăng nhập với session management
-- ✓ Phân quyền 3 vai trò: Admin, Landlord (Chủ trọ), Tenant (Người thuê)
-- ✓ Auto-login sau khi đăng ký thành công
-- ✓ Đăng xuất an toàn
-- ✓ Quản lý avatar người dùng
+---
 
-#### 📝 Quản lý bài đăng (Posts)
-- ✓ Tạo bài đăng cho thuê với mô tả chi tiết
-- ✓ Upload nhiều hình ảnh cho một bài đăng (async upload)
-- ✓ Cập nhật (edit) bài đăng đã tạo
-- ✓ Xóa bài đăng (chỉ chủ sở hữu)
-- ✓ Xem danh sách bài đăng của cá nhân (My Posts)
-- ✓ Xem chi tiết bài đăng với full thông tin
-- ✓ URL thân thiện (slug-based): `Views/posts/detail.php?slug=phong-tro-gan-viet-han`
-- ✓ Tự động tạo slug từ tiêu đề (hỗ trợ tiếng Việt)
-- ✓ Đảm bảo slug duy nhất (append số nếu trùng)
-- ✓ Hỗ trợ backward compatibility với ID cũ (tự redirect)
-- ✓ Like/Unlike bài đăng (post_likes)
-- ✓ Thống kê lượt xem (views counter)
+## 📞 Liên hệ & Support
 
-#### 🖼️ Xử lý ảnh
-- ✓ Upload ảnh đơn lẫn multiple (drag-drop, click to upload)
-- ✓ Preview ảnh trước khi upload
-- ✓ Xóa ảnh khỏi bài đăng
-- ✓ Lưu trữ tệp ảnh trong thư mục uploads
-- ✓ Hiển thị ảnh theo thứ tự trong chi tiết bài đăng
-- ✓ Upload và quản lý avatar người dùng
-- ✓ Hiển thị avatar trong comments và navigation
+- **Tác giả:** tussstudyit
+- **Email:** nguyendt.24it@vku.udn.vn
 
-#### ⭐ Bình luận & Phản hồi (Comments)
-- ✓ Bình luận trên bài đăng
-- ✓ Hệ thống phản hồi lồng nhau (nested replies) - không giới hạn độ sâu
-- ✓ Bất kỳ người dùng đã đăng nhập đều có thể phản hồi bình luận khác
-- ✓ Hiển thị thông tin tác giả bình luận (avatar, tên, vai trò)
-- ✓ Xóa bình luận (chỉ tác giả)
-- ✓ Xem thời gian bình luận
-- ✓ Responsive nested UI với indentation rõ ràng
-- ✓ Đánh giá sao (rating) cho bài đăng
+---
 
-#### 👍 Bình chọn bình luận (Comment Voting)
-- ✓ Upvote/Downvote bình luận
-- ✓ Theo dõi lịch sử bình chọn của từng người dùng
-- ✓ Hiển thị tổng số upvote/downvote
-- ✓ Highlight trạng thái bình chọn hiện tại của user
-- ✓ Lưu trữ bình chọn trong database (comment_votes)
+## 📄 License
 
-#### ❤️ Danh sách yêu thích (Favorites)
-- ✓ Thêm/xóa bài đăng vào yêu thích
-- ✓ Xem danh sách tất cả bài yêu thích
-- ✓ Hiển thị icon/status yêu thích trên listing posts
-- ✓ Đồng bộ trạng thái yêu thích trên tất cả trang (index, list, detail)
-- ✓ Icon heart màu đỏ với animation
+Dự án này được tạo cho mục đích học tập.
 
-#### 👤 Quản lý hồ sơ (Profile)
-- ✓ Xem thông tin cá nhân
-- ✓ Cập nhật thông tin hồ sơ (tên, email, số điện thoại, địa chỉ, mô tả)
-- ✓ Quản lý chi tiết tài khoản
-- ✓ Upload và thay đổi avatar
-- ✓ User dropdown menu với avatar
-
-#### 🔔 Thông báo (Notifications)
-- ✓ Hệ thống thông báo cho người dùng
-- ✓ Xem danh sách thông báo
-- ✓ Đánh dấu thông báo là đã đọc
-- ✓ Notification bell với badge số lượng chưa đọc
-- ✓ Dropdown thông báo realtime
-- ✓ Các loại thông báo: comment, reply, rating, post_like, post_approved, post_rejected, message, system
-- ✓ Icon phân biệt: thumbs-up cho like, heart cho favorite
-
-#### 📊 Dashboard Admin
-- ✓ Xem tổng số bài đăng, người dùng
-- ✓ Quản lý danh sách bài đăng (view, delete spam posts)
-- ✓ Quản lý danh sách người dùng
-- ✓ Xem báo cáo/reports từ người dùng
-- ✓ Thống kê tổng quan hệ thống
-
-#### 🎨 Giao diện & UX
-- ✓ Carousel hero section với gradient overlay cho text
-- ✓ Custom 404 Error Page (Views/404/404.html)
-  - Animated house icon với bounce effect
-  - Floating house emojis
-  - Ripple effect trên nút
-  - Mouse parallax interaction
-  - Responsive design
-- ✓ Responsive design cho mobile/tablet/desktop
-- ✓ Color scheme nhất quán (red cho favorite, blue cho like, green cho contact)
-- ✓ Navigation menu với avatar dropdown
-- ✓ Notification dropdown với realtime updates
-- ✓ Smooth animations và transitions
-
-#### 📌 Tìm kiếm & Lọc
+**Last Updated:** 2026-07-03
 - ✓ Tìm kiếm bài đăng theo từ khóa
 - ✓ Lọc theo địa điểm (quận/huyện)
 - ✓ Lọc theo khoảng giá

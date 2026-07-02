@@ -2,7 +2,6 @@
 -- DATABASE SCHEMA FOR WEB TÌM TRỌ CHO SINH VIÊN
 -- =============================================
 
-DROP DATABASE IF EXISTS fullstack;
 CREATE DATABASE fullstack CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE fullstack;
 
